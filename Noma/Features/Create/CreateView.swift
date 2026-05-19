@@ -43,6 +43,7 @@ struct CreateView: View {
     @State var reminders: [CreateReminder] = []
     @State var projects: [TaskProject] = []
     @State var selectedProjectID: TaskProject.ID?
+    @State var editingReminderID: CreateReminder.ID?
     @State var isKeyboardPresented = false
     @State var isProjectSheetPresented = false
     @State var isUnlockMoreSheetPresented = false
@@ -91,6 +92,9 @@ struct CreateView: View {
         }
         .task {
             loadDailyGroup()
+        }
+        .onChange(of: message) { _, draftText in
+            resetEditingIfDraftWasCleared(draftText)
         }
         .toolbarTitleDisplayMode(.inline)
         .toolbar { createToolbar }

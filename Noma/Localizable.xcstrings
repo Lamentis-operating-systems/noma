@@ -38,23 +38,6 @@
         }
       }
     },
-    "create.ai-generating.task-organization" : {
-      "comment" : "Animated status shown while the on-device AI organizes the current task list.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Organisiere deine Aufgaben auf dem Gerät..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Organizing your tasks on-device..."
-          }
-        }
-      }
-    },
     "create.ai-generating.smart-capture" : {
       "comment" : "Animated status shown while the on-device AI cleans up a submitted task.",
       "localizations" : {
@@ -68,6 +51,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Refining your task on-device..."
+          }
+        }
+      }
+    },
+    "create.ai-generating.task-organization" : {
+      "comment" : "Animated status shown while the on-device AI organizes the current task list.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organisiere deine Aufgaben auf dem Gerät..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organizing your tasks on-device..."
           }
         }
       }
@@ -722,6 +722,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add to %@"
+          }
+        }
+      }
+    },
+    "create.tasks.context-menu.edit" : {
+      "comment" : "Context menu action title for editing an existing task.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearbeiten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
           }
         }
       }

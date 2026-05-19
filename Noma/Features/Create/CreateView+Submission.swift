@@ -106,6 +106,11 @@ extension CreateView {
 
     func submitReminder(_ submittedText: String) {
         guard canSubmitReminder else { return }
+        if let editingReminderID {
+            submitEditedReminder(submittedText, editingReminderID: editingReminderID)
+            return
+        }
+
         let originatingDayID = activeDayID
 
         guard subscriptionTier.tier.canUseOnDeviceFoundationModels else {
@@ -216,7 +221,7 @@ extension CreateView {
     }
 
     var canSubmitReminder: Bool {
-        !isSubmittingReminder && subscriptionTier.tier.canAddTask(toGroupWithTaskCount: reminders.count)
+        !isSubmittingReminder && (editingReminderID != nil || subscriptionTier.tier.canAddTask(toGroupWithTaskCount: reminders.count))
     }
 
     func unlockMoreTasks() {
@@ -289,6 +294,10 @@ extension CreateView {
 
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
             _ = reminders.remove(at: index)
+        }
+        if editingReminderID == reminder.id {
+            editingReminderID = nil
+            message = ""
         }
         taskOrganization = nil
         saveCurrentDailyGroup()
@@ -418,6 +427,7 @@ extension CreateView {
                     onUnlockMore: unlockMoreTasks,
                     onSwipeDeleteThreshold: playSwipeDeleteThresholdFeedback,
                     onToggleReminder: toggleReminder,
+                    onEditReminder: beginEditingReminder,
                     onDeleteReminder: deleteReminder,
                     onCompleteCarryForwardReminder: completeCarryForwardReminder
                 )

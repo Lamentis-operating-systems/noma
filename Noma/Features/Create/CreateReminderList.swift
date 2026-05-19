@@ -24,6 +24,10 @@ enum CreateReminderListSection {
     }
 }
 
+enum CreateReminderContextMenuCopy {
+    static let editTitleKey = "create.tasks.context-menu.edit"
+}
+
 enum CreateReminderLimitCalloutLayout {
     static var topPadding: CGFloat { UnlockMoreCalloutLayout.topPadding(after: NomaSpacing.md) }
 }
@@ -191,7 +195,7 @@ struct CreateReminderProjectIcon: View {
 struct CreateReminderRow: View {
     let reminder: CreateReminder
     let project: TaskProject?
-    let onToggle: () -> Void, onDelete: () -> Void, onSwipeDeleteThreshold: () -> Void
+    let onToggle: () -> Void, onEdit: (() -> Void)?, onDelete: () -> Void, onSwipeDeleteThreshold: () -> Void
 
     @State private var swipeOffset: CGFloat = 0
     @State private var isSwipeActive = false
@@ -218,8 +222,18 @@ struct CreateReminderRow: View {
                 onSwipeEnded: finishSwipe
             )
         }
+        .contextMenu {
+            if let onEdit {
+                Button(action: onEdit) {
+                    Label(LocalizedStringKey(CreateReminderContextMenuCopy.editTitleKey), systemImage: "pencil")
+                }
+            }
+        } preview: { CreateReminderContextMenuPreview(reminder: reminder, project: project) }
+        .contentShape(.contextMenuPreview, CreateReminderContextMenuPreviewShape.shape)
     }
+}
 
+private extension CreateReminderRow {
     private var swipeProgress: CGFloat { CreateReminderSwipeAction.progress(for: swipeOffset) }
     private var remainingSwipeProgress: CGFloat { CreateReminderSwipeAction.remainingProgress(for: swipeOffset) }
     private var deleteIconScale: CGFloat {
@@ -282,6 +296,7 @@ struct CreateReminderRows: View {
     let reminders: [CreateReminder]
     let projects: [TaskProject]
     let onToggleReminder: (CreateReminder) -> Void
+    var onEditReminder: ((CreateReminder) -> Void)?
     let onDeleteReminder: (CreateReminder) -> Void
     let onSwipeDeleteThreshold: () -> Void
 
@@ -292,6 +307,7 @@ struct CreateReminderRows: View {
                     reminder: reminder,
                     project: project(for: reminder),
                     onToggle: { onToggleReminder(reminder) },
+                    onEdit: onEditAction(for: reminder),
                     onDelete: { onDeleteReminder(reminder) },
                     onSwipeDeleteThreshold: onSwipeDeleteThreshold
                 )
@@ -309,6 +325,11 @@ struct CreateReminderRows: View {
     private func project(for reminder: CreateReminder) -> TaskProject? {
         guard let projectID = reminder.projectID else { return nil }
         return projects.first { $0.id == projectID }
+    }
+
+    private func onEditAction(for reminder: CreateReminder) -> (() -> Void)? {
+        guard let onEditReminder else { return nil }
+        return { onEditReminder(reminder) }
     }
 }
 
@@ -345,7 +366,7 @@ struct CreateReminderList: View {
     let projects: [TaskProject]
     let tier: SubscriptionTier
     let onUnlockMore: () -> Void, onSwipeDeleteThreshold: () -> Void
-    let onToggleReminder: (CreateReminder) -> Void, onDeleteReminder: (CreateReminder) -> Void
+    let onToggleReminder: (CreateReminder) -> Void, onEditReminder: (CreateReminder) -> Void, onDeleteReminder: (CreateReminder) -> Void
     let onCompleteCarryForwardReminder: (CreateReminder) -> Void
 
     var body: some View {
@@ -362,6 +383,7 @@ struct CreateReminderList: View {
                     reminders: reminders,
                     projects: projects,
                     onToggleReminder: onToggleReminder,
+                    onEditReminder: onEditReminder,
                     onDeleteReminder: onDeleteReminder,
                     onSwipeDeleteThreshold: onSwipeDeleteThreshold
                 )
