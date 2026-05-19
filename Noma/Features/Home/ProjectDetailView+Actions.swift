@@ -24,17 +24,14 @@ extension ProjectDetailView {
 
     func toggleReminder(_ reminder: CreateReminder, inDayID dayID: String) {
         var reminders = dailyTaskGroups.reminders(forDayID: dayID)
-        guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
-        let updatedReminder = reminders[index].togglingCompletion()
-
-        if let feedback = CreateReminderCompletionFeedback.feedback(isCompleted: updatedReminder.isCompleted) {
-            hapticFeedback.play(feedback)
-        }
-
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            reminders[index] = updatedReminder
-            dailyTaskGroups.save(reminders: reminders, forDayID: dayID)
-        }
+        _ = CreateReminderCompletionVisibility.toggleReminderWithCompletionFeedback(
+            reminder,
+            in: &reminders,
+            showsOnlyUnsolved: showsOnlyUnsolvedTasks,
+            visibleIDs: $temporarilyVisibleCompletedReminderIDs,
+            hapticFeedback: hapticFeedback,
+            persist: { dailyTaskGroups.save(reminders: $0, forDayID: dayID) }
+        )
     }
 
     func deleteReminder(_ reminder: CreateReminder, inDayID dayID: String) {
@@ -42,6 +39,7 @@ extension ProjectDetailView {
         guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
 
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            temporarilyVisibleCompletedReminderIDs.remove(reminder.id)
             _ = reminders.remove(at: index)
             dailyTaskGroups.save(reminders: reminders, forDayID: dayID)
         }
@@ -52,7 +50,13 @@ extension ProjectDetailView {
 
         hapticFeedback.play(.createTaskSubmit)
         let groups = dailyTaskGroups.groups
+        let completedReminderIDs = groups.flatMap(\.reminders).compactMap(openProjectReminderID)
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            CreateReminderCompletionVisibility.retainCompletedReminderIDs(
+                completedReminderIDs,
+                isNeeded: showsOnlyUnsolvedTasks,
+                visibleIDs: &temporarilyVisibleCompletedReminderIDs
+            )
             for group in groups {
                 let updatedReminders = group.reminders.map { reminder in
                     reminder.projectID == projectID && !reminder.isCompleted
@@ -62,6 +66,7 @@ extension ProjectDetailView {
                 dailyTaskGroups.save(reminders: updatedReminders, forDayID: group.id)
             }
         }
+        CreateReminderCompletionVisibility.scheduleRemoval(of: completedReminderIDs, isNeeded: showsOnlyUnsolvedTasks, visibleIDs: $temporarilyVisibleCompletedReminderIDs)
     }
 
     func toggleUnsolvedFilter() {
@@ -83,4 +88,9 @@ extension ProjectDetailView {
     func playSwipeDeleteThresholdFeedback() {
         hapticFeedback.play(.createTaskSubmit)
     }
+
+    func openProjectReminderID(_ reminder: CreateReminder) -> CreateReminder.ID? {
+        reminder.projectID == projectID && !reminder.isCompleted ? reminder.id : nil
+    }
+
 }

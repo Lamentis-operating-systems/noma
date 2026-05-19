@@ -67,7 +67,8 @@ extension CreateView {
     var visibleReminders: [CreateReminder] {
         let filteredReminders = CreateReminderListFilter.visibleReminders(
             reminders,
-            showsOnlyUnsolved: showsOnlyUnsolvedTasks
+            showsOnlyUnsolved: showsOnlyUnsolvedTasks,
+            temporarilyVisibleCompletedReminderIDs: temporarilyVisibleCompletedReminderIDs
         )
         return CreateReminderListOrganization.sortedReminders(
             filteredReminders,
@@ -275,16 +276,16 @@ extension CreateView {
     }
 
     func toggleReminder(_ reminder: CreateReminder) {
-        guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
-        let updatedReminder = reminders[index].togglingCompletion()
+        let didToggle = CreateReminderCompletionVisibility.toggleReminderWithCompletionFeedback(
+            reminder,
+            in: &reminders,
+            showsOnlyUnsolved: showsOnlyUnsolvedTasks,
+            visibleIDs: $temporarilyVisibleCompletedReminderIDs,
+            hapticFeedback: hapticFeedback,
+            persist: { _ in }
+        )
+        guard didToggle else { return }
 
-        if let feedback = CreateReminderCompletionFeedback.feedback(isCompleted: updatedReminder.isCompleted) {
-            hapticFeedback.play(feedback)
-        }
-
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            reminders[index] = updatedReminder
-        }
         taskOrganization = nil
         saveCurrentDailyGroup()
     }
@@ -293,6 +294,7 @@ extension CreateView {
         guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
 
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            temporarilyVisibleCompletedReminderIDs.remove(reminder.id)
             _ = reminders.remove(at: index)
         }
         if editingReminderID == reminder.id {
@@ -311,11 +313,18 @@ extension CreateView {
         guard canCompleteAllReminders else { return }
 
         hapticFeedback.play(.createTaskSubmit)
+        let completedReminderIDs = reminders.filter { !$0.isCompleted }.map(\.id)
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            CreateReminderCompletionVisibility.retainCompletedReminderIDs(
+                completedReminderIDs,
+                isNeeded: showsOnlyUnsolvedTasks,
+                visibleIDs: &temporarilyVisibleCompletedReminderIDs
+            )
             reminders = CreateReminderBatchCompletion.completingAll(reminders)
         }
         taskOrganization = nil
         saveCurrentDailyGroup()
+        CreateReminderCompletionVisibility.scheduleRemoval(of: completedReminderIDs, isNeeded: showsOnlyUnsolvedTasks, visibleIDs: $temporarilyVisibleCompletedReminderIDs)
     }
 
     func toggleUnsolvedFilter() {
@@ -405,7 +414,7 @@ extension CreateView {
 
         saveCurrentDailyGroup()
         activeDayID = newDayID
-        showsOnlyUnsolvedTasks = false
+        temporarilyVisibleCompletedReminderIDs.removeAll()
         pendingScrollTargetID = nil
         loadDailyGroup()
     }

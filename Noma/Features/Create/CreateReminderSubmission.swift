@@ -166,12 +166,135 @@ enum CreateReminderCompletionFeedback {
 }
 
 enum CreateReminderListFilter {
+    static let completedVisibilityDelayNanoseconds: UInt64 = 700_000_000
+
     static func visibleReminders(
         _ reminders: [CreateReminder],
-        showsOnlyUnsolved: Bool
+        showsOnlyUnsolved: Bool,
+        temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     ) -> [CreateReminder] {
         guard showsOnlyUnsolved else { return reminders }
-        return reminders.filter { !$0.isCompleted }
+        return reminders.filter { reminder in
+            !reminder.isCompleted || temporarilyVisibleCompletedReminderIDs.contains(reminder.id)
+        }
+    }
+
+    static func keepsCompletedReminderTemporarilyVisible(
+        _ reminder: CreateReminder,
+        showsOnlyUnsolved: Bool
+    ) -> Bool {
+        showsOnlyUnsolved && reminder.isCompleted
+    }
+}
+
+enum CreateReminderFilterPreference {
+    static let storageKey = "create.showsOnlyUnsolvedTasks"
+
+    static func isEnabled(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: storageKey)
+    }
+
+    static func setIsEnabled(_ isEnabled: Bool, in defaults: UserDefaults = .standard) {
+        defaults.set(isEnabled, forKey: storageKey)
+    }
+}
+
+enum CreateReminderCompletionVisibility {
+    static func toggleReminder(
+        _ reminder: CreateReminder,
+        in reminders: inout [CreateReminder],
+        showsOnlyUnsolved: Bool,
+        visibleIDs: inout Set<CreateReminder.ID>
+    ) -> (updatedReminder: CreateReminder, keepsVisible: Bool)? {
+        guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return nil }
+
+        let updatedReminder = reminders[index].togglingCompletion()
+        let keepsVisible = updateTemporarilyVisibleCompletedReminderIDs(
+            for: updatedReminder,
+            showsOnlyUnsolved: showsOnlyUnsolved,
+            visibleIDs: &visibleIDs
+        )
+        reminders[index] = updatedReminder
+
+        return (updatedReminder, keepsVisible)
+    }
+
+    @MainActor
+    static func toggleReminderWithCompletionFeedback(
+        _ reminder: CreateReminder,
+        in reminders: inout [CreateReminder],
+        showsOnlyUnsolved: Bool,
+        visibleIDs: Binding<Set<CreateReminder.ID>>,
+        hapticFeedback: HapticFeedbackService,
+        persist: ([CreateReminder]) -> Void
+    ) -> Bool {
+        var keepsVisible = false
+        var updatedReminder: CreateReminder?
+        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            let visibility = toggleReminder(
+                reminder,
+                in: &reminders,
+                showsOnlyUnsolved: showsOnlyUnsolved,
+                visibleIDs: &visibleIDs.wrappedValue
+            )
+            updatedReminder = visibility?.updatedReminder
+            keepsVisible = visibility?.keepsVisible ?? false
+            persist(reminders)
+        }
+        guard let updatedReminder else { return false }
+
+        if let feedback = CreateReminderCompletionFeedback.feedback(isCompleted: updatedReminder.isCompleted) {
+            hapticFeedback.play(feedback)
+        }
+
+        scheduleRemoval(of: [updatedReminder.id], isNeeded: keepsVisible, visibleIDs: visibleIDs)
+        return true
+    }
+
+    static func updateTemporarilyVisibleCompletedReminderIDs(
+        for reminder: CreateReminder,
+        showsOnlyUnsolved: Bool,
+        visibleIDs: inout Set<CreateReminder.ID>
+    ) -> Bool {
+        let isRetained = CreateReminderListFilter.keepsCompletedReminderTemporarilyVisible(
+            reminder,
+            showsOnlyUnsolved: showsOnlyUnsolved
+        )
+
+        if isRetained {
+            visibleIDs.insert(reminder.id)
+        } else {
+            visibleIDs.remove(reminder.id)
+        }
+
+        return isRetained
+    }
+
+    static func retainCompletedReminderIDs(
+        _ reminderIDs: [CreateReminder.ID],
+        isNeeded: Bool,
+        visibleIDs: inout Set<CreateReminder.ID>
+    ) {
+        guard isNeeded else { return }
+        visibleIDs.formUnion(reminderIDs)
+    }
+
+    @MainActor
+    static func scheduleRemoval(
+        of reminderIDs: [CreateReminder.ID],
+        isNeeded: Bool,
+        visibleIDs: Binding<Set<CreateReminder.ID>>
+    ) {
+        guard isNeeded, !reminderIDs.isEmpty else { return }
+
+        Task {
+            try? await Task.sleep(nanoseconds: CreateReminderListFilter.completedVisibilityDelayNanoseconds)
+            await MainActor.run {
+                withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+                    reminderIDs.forEach { visibleIDs.wrappedValue.remove($0) }
+                }
+            }
+        }
     }
 }
 

@@ -54,7 +54,8 @@ struct CreateView: View {
     @State var taskOrganization: CreateReminderAIPlanningResult?
     @State var activeDayID: String
     @State var datePickerSelection: Date
-    @State var showsOnlyUnsolvedTasks = false
+    @AppStorage(CreateReminderFilterPreference.storageKey) var showsOnlyUnsolvedTasks = false
+    @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     @State var pendingScrollTargetID: String?
     @FocusState var isInputFocused: Bool
 

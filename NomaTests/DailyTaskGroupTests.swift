@@ -333,6 +333,35 @@ final class DailyTaskGroupTests: XCTestCase {
         )
     }
 
+    func testCreateReminderFilterTemporarilyKeepsJustCompletedTasksVisible() throws {
+        let completedReminder = CreateReminder(text: "Done", isCompleted: true)
+        let unsolvedReminder = CreateReminder(text: "Open")
+        let reminders = [completedReminder, unsolvedReminder]
+
+        XCTAssertEqual(
+            CreateReminderListFilter.visibleReminders(
+                reminders,
+                showsOnlyUnsolved: true,
+                temporarilyVisibleCompletedReminderIDs: [completedReminder.id]
+            ),
+            reminders
+        )
+    }
+
+    func testCreateReminderFilterPreferencePersistsUnsolvedMode() throws {
+        let suiteName = "NomaTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        XCTAssertFalse(CreateReminderFilterPreference.isEnabled(in: defaults))
+
+        CreateReminderFilterPreference.setIsEnabled(true, in: defaults)
+        XCTAssertTrue(CreateReminderFilterPreference.isEnabled(in: defaults))
+
+        CreateReminderFilterPreference.setIsEnabled(false, in: defaults)
+        XCTAssertFalse(CreateReminderFilterPreference.isEnabled(in: defaults))
+    }
+
     func testCreateReminderOrganizationSortsByHiddenPriorityWithoutChangingTasks() throws {
         let firstID = UUID(uuidString: "00000000-0000-0000-0000-000000000041")!
         let secondID = UUID(uuidString: "00000000-0000-0000-0000-000000000042")!

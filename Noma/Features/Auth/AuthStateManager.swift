@@ -22,7 +22,7 @@ struct AuthSessionSnapshot: Equatable {
         self.init(state: isSignedIn ? .authenticated : .missing, userID: userID)
     }
 
-    var isSignedIn: Bool { state == .authenticated }
+    var isSignedIn: Bool { state != .missing }
     var storageUserID: String? { isSignedIn ? userID : nil }
 
     var rootPhase: AuthRootPhase {
@@ -32,7 +32,7 @@ struct AuthSessionSnapshot: Equatable {
         case .authenticated:
             .signedIn
         case .refreshingExpiredLocalSession:
-            .loading
+            .signedIn
         }
     }
 }

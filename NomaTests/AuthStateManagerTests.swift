@@ -6,16 +6,20 @@ final class AuthStateManagerTests: XCTestCase {
     func testAuthSessionSnapshotMapsToRootPhases() {
         XCTAssertEqual(AuthSessionSnapshot(isSignedIn: false).rootPhase, .signedOut)
         XCTAssertEqual(AuthSessionSnapshot(isSignedIn: true).rootPhase, .signedIn)
-        XCTAssertEqual(AuthSessionSnapshot(state: .refreshingExpiredLocalSession).rootPhase, .loading)
+        XCTAssertEqual(AuthSessionSnapshot(state: .refreshingExpiredLocalSession).rootPhase, .signedIn)
         XCTAssertEqual(AuthSessionSnapshot(isSignedIn: true, userID: "user-1").storageUserID, "user-1")
         XCTAssertNil(AuthSessionSnapshot(isSignedIn: false, userID: "user-1").storageUserID)
+        XCTAssertEqual(
+            AuthSessionSnapshot(state: .refreshingExpiredLocalSession, userID: "user-1").storageUserID,
+            "user-1"
+        )
     }
 
     @MainActor
-    func testAuthStateManagerKeepsExpiredStoredSessionLoadingAtStartup() async {
+    func testAuthStateManagerKeepsExpiredStoredSessionSignedInAtStartup() async {
         let authState = AuthStateManager(
             authClient: StartupAuthClient(
-                initialSnapshot: AuthSessionSnapshot(state: .refreshingExpiredLocalSession),
+                initialSnapshot: AuthSessionSnapshot(state: .refreshingExpiredLocalSession, userID: "stored-user"),
                 streamSnapshots: []
             ),
             appleSignInProvider: StubAppleSignInProvider()
@@ -25,7 +29,8 @@ final class AuthStateManagerTests: XCTestCase {
         authState.start()
         await allowAuthObserverToRun()
 
-        XCTAssertEqual(authState.phase, .loading)
+        XCTAssertEqual(authState.phase, .signedIn)
+        XCTAssertEqual(authState.storageUserID, "stored-user")
     }
 
     @MainActor

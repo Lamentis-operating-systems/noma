@@ -82,7 +82,8 @@ extension ProjectDetailView {
     func visibleReminders(in reminders: [CreateReminder]) -> [CreateReminder] {
         CreateReminderListFilter.visibleReminders(
             reminders,
-            showsOnlyUnsolved: showsOnlyUnsolvedTasks
+            showsOnlyUnsolved: showsOnlyUnsolvedTasks,
+            temporarilyVisibleCompletedReminderIDs: temporarilyVisibleCompletedReminderIDs
         )
     }
 }
