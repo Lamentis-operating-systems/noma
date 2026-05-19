@@ -1,22 +1,33 @@
 import SwiftUI
 
-struct SettingsNotificationsSectionView: View {
+struct SettingsNotificationsView: View {
     @Environment(AppSettingsStore.self) private var appSettings
 
     var body: some View {
-        Section("settings.notifications.section-title") {
-            SettingsNotificationRow(
-                titleKey: "settings.notifications.daily-planning",
-                isEnabled: morningPlanningEnabled,
-                time: morningPlanningTime
-            )
+        Form {
+            Section("settings.notifications.daily-planning") {
+                Toggle("settings.notifications.daily-planning", isOn: morningPlanningEnabled)
 
-            SettingsNotificationRow(
-                titleKey: "settings.notifications.open-tasks",
-                isEnabled: eveningOpenTasksEnabled,
-                time: eveningOpenTasksTime
-            )
+                DatePicker(
+                    "settings.notifications.time",
+                    selection: morningPlanningTime,
+                    displayedComponents: .hourAndMinute
+                )
+                .disabled(!appSettings.notificationSettings.morningPlanning.isEnabled)
+            }
+
+            Section("settings.notifications.open-tasks") {
+                Toggle("settings.notifications.open-tasks", isOn: eveningOpenTasksEnabled)
+
+                DatePicker(
+                    "settings.notifications.time",
+                    selection: eveningOpenTasksTime,
+                    displayedComponents: .hourAndMinute
+                )
+                .disabled(!appSettings.notificationSettings.eveningOpenTasks.isEnabled)
+            }
         }
+        .settingsSubviewNavigation("settings.notifications.section-title")
     }
 
     private var morningPlanningEnabled: Binding<Bool> {
@@ -53,22 +64,5 @@ struct SettingsNotificationsSectionView: View {
                 appSettings.updateNotificationSettings { $0.eveningOpenTasks.updateTime(from: date) }
             }
         )
-    }
-}
-
-private struct SettingsNotificationRow: View {
-    let titleKey: LocalizedStringKey
-    @Binding var isEnabled: Bool
-    @Binding var time: Date
-
-    var body: some View {
-        Toggle(titleKey, isOn: $isEnabled)
-
-        DatePicker(
-            "settings.notifications.time",
-            selection: $time,
-            displayedComponents: .hourAndMinute
-        )
-        .disabled(!isEnabled)
     }
 }

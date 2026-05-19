@@ -6,10 +6,23 @@ struct HomeSettingsSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                SettingsNotificationsSectionView()
-                SettingsAccountSectionView()
-                SettingsPreferencesSectionView()
-                SettingsAppearanceSectionView()
+                Section {
+                    NavigationLink("settings.notifications.section-title") {
+                        SettingsNotificationsView()
+                    }
+
+                    NavigationLink("settings.account.section-title") {
+                        SettingsAccountView()
+                    }
+
+                    NavigationLink("settings.preferences.section-title") {
+                        SettingsPreferencesView()
+                    }
+
+                    NavigationLink("settings.appearance.section-title") {
+                        SettingsAppearanceView()
+                    }
+                }
             }
             .scrollContentBackground(.hidden)
             .background(.primaryBackground)
