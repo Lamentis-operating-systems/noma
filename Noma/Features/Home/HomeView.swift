@@ -6,9 +6,11 @@ enum HomeRoute: Hashable {
 }
 
 struct HomeView: View {
+    @Environment(\.hapticFeedback) var hapticFeedback
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @Environment(DailyTaskNotificationScheduler.self) var dailyTaskNotifications
     @State var path: [HomeRoute] = []
+    @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
 
     var body: some View {
         GeometryReader { proxy in

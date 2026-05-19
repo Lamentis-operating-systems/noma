@@ -45,24 +45,30 @@ extension HomeView {
     var todayID: String { dailyTaskGroups.todayID() }
     var todayProjects: [TaskProject] { dailyTaskGroups.projects(forDayID: todayID) }
     var todayReminders: [CreateReminder] {
-        dailyTaskGroups.reminders(forDayID: todayID).filter { !$0.isCompleted }
+        CreateReminderListFilter.visibleReminders(
+            dailyTaskGroups.reminders(forDayID: todayID),
+            showsOnlyUnsolved: true,
+            temporarilyVisibleCompletedReminderIDs: temporarilyVisibleCompletedReminderIDs
+        )
     }
 
     func toggleTodayReminder(_ reminder: CreateReminder) {
         var reminders = dailyTaskGroups.reminders(forDayID: todayID)
-        guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
-        let updatedReminder = reminders[index].togglingCompletion()
-
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            reminders[index] = updatedReminder
-            dailyTaskGroups.save(reminders: reminders, forDayID: todayID)
-        }
+        _ = CreateReminderCompletionVisibility.toggleReminderWithCompletionFeedback(
+            reminder,
+            in: &reminders,
+            showsOnlyUnsolved: true,
+            visibleIDs: $temporarilyVisibleCompletedReminderIDs,
+            hapticFeedback: hapticFeedback,
+            persist: { dailyTaskGroups.save(reminders: $0, forDayID: todayID) }
+        )
     }
 
     func deleteTodayReminder(_ reminder: CreateReminder) {
         var reminders = dailyTaskGroups.reminders(forDayID: todayID)
         reminders.removeAll { $0.id == reminder.id }
         withAnimation(.smooth(duration: NomaTiming.taskSwipeRelease)) {
+            temporarilyVisibleCompletedReminderIDs.remove(reminder.id)
             dailyTaskGroups.save(reminders: reminders, forDayID: todayID)
         }
     }
