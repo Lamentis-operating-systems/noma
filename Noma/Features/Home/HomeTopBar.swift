@@ -87,15 +87,3 @@ struct HomeSettingsMenu: View {
         #endif
     }
 }
-
-struct HomeSettingsSheet: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        EmptyNavigationSheet(
-            titleKey: "home.settings.title",
-            closeAccessibilityLabelKey: "home.settings.close.accessibility-label",
-            close: { dismiss() }
-        )
-    }
-}

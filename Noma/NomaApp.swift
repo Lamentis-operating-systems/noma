@@ -13,6 +13,7 @@ struct NomaApp: App {
     @State private var subscriptionTier = SubscriptionTierManager()
     @State private var onDeviceFoundationModel = OnDeviceFoundationModelService()
     @State private var dailyTaskNotifications = DailyTaskNotificationScheduler()
+    @State private var appSettings = AppSettingsStore()
     #if DEBUG
     @State private var dailyTaskGroups = DailyTaskGroupStore(usesMockData: true)
     #else
@@ -26,7 +27,9 @@ struct NomaApp: App {
                 .environment(subscriptionTier)
                 .environment(onDeviceFoundationModel)
                 .environment(dailyTaskNotifications)
+                .environment(appSettings)
                 .environment(dailyTaskGroups)
+                .preferredColorScheme(appSettings.appearancePreference.colorScheme)
                 .onChange(of: authState.storageUserID, initial: true) { _, userID in
                     dailyTaskGroups.switchUserID(userID)
                 }

@@ -9,6 +9,7 @@ struct HomeView: View {
     @Environment(\.hapticFeedback) var hapticFeedback
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @Environment(DailyTaskNotificationScheduler.self) var dailyTaskNotifications
+    @Environment(AppSettingsStore.self) var appSettings
     @State var path: [HomeRoute] = []
     @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
 
@@ -41,6 +42,7 @@ struct HomeView: View {
                 }
                 .toolbar { ToolbarItem(placement: .topBarTrailing) { HomeSettingsMenu() } }
                 .onChange(of: dailyTaskGroups.groups, initial: true) { _, _ in refreshDailyTaskNotifications() }
+                .onChange(of: appSettings.notificationSettings) { _, _ in refreshDailyTaskNotifications() }
             }
             .overlay(alignment: .topLeading) {
                 if path.isEmpty {
