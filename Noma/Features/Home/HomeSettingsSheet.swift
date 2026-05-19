@@ -24,8 +24,6 @@ struct HomeSettingsSheet: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(.primaryBackground)
             .navigationTitle("home.settings.title")
             .toolbarTitleDisplayMode(.inline)
             .toolbar {

@@ -5,7 +5,8 @@ struct SettingsAccountView: View {
         Form {
             Section("settings.account.section-title") {}
         }
-        .settingsSubviewNavigation("settings.account.section-title")
+        .navigationTitle("settings.account.section-title")
+        .toolbarTitleDisplayMode(.inline)
     }
 }
 
@@ -14,7 +15,8 @@ struct SettingsPreferencesView: View {
         Form {
             Section("settings.preferences.section-title") {}
         }
-        .settingsSubviewNavigation("settings.preferences.section-title")
+        .navigationTitle("settings.preferences.section-title")
+        .toolbarTitleDisplayMode(.inline)
     }
 }
 
@@ -32,7 +34,8 @@ struct SettingsAppearanceView: View {
                 .pickerStyle(.segmented)
             }
         }
-        .settingsSubviewNavigation("settings.appearance.section-title")
+        .navigationTitle("settings.appearance.section-title")
+        .toolbarTitleDisplayMode(.inline)
     }
 
     private var appearancePreference: Binding<AppAppearancePreference> {
@@ -40,14 +43,5 @@ struct SettingsAppearanceView: View {
             get: { appSettings.appearancePreference },
             set: { appSettings.appearancePreference = $0 }
         )
-    }
-}
-
-extension View {
-    func settingsSubviewNavigation(_ titleKey: LocalizedStringKey) -> some View {
-        scrollContentBackground(.hidden)
-            .background(.primaryBackground)
-            .navigationTitle(titleKey)
-            .toolbarTitleDisplayMode(.inline)
     }
 }

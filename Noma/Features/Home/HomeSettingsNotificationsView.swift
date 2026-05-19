@@ -27,7 +27,8 @@ struct SettingsNotificationsView: View {
                 .disabled(!appSettings.notificationSettings.eveningOpenTasks.isEnabled)
             }
         }
-        .settingsSubviewNavigation("settings.notifications.section-title")
+        .navigationTitle("settings.notifications.section-title")
+        .toolbarTitleDisplayMode(.inline)
     }
 
     private var morningPlanningEnabled: Binding<Bool> {
