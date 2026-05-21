@@ -5,6 +5,8 @@ struct AddProjectSheetContent: View {
     let focus: FocusState<Bool>.Binding
     let iconSystemImage: String
     let iconColor: Color
+    @Binding var expirationDate: Date
+    let showsExpirationOption: Bool
     let onIconButtonTap: () -> Void
 
     var body: some View {
@@ -26,11 +28,35 @@ struct AddProjectSheetContent: View {
 
                     ProjectTitleInput(title: $title, focus: focus)
                 }
+
+                if showsExpirationOption {
+                    ProjectExpirationDatePicker(expirationDate: $expirationDate)
+                }
             }
             .padding(.horizontal, NomaSpacing.xl)
             .padding(.top, NomaSpacing.xl)
             .padding(.bottom, NomaSpacing.xl)
             .frame(maxWidth: .infinity, alignment: .topLeading)
+        }
+    }
+}
+
+private struct ProjectExpirationDatePicker: View {
+    @Binding var expirationDate: Date
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: NomaSpacing.xs) {
+            Text(LocalizedStringKey(ProjectExpirationOption.titleKey))
+                .font(.subheadline)
+                .foregroundStyle(.textSecondary)
+
+            DatePicker(
+                LocalizedStringKey(ProjectExpirationOption.datePickerLabelKey),
+                selection: $expirationDate,
+                displayedComponents: ProjectExpirationOption.displayedComponents
+            )
+            .datePickerStyle(.compact)
+            .controlSize(ProjectExpirationOption.controlSize)
         }
     }
 }

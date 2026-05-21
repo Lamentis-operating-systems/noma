@@ -96,7 +96,7 @@ struct CreateSheet: View {
             }
         }
         .sheet(item: $projectEditorPresentation) { presentation in
-            AddProjectSheet(project: presentation.project) { project in
+            AddProjectSheet(project: presentation.project, tier: tier) { project in
                 saveProject(project)
             }
             .presentationDetents([.large])

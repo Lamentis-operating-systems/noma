@@ -14,6 +14,9 @@ final class DailyTaskGroupStore {
     private let calendar: Calendar
 
     @ObservationIgnored
+    private let now: () -> Date
+
+    @ObservationIgnored
     private let usesMockData: Bool
 
     @ObservationIgnored
@@ -23,18 +26,22 @@ final class DailyTaskGroupStore {
     @ObservationIgnored
     private(set) var storedProjects: [TaskProject]
 
+    private(set) var recentlyDeletedProjects: [RecentlyDeletedProject]
+
     @ObservationIgnored
     private(set) var storedSelectedProjectID: TaskProject.ID?
 
     init(
         userDefaults: UserDefaults = .standard,
         calendar: Calendar = .current,
+        now: @escaping () -> Date = Date.init,
         userID: String? = nil,
         storageKey: String? = nil,
         usesMockData: Bool = false
     ) {
         self.userDefaults = userDefaults
         self.calendar = calendar
+        self.now = now
         self.usesMockData = usesMockData
         self.userID = userID
         self.storage = DailyTaskGroupStorage(
@@ -44,7 +51,10 @@ final class DailyTaskGroupStore {
         let state = storage.loadState(usesMockData: usesMockData, calendar: calendar)
         self.groups = state.groups
         self.storedProjects = state.projects
+        self.recentlyDeletedProjects = state.recentlyDeletedProjects
         self.storedSelectedProjectID = state.selectedProjectID
+        expireProjects(asOf: now())
+        purgeRecentlyDeletedProjects(asOf: now())
     }
 
     nonisolated static func todayID(calendar: Calendar = .current) -> String {
@@ -133,7 +143,10 @@ final class DailyTaskGroupStore {
         let state = storage.loadState(usesMockData: usesMockData, calendar: calendar)
         groups = state.groups
         storedProjects = state.projects
+        recentlyDeletedProjects = state.recentlyDeletedProjects
         storedSelectedProjectID = state.selectedProjectID
+        expireProjects(asOf: now())
+        purgeRecentlyDeletedProjects(asOf: now())
     }
 
     func save(reminders: [CreateReminder], for date: Date) {
@@ -173,6 +186,82 @@ final class DailyTaskGroupStore {
     }
 
     func deleteProject(withID projectID: TaskProject.ID) {
+        deleteProject(withID: projectID, at: now())
+    }
+
+    func deleteProject(withID projectID: TaskProject.ID, at deletedAt: Date) {
+        guard let project = storedProjects.first(where: { $0.id == projectID }) else { return }
+        let taskSnapshots = groups.flatMap { group in
+            group.reminders
+                .filter { $0.projectID == projectID }
+                .map {
+                    RecentlyDeletedProjectTaskSnapshot(
+                        dayID: group.id,
+                        dayDate: group.date,
+                        reminder: $0
+                    )
+                }
+        }
+        .sorted { $0.dayDate < $1.dayDate }
+
+        recentlyDeletedProjects.removeAll { $0.project.id == projectID }
+        recentlyDeletedProjects.append(RecentlyDeletedProject(
+            project: project,
+            deletedAt: deletedAt,
+            taskSnapshots: taskSnapshots
+        ))
+
+        removeActiveProject(withID: projectID)
+        persist()
+    }
+
+    func expireProjects(asOf date: Date) {
+        let expiredProjectIDs = storedProjects
+            .filter { project in
+                guard let expiresAt = project.expiresAt else { return false }
+                return expiresAt <= date
+            }
+            .map(\.id)
+
+        guard !expiredProjectIDs.isEmpty else { return }
+
+        expiredProjectIDs.forEach { deleteProject(withID: $0, at: date) }
+    }
+
+    func restoreRecentlyDeletedProject(withID projectID: TaskProject.ID) {
+        guard let index = recentlyDeletedProjects.firstIndex(where: { $0.project.id == projectID }) else { return }
+        let deletedProject = recentlyDeletedProjects.remove(at: index)
+        storedProjects = uniqueProjects(in: storedProjects + [deletedProject.project])
+
+        deletedProject.taskSnapshots.forEach { snapshot in
+            restore(snapshot: snapshot)
+        }
+
+        groups.sort { $0.date > $1.date }
+        persist()
+    }
+
+    func permanentlyDeleteRecentlyDeletedProject(withID projectID: TaskProject.ID) {
+        recentlyDeletedProjects.removeAll { $0.project.id == projectID }
+        persist()
+    }
+
+    func purgeRecentlyDeletedProjects(asOf date: Date) {
+        let retainedProjects = recentlyDeletedProjects.filter { deletedProject in
+            guard let purgeDate = calendar.date(
+                byAdding: .day,
+                value: 7,
+                to: deletedProject.deletedAt
+            ) else { return true }
+            return date < purgeDate
+        }
+
+        guard retainedProjects != recentlyDeletedProjects else { return }
+        recentlyDeletedProjects = retainedProjects
+        persist()
+    }
+
+    private func removeActiveProject(withID projectID: TaskProject.ID) {
         storedProjects.removeAll { $0.id == projectID }
 
         groups = groups.compactMap { group in
@@ -189,8 +278,6 @@ final class DailyTaskGroupStore {
         if storedSelectedProjectID == projectID {
             storedSelectedProjectID = nil
         }
-
-        persist()
     }
 
     func updateProject(_ project: TaskProject) {
@@ -238,9 +325,24 @@ final class DailyTaskGroupStore {
             state: DailyTaskGroupState(
                 groups: groups,
                 projects: storedProjects,
-                selectedProjectID: storedSelectedProjectID
+                selectedProjectID: storedSelectedProjectID,
+                recentlyDeletedProjects: recentlyDeletedProjects
             )
         )
+    }
+
+    private func restore(snapshot: RecentlyDeletedProjectTaskSnapshot) {
+        if let index = groups.firstIndex(where: { $0.id == snapshot.dayID }) {
+            guard !groups[index].reminders.contains(where: { $0.id == snapshot.reminder.id }) else { return }
+            groups[index].reminders.append(snapshot.reminder)
+            return
+        }
+
+        groups.append(DailyTaskGroup(
+            id: snapshot.dayID,
+            date: snapshot.dayDate,
+            reminders: [snapshot.reminder]
+        ))
     }
 
     private func uniqueProjects(in projects: [TaskProject]) -> [TaskProject] {

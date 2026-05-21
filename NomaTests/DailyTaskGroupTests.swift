@@ -104,6 +104,95 @@ final class DailyTaskGroupTests: XCTestCase {
         }
     }
 
+    func testExpiredProjectMovesProjectAndTasksToRecentlyDeleted() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let expirationDate = try fixture.date(year: 2026, month: 5, day: 17)
+        let project = taskProject(
+            id: "00000000-0000-0000-0000-000000000024",
+            title: "Launch",
+            expiresAt: expirationDate
+        )
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.save(
+                reminders: [CreateReminder(text: "Today", projectID: project.id)],
+                projects: [project],
+                selectedProjectID: project.id,
+                forDayID: "2026-05-16"
+            )
+            store.save(
+                reminders: [
+                    CreateReminder(text: "Tomorrow", projectID: project.id),
+                    CreateReminder(text: "Inbox")
+                ],
+                projects: [project],
+                selectedProjectID: project.id,
+                forDayID: "2026-05-17"
+            )
+
+            store.expireProjects(asOf: expirationDate)
+
+            XCTAssertTrue(store.projects(forDayID: "2026-05-18").isEmpty)
+            XCTAssertEqual(store.allReminders().map(\.text), ["Inbox"])
+            XCTAssertNil(store.selectedProjectID(forDayID: "2026-05-18"))
+            XCTAssertEqual(store.recentlyDeletedProjects.map(\.project.id), [project.id])
+            XCTAssertEqual(store.recentlyDeletedProjects.first?.taskSnapshots.map(\.reminder.text), ["Today", "Tomorrow"])
+        }
+    }
+
+    func testRestoringRecentlyDeletedProjectRecreatesProjectAndTasks() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let deletionDate = try fixture.date(year: 2026, month: 5, day: 18)
+        let project = taskProject(id: "00000000-0000-0000-0000-000000000025", title: "Work")
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.save(
+                reminders: [CreateReminder(text: "Today", projectID: project.id)],
+                projects: [project],
+                selectedProjectID: nil,
+                forDayID: "2026-05-16"
+            )
+            store.deleteProject(withID: project.id, at: deletionDate)
+
+            store.restoreRecentlyDeletedProject(withID: project.id)
+
+            XCTAssertEqual(store.projects(forDayID: "2026-05-18").map(\.id), [project.id])
+            XCTAssertTrue(store.recentlyDeletedProjects.isEmpty)
+            XCTAssertEqual(store.reminders(forDayID: "2026-05-16").map(\.text), ["Today"])
+        }
+    }
+
+    func testRecentlyDeletedProjectsArePurgedAfterSevenDays() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let deletionDate = try fixture.date(year: 2026, month: 5, day: 18)
+        let project = taskProject(id: "00000000-0000-0000-0000-000000000026", title: "Work")
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.save(
+                reminders: [CreateReminder(text: "Today", projectID: project.id)],
+                projects: [project],
+                selectedProjectID: nil,
+                forDayID: "2026-05-16"
+            )
+            store.deleteProject(withID: project.id, at: deletionDate)
+
+            store.purgeRecentlyDeletedProjects(asOf: deletionDate.addingTimeInterval(6 * 86_400))
+            XCTAssertEqual(store.recentlyDeletedProjects.map(\.project.id), [project.id])
+
+            store.purgeRecentlyDeletedProjects(asOf: deletionDate.addingTimeInterval(7 * 86_400))
+            XCTAssertTrue(store.recentlyDeletedProjects.isEmpty)
+        }
+    }
+
     func testOpenRemindersFromPreviousDayReturnsOnlyUncompletedPreviousDayTasks() async throws {
         let fixture = DailyTaskGroupTestFixture()
         defer { fixture.cleanUp() }
@@ -438,8 +527,12 @@ private struct DailyTaskGroupTestFixture {
     func cleanUp() {
         defaults.removeObject(forKey: storageKey)
     }
+
+    func date(year: Int, month: Int, day: Int) throws -> Date {
+        try XCTUnwrap(DateComponents(calendar: calendar, year: year, month: month, day: day).date)
+    }
 }
 
-private func taskProject(id: String, title: String) -> TaskProject {
-    TaskProject(id: UUID(uuidString: id)!, title: title)
+private func taskProject(id: String, title: String, expiresAt: Date? = nil) -> TaskProject {
+    TaskProject(id: UUID(uuidString: id)!, title: title, expiresAt: expiresAt)
 }

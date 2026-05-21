@@ -281,6 +281,40 @@
         }
       }
     },
+    "create.project.expiration.date-picker" : {
+      "comment" : "Date picker label for choosing when a Pro project should expire.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft bis"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs until"
+          }
+        }
+      }
+    },
+    "create.project.expiration.title" : {
+      "comment" : "Section label for the Pro project expiration date picker.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-delete"
+          }
+        }
+      }
+    },
     "create.project.edit.title" : {
       "comment" : "Navigation title for editing a project.",
       "extractionState" : "stale",
@@ -1462,6 +1496,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Time"
+          }
+        }
+      }
+    },
+    "settings.recently-deleted.projects.delete-forever" : {
+      "comment" : "Destructive action title for permanently deleting a recently deleted project.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endgültig löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete forever"
+          }
+        }
+      }
+    },
+    "settings.recently-deleted.projects.deleted-at" : {
+      "comment" : "Label for the deletion date of a recently deleted project.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelöscht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted"
+          }
+        }
+      }
+    },
+    "settings.recently-deleted.projects.empty" : {
+      "comment" : "Empty state text for recently deleted projects.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine kürzlich gelöschten Projekte."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No recently deleted projects."
+          }
+        }
+      }
+    },
+    "settings.recently-deleted.projects.restore" : {
+      "comment" : "Action title for restoring a recently deleted project.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederherstellen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore"
+          }
+        }
+      }
+    },
+    "settings.recently-deleted.projects.task-count" : {
+      "comment" : "Label for the number of tasks retained with a recently deleted project.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufgaben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tasks"
+          }
+        }
+      }
+    },
+    "settings.recently-deleted.projects.title" : {
+      "comment" : "Settings navigation title for recently deleted projects.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kürzlich gelöscht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recently Deleted"
           }
         }
       }

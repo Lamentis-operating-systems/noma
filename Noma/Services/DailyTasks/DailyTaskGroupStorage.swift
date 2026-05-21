@@ -84,18 +84,14 @@ struct DailyTaskGroupStorage {
         let selectedProjectID = state.selectedProjectID.flatMap { projectID in
             validProjectIDs.contains(projectID) ? projectID : nil
         }
+        let recentlyDeletedProjects = uniqueRecentlyDeletedProjects(in: state.recentlyDeletedProjects)
 
         return DailyTaskGroupState(
             groups: groups,
             projects: projects,
-            selectedProjectID: selectedProjectID
+            selectedProjectID: selectedProjectID,
+            recentlyDeletedProjects: recentlyDeletedProjects
         )
     }
 
-    private func uniqueProjects(in projects: [TaskProject]) -> [TaskProject] {
-        var seenIDs = Set<TaskProject.ID>()
-        return projects.filter { project in
-            seenIDs.insert(project.id).inserted
-        }
-    }
 }

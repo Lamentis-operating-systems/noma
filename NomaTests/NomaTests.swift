@@ -6,6 +6,7 @@
 //
 
 @testable import Noma
+import SwiftUI
 import XCTest
 
 final class NomaTests: XCTestCase {
@@ -155,6 +156,23 @@ final class NomaTests: XCTestCase {
         XCTAssertFalse(CreateProjectListSection.showsUnlockMoreButton(tier: .free, projectCount: 2))
         XCTAssertFalse(CreateProjectListSection.showsUnlockMoreButton(tier: .pro, projectCount: 3))
         XCTAssertEqual(CreateProjectListSection.selectionInfoKey, "create.projects.selection.info")
+    }
+
+    func testProjectExpirationOptionIsSmallDatePickerForProUsersOnly() {
+        XCTAssertFalse(ProjectExpirationOption.isAvailable(for: .free))
+        XCTAssertTrue(ProjectExpirationOption.isAvailable(for: .pro))
+        XCTAssertEqual(ProjectExpirationOption.titleKey, "create.project.expiration.title")
+        XCTAssertEqual(ProjectExpirationOption.datePickerLabelKey, "create.project.expiration.date-picker")
+        XCTAssertEqual(ProjectExpirationOption.controlSize, .small)
+        XCTAssertEqual(ProjectExpirationOption.displayedComponents, .date)
+    }
+
+    func testRecentlyDeletedProjectsSettingsCopyAndRetention() {
+        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.titleKey, "settings.recently-deleted.projects.title")
+        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.emptyStateKey, "settings.recently-deleted.projects.empty")
+        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.restoreTitleKey, "settings.recently-deleted.projects.restore")
+        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.deleteForeverTitleKey, "settings.recently-deleted.projects.delete-forever")
+        XCTAssertEqual(RecentlyDeletedProjectsSettingsPolicy.retentionDays, 7)
     }
 
     func testCreateReminderListShowsUnlockMoreAtFreeLimitOnly() {
