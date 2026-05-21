@@ -1,23 +1,23 @@
 {
-  "harnessVersion": "1.4.15",
+  "harnessVersion": "1.4.17",
   "installedAt": "2026-05-15T10:16:37.823Z",
   "integrity": {
     "AGENTS.md": "sha256:07c3203dc662e33adb29cbdaed575b8a6c39bbc3de0ed2aca6c80b3ec3457914",
     ".naome/package.json": "sha256:8005a3491db7d92f36ac66369861589f9c47123d3a7c71e643fc2c06168cd45a",
-    ".naome/bin/naome.js": "sha256:d5be5391ff6c96be4209d04e7afecf6c2679934e5d22ddfa2d119472776d5c4d",
+    ".naome/bin/naome.js": "sha256:75539458cdc6d24ffcaf1abebccd072dd6739b8a826ac24f3c099fdd82bac471",
     ".naome/bin/scm.js": "sha256:0485e3dae05e078a6d86259f5a2e4f600f38faf5152a3e79192729cff065cab4",
-    ".naome/bin/check-task-state.js": "sha256:ec2094b5f52695b8b67144c727a5311446abbcaa534c18ecd3fc14ae99ea1b70",
-    ".naome/bin/check-harness-health.js": "sha256:2648350d88b1f92bfac0296ec57dc0971de3b587f9f060b7242f61b06e0697d7",
+    ".naome/bin/check-task-state.js": "sha256:54cb2bdffd0cb416022c0bf2d7a8a7d65191a2d8a67ffc0d9bbd4fd6a4e2a873",
+    ".naome/bin/check-harness-health.js": "sha256:4fb56ee23a77901ba18905e47c42b433f337d6ec14b2d7394b9c1a131c44c29b",
     ".naome/task-contract.schema.json": "sha256:1b3b62350328d0d6d660e36d1d1baaa2b88718530db774f9ab2a9e2fcba369c8",
     "docs/naome/index.md": "sha256:cac748ed375d86d288460456fc5d606b29bd99d91148522c303d5400a083dbc5",
     "docs/naome/first-run.md": "sha256:1466ce8c65e19a1514885f917db14e8a772350e3f6d1c03a66326963365919e1",
-    "docs/naome/agent-workflow.md": "sha256:58ef863392667c11cc4d93d06a9e0b0848b48207f67838336f289429849ce501",
-    "docs/naome/context-economy.md": "sha256:c7284f0d263bab3b363bf855ead80ea22216d826d12d84de076f65e430509ca3",
+    "docs/naome/agent-workflow.md": "sha256:edfad3a020a0476129e82295eedb5a7ae72eb8e489d1656b5c7824ea13931e9e",
+    "docs/naome/context-economy.md": "sha256:ff30b29e5ec993ccfdcacb1a4939714f1ec7c012b47f2ff20282c6bb1ddffa7e",
     "docs/naome/task-ledger.md": "sha256:6221b51399d844f2ad0d6c89a5dfa67c91d6ded788b9c64a4aef9e5ea7ad5f41",
     "docs/naome/architecture-fitness.md": "sha256:86cfbdf8c7ba1a3aa03bb788abe26d4cc676bdfb22fc2e7448cdf5087865236e",
     "docs/naome/execution.md": "sha256:e2853d0c9964c1f6adb687d9d1f883a1b366bfe529ddfa9ae43058ad1bb524d5",
     "docs/naome/upgrade.md": "sha256:2c60f0441bbd98bd528d109b30a7ded4b0ad55d61ffb9f52edac9e93b7999cb1",
-    ".naome/bin/naome-rust": "sha256:bcf2d1756e687f0079472c31e17a1ed5926d959fbe3a7bfce5f441c773d54353"
+    ".naome/bin/naome-rust": "sha256:d5ee5889fbcfd690affbb340f2b764a2400d81e4b40c9ce190fd378232f32a7a"
   },
   "machineOwned": [
     "AGENTS.md",

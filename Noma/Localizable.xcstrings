@@ -762,6 +762,42 @@
         }
       }
     },
+    "create.tasks.empty.filtered.subtitle" : {
+      "comment" : "Subtitle for the filtered empty task list hint when all tasks are completed.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schalte den Filter aus, um erledigte Aufgaben wieder zu sehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off the filter to see completed tasks again."
+          }
+        }
+      }
+    },
+    "create.tasks.empty.filtered.title" : {
+      "comment" : "Title for the filtered empty task list hint when all tasks are completed.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle offenen Aufgaben sind erledigt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All open tasks are done"
+          }
+        }
+      }
+    },
     "create.tasks.empty.today.subtitle" : {
       "comment" : "Subtitle for the empty task list hint in the create task view.",
       "extractionState" : "stale",
@@ -922,6 +958,7 @@
     },
     "create.unlock-more.sheet.title" : {
       "comment" : "Title shown in the unlock more information sheet.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1115,6 +1152,7 @@
     },
     "home.today.section-header" : {
       "comment" : "Section header above open tasks due today on the Home screen.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1464,6 +1502,7 @@
     },
     "subscription.debug.pro.title" : {
       "comment" : "Debug-only menu toggle title for switching the local subscription tier to Pro.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

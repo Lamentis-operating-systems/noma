@@ -4,15 +4,20 @@ extension ProjectDetailView {
     var content: some View {
         CreateReminderScrollContainer(pendingScrollTargetID: $pendingScrollTargetID) {
             VStack(alignment: .leading, spacing: 0) {
-                if !visibleTodayReminders.isEmpty {
+                if showsFilteredEmptyState {
+                    CreateTaskFilteredEmptyHint()
+                        .transition(.opacity)
+                } else if !visibleTodayReminders.isEmpty {
                     CreateReminderSectionHeader(
                         title: String(localized: "project.detail.today.section-header")
                     )
                 }
 
-                VStack(alignment: .leading, spacing: NomaSpacing.md) {
-                    todayTaskRows
-                    pastTaskSections
+                if !showsFilteredEmptyState {
+                    VStack(alignment: .leading, spacing: NomaSpacing.md) {
+                        todayTaskRows
+                        pastTaskSections
+                    }
                 }
 
                 bottomScrollAnchor
@@ -21,6 +26,13 @@ extension ProjectDetailView {
             .padding(.top, NomaSpacing.xxl)
             .frame(maxWidth: .infinity, alignment: .topLeading)
         }
+    }
+
+    var showsFilteredEmptyState: Bool {
+        showsOnlyUnsolvedTasks
+            && projectSummary.taskCount > 0
+            && visibleTodayReminders.isEmpty
+            && visiblePastSections.isEmpty
     }
 
     var todayTaskRows: some View {

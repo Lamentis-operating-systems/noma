@@ -12,6 +12,7 @@ struct HomeView: View {
     @Environment(AppSettingsStore.self) var appSettings
     @State var path: [HomeRoute] = []
     @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
+    @State var isHomeHeaderVisible = true
 
     var body: some View {
         GeometryReader { proxy in
@@ -22,6 +23,12 @@ struct HomeView: View {
                         .ignoresSafeArea()
 
                     ScrollView {
+                        HomeScrollOffsetObserver { contentOffsetY in
+                            updateHomeHeaderVisibility(for: contentOffsetY)
+                        }
+                        .frame(height: NomaSize.scrollDismissSentinel)
+                        .accessibilityHidden(true)
+
                         dailyGroupsList
                     }
                     .scrollIndicators(.hidden)
@@ -40,7 +47,11 @@ struct HomeView: View {
                         ProjectDetailView(projectID: projectID)
                     }
                 }
-                .toolbar { ToolbarItem(placement: .topBarTrailing) { HomeSettingsMenu() } }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        HomeSettingsMenu()
+                    }
+                }
                 .onChange(of: dailyTaskGroups.groups, initial: true) { _, _ in refreshDailyTaskNotifications() }
                 .onChange(of: appSettings.notificationSettings) { _, _ in refreshDailyTaskNotifications() }
             }
@@ -48,9 +59,31 @@ struct HomeView: View {
                 if path.isEmpty {
                     HomeTopBar()
                         .padding(.leading, NomaSpacing.xl)
+                        .opacity(HomeHeaderOpacity.value(isVisible: isHomeHeaderVisible))
                         .allowsHitTesting(false)
                 }
             }
         }
+    }
+}
+
+enum HomeHeaderVisibility {
+    static func isVisible(contentOffsetY: CGFloat) -> Bool {
+        contentOffsetY <= NomaSpacing.none
+    }
+}
+
+enum HomeHeaderOpacity {
+    static func value(isVisible: Bool) -> CGFloat {
+        isVisible ? 1 : NomaSpacing.none
+    }
+}
+
+extension HomeView {
+    func updateHomeHeaderVisibility(for contentOffsetY: CGFloat) {
+        let isVisible = HomeHeaderVisibility.isVisible(contentOffsetY: contentOffsetY)
+        guard isVisible != isHomeHeaderVisible else { return }
+
+        isHomeHeaderVisible = isVisible
     }
 }
