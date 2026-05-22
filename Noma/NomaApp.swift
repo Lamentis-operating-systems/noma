@@ -11,8 +11,6 @@ import SwiftUI
 struct NomaApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @State private var authState = AuthStateManager()
-    @State private var subscriptionTier = SubscriptionTierManager()
-    @State private var onDeviceFoundationModel = OnDeviceFoundationModelService()
     @State private var dailyTaskNotifications = DailyTaskNotificationScheduler()
     @State private var appSettings = AppSettingsStore()
     #if DEBUG
@@ -25,8 +23,6 @@ struct NomaApp: App {
         WindowGroup {
             ContentView()
                 .environment(authState)
-                .environment(subscriptionTier)
-                .environment(onDeviceFoundationModel)
                 .environment(dailyTaskNotifications)
                 .environment(appSettings)
                 .environment(dailyTaskGroups)

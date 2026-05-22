@@ -6,7 +6,6 @@ struct AddProjectSheetContent: View {
     let iconSystemImage: String
     let iconColor: Color
     @Binding var expirationDate: Date
-    let showsExpirationOption: Bool
     let onIconButtonTap: () -> Void
 
     var body: some View {
@@ -29,9 +28,7 @@ struct AddProjectSheetContent: View {
                     ProjectTitleInput(title: $title, focus: focus)
                 }
 
-                if showsExpirationOption {
-                    ProjectExpirationDatePicker(expirationDate: $expirationDate)
-                }
+                ProjectExpirationDatePicker(expirationDate: $expirationDate)
             }
             .padding(.horizontal, NomaSpacing.xl)
             .padding(.top, NomaSpacing.xl)

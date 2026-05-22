@@ -24,14 +24,6 @@ extension CreateView {
                 carryForwardButton
             }
 
-            if isPlanningDay {
-                CreateAIGeneratingStatus(titleKey: "create.ai-generating.task-organization")
-            }
-
-            if isSubmittingReminder {
-                CreateAIGeneratingStatus(titleKey: "create.ai-generating.smart-capture")
-            }
-
             composerBar
         }
         .frame(width: barWidth(in: proxy), alignment: .leading)
@@ -70,10 +62,7 @@ extension CreateView {
             showsOnlyUnsolved: showsOnlyUnsolvedTasks,
             temporarilyVisibleCompletedReminderIDs: temporarilyVisibleCompletedReminderIDs
         )
-        return CreateReminderListOrganization.sortedReminders(
-            filteredReminders,
-            using: taskOrganization
-        )
+        return CreateReminderListOrganization.sortedReminders(filteredReminders)
     }
 
     @ToolbarContentBuilder
@@ -114,32 +103,7 @@ extension CreateView {
 
         let originatingDayID = activeDayID
 
-        guard subscriptionTier.tier.canUseOnDeviceFoundationModels else {
-            submitReminderImmediately(submittedText, originatingDayID: originatingDayID)
-            return
-        }
-
-        isSubmittingReminder = true
-
-        Task {
-            let submission = await CreateReminderAISmartCapture.submit(
-                text: submittedText,
-                projects: projects,
-                selectedProjectID: selectedProjectID,
-                tier: subscriptionTier.tier,
-                foundationModel: onDeviceFoundationModel
-            )
-
-            await MainActor.run {
-                isSubmittingReminder = false
-                guard let submission else { return }
-                appendSubmittedReminder(
-                    submission,
-                    submittedText: submittedText,
-                    originatingDayID: originatingDayID
-                )
-            }
-        }
+        submitReminderImmediately(submittedText, originatingDayID: originatingDayID)
     }
 
     func appendSubmittedReminder(
@@ -159,8 +123,7 @@ extension CreateView {
             sourceReminders: reminders,
             submission: submission,
             projects: projects,
-            selectedProjectID: selectedProjectID,
-            tier: subscriptionTier.tier
+            selectedProjectID: selectedProjectID
         ) else { return }
         guard let submittedReminder = updatedReminders.last else { return }
 
@@ -169,14 +132,12 @@ extension CreateView {
             submittedText: submittedText,
             remainingText: submission.remainingText
         )
-        taskOrganization = nil
         hapticFeedback.play(.createTaskSubmit)
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
             reminders = updatedReminders
         }
         saveCurrentReminders()
         pendingScrollTargetID = CreateReminderAutoScroll.targetAfterAppending(submittedReminder)
-        organizeTasksWithAIAfterUserAddedTask()
     }
 
     func persistSubmittedReminderToOriginatingDay(
@@ -191,8 +152,7 @@ extension CreateView {
             sourceReminders: sourceReminders,
             submission: submission,
             projects: sourceProjects,
-            selectedProjectID: sourceSelectedProjectID,
-            tier: subscriptionTier.tier
+            selectedProjectID: sourceSelectedProjectID
         ) else { return }
 
         dailyTaskGroups.save(
@@ -204,7 +164,7 @@ extension CreateView {
     }
 
     var canAddSubmittedReminder: Bool {
-        subscriptionTier.tier.canAddTask(toGroupWithTaskCount: reminders.count)
+        true
     }
 
     func submitReminderImmediately(_ submittedText: String, originatingDayID: String) {
@@ -222,23 +182,7 @@ extension CreateView {
     }
 
     var canSubmitReminder: Bool {
-        !isSubmittingReminder && (editingReminderID != nil || subscriptionTier.tier.canAddTask(toGroupWithTaskCount: reminders.count))
-    }
-
-    func unlockMoreTasks() {
-        #if DEBUG
-        subscriptionTier.debugUnlockPro()
-        #else
-        isUnlockMoreSheetPresented = true
-        #endif
-    }
-
-    func unlockMoreProjects() {
-        #if DEBUG
-        subscriptionTier.debugUnlockPro()
-        #else
-        isUnlockMoreSheetPresented = true
-        #endif
+        editingReminderID != nil || canAddSubmittedReminder
     }
 
     func addProject(_ project: TaskProject) {
@@ -286,7 +230,6 @@ extension CreateView {
         )
         guard didToggle else { return }
 
-        taskOrganization = nil
         saveCurrentDailyGroup()
     }
 
@@ -301,7 +244,6 @@ extension CreateView {
             editingReminderID = nil
             message = ""
         }
-        taskOrganization = nil
         saveCurrentDailyGroup()
     }
 
@@ -322,7 +264,6 @@ extension CreateView {
             )
             reminders = CreateReminderBatchCompletion.completingAll(reminders)
         }
-        taskOrganization = nil
         saveCurrentDailyGroup()
         CreateReminderCompletionVisibility.scheduleRemoval(of: completedReminderIDs, isNeeded: showsOnlyUnsolvedTasks, visibleIDs: $temporarilyVisibleCompletedReminderIDs)
     }
@@ -374,24 +315,14 @@ extension CreateView {
             projects: $projects,
             selectedProjectID: $selectedProjectID,
             allReminders: dailyTaskGroups.allReminders(),
-            tier: subscriptionTier.tier,
             onCreateProject: addProject,
             onSelectProject: selectProject,
             onUpdateProject: updateProject,
-            onDeleteProject: deleteProject,
-            onUnlockMore: unlockMoreProjects
+            onDeleteProject: deleteProject
         )
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationContentInteraction(.resizes)
-    }
-
-    var unlockMoreSheet: some View {
-        UnlockMoreSheet {
-            isUnlockMoreSheetPresented = false
-        }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
     }
 
     var datePickerSheet: some View {
@@ -431,9 +362,7 @@ extension CreateView {
                     carryForwardPreviewReminders: carryForwardPreviewReminders,
                     sectionTitle: CreateReminderListSection.headerTitle(for: currentDayDate),
                     reminderCount: reminders.count,
-                    projects: projects,
-                    tier: subscriptionTier.tier,
-                    onUnlockMore: unlockMoreTasks,
+                projects: projects,
                     onSwipeDeleteThreshold: playSwipeDeleteThresholdFeedback,
                     onToggleReminder: toggleReminder,
                     onEditReminder: beginEditingReminder,

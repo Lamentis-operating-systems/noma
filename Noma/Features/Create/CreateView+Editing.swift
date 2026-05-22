@@ -21,7 +21,6 @@ extension CreateView {
 
         self.editingReminderID = nil
         message = ""
-        taskOrganization = nil
         hapticFeedback.play(.createTaskSubmit)
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
             reminders = updatedReminders

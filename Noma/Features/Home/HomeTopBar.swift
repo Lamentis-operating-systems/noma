@@ -1,60 +1,36 @@
 import SwiftUI
 
 struct HomeTopBar: View {
-    @Environment(SubscriptionTierManager.self) private var subscriptionTier
-
     var body: some View {
-        HStack(spacing: NomaSpacing.sm) {
-            Text("Noma")
-                .font(Font.title)
-                .fontWeight(.medium)
-
-            subscriptionTierText
-        }
-        .padding(.top, NomaSpacing.sm)
-    }
-
-    @ViewBuilder
-    private var subscriptionTierText: some View {
-        let text = Text(LocalizedStringKey(subscriptionTier.tier.titleKey))
+        Text("Noma")
             .font(Font.title)
             .fontWeight(.medium)
-
-        if subscriptionTier.tier.usesProminentTextGradient {
-            text.foregroundStyle(NomaGradient.proTierText)
-        } else {
-            text.foregroundStyle(.secondary)
-        }
+        .padding(.top, NomaSpacing.sm)
     }
 }
 
-struct HomeSettingsMenu: View {
+struct HomeMenu: View {
     @Environment(AuthStateManager.self) private var authState
-    @Environment(SubscriptionTierManager.self) private var subscriptionTier
-    @State private var isSettingsPresented = false
-    @State private var isUnlockMorePresented = false
+    @Environment(AppSettingsStore.self) private var appSettings
+    @State private var isNotificationsPresented = false
 
     var body: some View {
         Menu {
-            if !subscriptionTier.isPro {
-                Button {
-                    getPro()
-                } label: {
-                    Label(
-                        "home.settings.menu.get-pro",
-                        systemImage: "flame"
-                    )
-                }
-            }
-
             Button {
-                isSettingsPresented = true
+                isNotificationsPresented = true
             } label: {
                 Label(
-                    "home.settings.menu.settings",
-                    systemImage: "gear"
+                    "settings.notifications.section-title",
+                    systemImage: "bell"
                 )
             }
+
+            Picker("settings.appearance.section-title", selection: appearancePreference) {
+                Text("settings.appearance.system").tag(AppAppearancePreference.system)
+                Text("settings.appearance.light").tag(AppAppearancePreference.light)
+                Text("settings.appearance.dark").tag(AppAppearancePreference.dark)
+            }
+            .pickerStyle(.inline)
 
             Divider()
 
@@ -69,21 +45,18 @@ struct HomeSettingsMenu: View {
         } label: {
             Image(systemName: "gearshape")
         }
-        .sheet(isPresented: $isSettingsPresented) {
-            HomeSettingsSheet()
-                .presentationDetents([.large])
-        }
-        .sheet(isPresented: $isUnlockMorePresented) {
-            UnlockMoreSheet(close: { isUnlockMorePresented = false })
+        .sheet(isPresented: $isNotificationsPresented) {
+            NavigationStack {
+                HomeNotificationsView()
+            }
                 .presentationDetents([.large])
         }
     }
 
-    private func getPro() {
-        #if DEBUG
-        subscriptionTier.updateTier(.pro)
-        #else
-        isUnlockMorePresented = true
-        #endif
+    private var appearancePreference: Binding<AppAppearancePreference> {
+        Binding(
+            get: { appSettings.appearancePreference },
+            set: { appSettings.appearancePreference = $0 }
+        )
     }
 }

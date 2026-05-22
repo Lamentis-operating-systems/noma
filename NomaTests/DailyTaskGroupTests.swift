@@ -451,7 +451,7 @@ final class DailyTaskGroupTests: XCTestCase {
         XCTAssertFalse(CreateReminderFilterPreference.isEnabled(in: defaults))
     }
 
-    func testCreateReminderOrganizationSortsByHiddenPriorityWithoutChangingTasks() throws {
+    func testCreateReminderOrganizationKeepsManualOrder() throws {
         let firstID = UUID(uuidString: "00000000-0000-0000-0000-000000000041")!
         let secondID = UUID(uuidString: "00000000-0000-0000-0000-000000000042")!
         let thirdID = UUID(uuidString: "00000000-0000-0000-0000-000000000043")!
@@ -460,19 +460,11 @@ final class DailyTaskGroupTests: XCTestCase {
             CreateReminder(id: secondID, text: "High priority"),
             CreateReminder(id: thirdID, text: "Done", isCompleted: true)
         ]
-        let organization = CreateReminderAIPlanningResult(
-            organizedTasks: [
-                CreateReminderAIOrganizedTask(reminderID: thirdID, priorityRank: 1, category: "work"),
-                CreateReminderAIOrganizedTask(reminderID: secondID, priorityRank: 1, category: "work"),
-                CreateReminderAIOrganizedTask(reminderID: firstID, priorityRank: 3, category: "admin")
-            ],
-            carryForwardReminderIDs: []
-        )
 
-        let sortedReminders = CreateReminderListOrganization.sortedReminders(reminders, using: organization)
+        let sortedReminders = CreateReminderListOrganization.sortedReminders(reminders)
 
-        XCTAssertEqual(sortedReminders.map(\.id), [secondID, firstID, thirdID])
-        XCTAssertEqual(sortedReminders.map(\.text), ["High priority", "Low priority", "Done"])
+        XCTAssertEqual(sortedReminders.map(\.id), [firstID, secondID, thirdID])
+        XCTAssertEqual(sortedReminders.map(\.text), ["Low priority", "High priority", "Done"])
     }
 
     func testCreateReminderBatchCompletionCompletesEveryTaskWithoutChangingIdentity() throws {

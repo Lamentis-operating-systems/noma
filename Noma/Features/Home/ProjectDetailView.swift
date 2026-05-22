@@ -10,7 +10,6 @@ struct ProjectDetailView: View {
     let projectID: TaskProject.ID
 
     @Environment(\.hapticFeedback) var hapticFeedback
-    @Environment(SubscriptionTierManager.self) var subscriptionTier
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @State var message = ""
     @State var project: TaskProject?

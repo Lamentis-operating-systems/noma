@@ -38,40 +38,6 @@
         }
       }
     },
-    "create.ai-generating.smart-capture" : {
-      "comment" : "Animated status shown while the on-device AI cleans up a submitted task.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verfeinere deine Aufgabe auf dem Gerät..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Refining your task on-device..."
-          }
-        }
-      }
-    },
-    "create.ai-generating.task-organization" : {
-      "comment" : "Animated status shown while the on-device AI organizes the current task list.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Organisiere deine Aufgaben auf dem Gerät..."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Organizing your tasks on-device..."
-          }
-        }
-      }
-    },
     "create.button.title" : {
       "comment" : "Primary button title for opening the create flow from the Home screen.",
       "localizations" : {
@@ -90,7 +56,7 @@
       }
     },
     "create.carry-forward-yesterday.title" : {
-      "comment" : "Pro-only action title for adding open tasks from the previous day to the current day.",
+      "comment" : "Action title for adding open tasks from the previous day to the current day.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -281,40 +247,6 @@
         }
       }
     },
-    "create.project.expiration.date-picker" : {
-      "comment" : "Date picker label for choosing when a Pro project should expire.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Läuft bis"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Runs until"
-          }
-        }
-      }
-    },
-    "create.project.expiration.title" : {
-      "comment" : "Section label for the Pro project expiration date picker.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatisch löschen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto-delete"
-          }
-        }
-      }
-    },
     "create.project.edit.title" : {
       "comment" : "Navigation title for editing a project.",
       "extractionState" : "stale",
@@ -381,6 +313,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Organize tasks with projects"
+          }
+        }
+      }
+    },
+    "create.project.expiration.date-picker" : {
+      "comment" : "Date picker label for choosing when a project should expire.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft bis"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs until"
+          }
+        }
+      }
+    },
+    "create.project.expiration.title" : {
+      "comment" : "Section label for the project expiration date picker.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-delete"
           }
         }
       }
@@ -708,24 +676,6 @@
         }
       }
     },
-    "create.projects.unlock-more.message" : {
-      "comment" : "Informational text shown above the unlock button when the free project limit is reached.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Im Free-Tier kannst du bis zu 3 Projekte erstellen. Mit Pro kannst du unbegrenzt viele Projekte nutzen, um deine Aufgaben noch besser zu organisieren."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Free tier lets you create up to 3 projects. With Pro, you can use unlimited projects to organize your tasks more effectively."
-          }
-        }
-      }
-    },
     "create.send.accessibility-label" : {
       "comment" : "Accessibility label for the create view send button.",
       "localizations" : {
@@ -868,42 +818,6 @@
         }
       }
     },
-    "create.tasks.unlock-more" : {
-      "comment" : "Button title shown when the free task limit for a group is reached.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mehr freischalten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock more"
-          }
-        }
-      }
-    },
-    "create.tasks.unlock-more.today.message" : {
-      "comment" : "Informational text shown above the unlock button when the free task limit for a group is reached.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Im Free-Tier kannst du bis zu 5 Aufgaben für heute erstellen. Mit Pro kannst du unbegrenzt viele Aufgaben hinzufügen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Free tier lets you create up to 5 tasks for today. With Pro, you can add unlimited tasks."
-          }
-        }
-      }
-    },
     "create.tasks.yesterday.section-header" : {
       "comment" : "Section header shown above open tasks from the previous day in the create task view.",
       "extractionState" : "stale",
@@ -969,41 +883,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open project"
-          }
-        }
-      }
-    },
-    "create.unlock-more.close.accessibility-label" : {
-      "comment" : "Accessibility label for closing the unlock more sheet.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noma Pro schließen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close Noma Pro"
-          }
-        }
-      }
-    },
-    "create.unlock-more.sheet.title" : {
-      "comment" : "Title shown in the unlock more information sheet.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noma Pro"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noma Pro"
           }
         }
       }
@@ -1112,74 +991,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "task"
-          }
-        }
-      }
-    },
-    "home.settings.close.accessibility-label" : {
-      "comment" : "Accessibility label for closing the Settings sheet from the Home screen.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einstellungen schließen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close Settings"
-          }
-        }
-      }
-    },
-    "home.settings.menu.get-pro" : {
-      "comment" : "Home gear menu item title for opening or enabling the Pro tier.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get Pro"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get Pro"
-          }
-        }
-      }
-    },
-    "home.settings.menu.settings" : {
-      "comment" : "Home gear menu item title for opening app settings.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einstellungen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
-          }
-        }
-      }
-    },
-    "home.settings.title" : {
-      "comment" : "Navigation title for the Settings sheet from the Home screen.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Einstellungen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
           }
         }
       }
@@ -1330,25 +1141,8 @@
         }
       }
     },
-    "settings.account.section-title" : {
-      "comment" : "Settings section title for future account controls.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konto"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Account"
-          }
-        }
-      }
-    },
     "settings.appearance.dark" : {
-      "comment" : "Settings appearance option for dark mode.",
+      "comment" : "Appearance menu option for dark mode.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1365,7 +1159,7 @@
       }
     },
     "settings.appearance.light" : {
-      "comment" : "Settings appearance option for light mode.",
+      "comment" : "Appearance menu option for light mode.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1383,6 +1177,7 @@
     },
     "settings.appearance.mode" : {
       "comment" : "Picker label for selecting the app appearance mode.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1399,7 +1194,7 @@
       }
     },
     "settings.appearance.section-title" : {
-      "comment" : "Settings section title for app appearance controls.",
+      "comment" : "Menu title for app appearance controls.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1416,7 +1211,7 @@
       }
     },
     "settings.appearance.system" : {
-      "comment" : "Settings appearance option for following the system appearance.",
+      "comment" : "Appearance menu option for following the system appearance.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1433,7 +1228,7 @@
       }
     },
     "settings.notifications.daily-planning" : {
-      "comment" : "Settings row title for the daily planning notification.",
+      "comment" : "Notifications row title for the daily planning notification.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1449,8 +1244,25 @@
         }
       }
     },
+    "settings.notifications.close.accessibility-label" : {
+      "comment" : "Accessibility label for closing the notifications sheet.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungen schließen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close notifications"
+          }
+        }
+      }
+    },
     "settings.notifications.open-tasks" : {
-      "comment" : "Settings row title for the open tasks notification.",
+      "comment" : "Notifications row title for the open tasks notification.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1467,7 +1279,7 @@
       }
     },
     "settings.notifications.section-title" : {
-      "comment" : "Settings section title for notification controls.",
+      "comment" : "Menu and sheet title for notification controls.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1484,7 +1296,7 @@
       }
     },
     "settings.notifications.time" : {
-      "comment" : "Date picker label for a notification time in Settings.",
+      "comment" : "Date picker label for a notification time.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1496,125 +1308,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Time"
-          }
-        }
-      }
-    },
-    "settings.recently-deleted.projects.delete-forever" : {
-      "comment" : "Destructive action title for permanently deleting a recently deleted project.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Endgültig löschen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete forever"
-          }
-        }
-      }
-    },
-    "settings.recently-deleted.projects.deleted-at" : {
-      "comment" : "Label for the deletion date of a recently deleted project.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gelöscht"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deleted"
-          }
-        }
-      }
-    },
-    "settings.recently-deleted.projects.empty" : {
-      "comment" : "Empty state text for recently deleted projects.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine kürzlich gelöschten Projekte."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No recently deleted projects."
-          }
-        }
-      }
-    },
-    "settings.recently-deleted.projects.restore" : {
-      "comment" : "Action title for restoring a recently deleted project.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wiederherstellen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Restore"
-          }
-        }
-      }
-    },
-    "settings.recently-deleted.projects.task-count" : {
-      "comment" : "Label for the number of tasks retained with a recently deleted project.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aufgaben"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tasks"
-          }
-        }
-      }
-    },
-    "settings.recently-deleted.projects.title" : {
-      "comment" : "Settings navigation title for recently deleted projects.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kürzlich gelöscht"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recently Deleted"
-          }
-        }
-      }
-    },
-    "settings.preferences.section-title" : {
-      "comment" : "Settings section title for future preference controls.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Präferenzen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preferences"
           }
         }
       }
@@ -1632,60 +1325,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plan tasks,\nreach goals!"
-          }
-        }
-      }
-    },
-    "subscription.debug.pro.title" : {
-      "comment" : "Debug-only menu toggle title for switching the local subscription tier to Pro.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro"
-          }
-        }
-      }
-    },
-    "subscription.tier.free.title" : {
-      "comment" : "Short label shown in the home top bar when the user is on the free tier.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free"
-          }
-        }
-      }
-    },
-    "subscription.tier.pro.title" : {
-      "comment" : "Short label shown in the home top bar when the user is on the pro tier.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro"
           }
         }
       }

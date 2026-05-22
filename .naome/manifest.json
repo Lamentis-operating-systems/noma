@@ -1,5 +1,5 @@
 {
-  "harnessVersion": "1.4.17",
+  "harnessVersion": "1.4.18",
   "installedAt": "2026-05-15T10:16:37.823Z",
   "integrity": {
     "AGENTS.md": "sha256:07c3203dc662e33adb29cbdaed575b8a6c39bbc3de0ed2aca6c80b3ec3457914",
@@ -17,7 +17,7 @@
     "docs/naome/architecture-fitness.md": "sha256:86cfbdf8c7ba1a3aa03bb788abe26d4cc676bdfb22fc2e7448cdf5087865236e",
     "docs/naome/execution.md": "sha256:e2853d0c9964c1f6adb687d9d1f883a1b366bfe529ddfa9ae43058ad1bb524d5",
     "docs/naome/upgrade.md": "sha256:2c60f0441bbd98bd528d109b30a7ded4b0ad55d61ffb9f52edac9e93b7999cb1",
-    ".naome/bin/naome-rust": "sha256:d5ee5889fbcfd690affbb340f2b764a2400d81e4b40c9ce190fd378232f32a7a"
+    ".naome/bin/naome-rust": "sha256:af905a7ffc82c6b48a19fc1a7d2ea428110d0f2aa2809ddf8de79e31e86c8434"
   },
   "machineOwned": [
     "AGENTS.md",

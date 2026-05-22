@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum CreateReminderListSection {
-    static let headerTitleFormatKey = "create.tasks.date.section-header", unlockMoreTitleKey = "create.tasks.unlock-more", unlockMoreMessageKey = "create.tasks.unlock-more.today.message"
+    static let headerTitleFormatKey = "create.tasks.date.section-header"
     static let carryForwardPreviewTitleKey = "create.tasks.yesterday.section-header"
     static let carryForwardPreviewSystemImage = "clock.arrow.circlepath"
 
@@ -27,17 +27,10 @@ enum CreateReminderListSection {
         visibleReminderCount == 0 && reminderCount > 0 && carryForwardPreviewCount == 0
     }
 
-    static func showsUnlockMoreButton(tier: SubscriptionTier, reminderCount: Int) -> Bool {
-        !tier.canAddTask(toGroupWithTaskCount: reminderCount)
-    }
 }
 
 enum CreateReminderContextMenuCopy {
     static let editTitleKey = "create.tasks.context-menu.edit"
-}
-
-enum CreateReminderLimitCalloutLayout {
-    static var topPadding: CGFloat { UnlockMoreCalloutLayout.topPadding(after: NomaSpacing.md) }
 }
 
 enum CreateReminderListLayout {
@@ -187,8 +180,7 @@ struct CreateReminderList: View {
     let sectionTitle: String
     let reminderCount: Int
     let projects: [TaskProject]
-    let tier: SubscriptionTier
-    let onUnlockMore: () -> Void, onSwipeDeleteThreshold: () -> Void
+    let onSwipeDeleteThreshold: () -> Void
     let onToggleReminder: (CreateReminder) -> Void, onEditReminder: (CreateReminder) -> Void, onDeleteReminder: (CreateReminder) -> Void
     let onCompleteCarryForwardReminder: (CreateReminder) -> Void
 
@@ -249,16 +241,6 @@ struct CreateReminderList: View {
             }
 
             VStack(alignment: .leading, spacing: NomaSpacing.md) {
-                if CreateReminderListSection.showsUnlockMoreButton(tier: tier, reminderCount: reminderCount) {
-                    UnlockMoreCallout(
-                        messageKey: CreateReminderListSection.unlockMoreMessageKey,
-                        buttonTitleKey: CreateReminderListSection.unlockMoreTitleKey,
-                        action: onUnlockMore
-                    )
-                        .padding(.top, CreateReminderLimitCalloutLayout.topPadding)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                }
-
                 Spacer(minLength: CreateReminderListLayout.bottomScrollPadding)
                     .frame(height: CreateReminderListLayout.bottomScrollPadding)
                     .id(CreateReminderListLayout.bottomAnchorID)

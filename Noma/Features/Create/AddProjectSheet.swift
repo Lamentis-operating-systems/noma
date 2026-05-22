@@ -13,11 +13,7 @@ enum ProjectExpirationOption {
     static let datePickerLabelKey = "create.project.expiration.date-picker"
     static let controlSize: ControlSize = .small
     static let displayedComponents: DatePickerComponents = .date
-    static let defaultDurationDays = RecentlyDeletedProjectsSettingsPolicy.retentionDays
-
-    static func isAvailable(for tier: SubscriptionTier) -> Bool {
-        tier == .pro
-    }
+    static let defaultDurationDays = 7
 
     static func defaultDate() -> Date {
         Calendar.current.date(byAdding: .day, value: defaultDurationDays, to: Date()) ?? Date()
@@ -54,7 +50,6 @@ enum AddProjectIconButton {
 struct AddProjectSheet: View {
     @Environment(\.dismiss) private var dismiss
     let project: TaskProject?
-    let tier: SubscriptionTier
     let onSave: (TaskProject) -> Void
     @State private var title = ""
     @State private var selectedColorIndex = 0
@@ -65,9 +60,8 @@ struct AddProjectSheet: View {
     @State private var isKeyboardPresented = false
     @FocusState private var isTitleFocused: Bool
 
-    init(project: TaskProject? = nil, tier: SubscriptionTier = .free, onSave: @escaping (TaskProject) -> Void) {
+    init(project: TaskProject? = nil, onSave: @escaping (TaskProject) -> Void) {
         self.project = project
-        self.tier = tier
         self.onSave = onSave
         _title = State(initialValue: project?.title ?? "")
         _selectedColorIndex = State(initialValue: ProjectIconPickerOption.normalizedColorIndex(
@@ -87,7 +81,6 @@ struct AddProjectSheet: View {
                     iconSystemImage: iconButtonSystemImage,
                     iconColor: selectedColor,
                     expirationDate: $expirationDate,
-                    showsExpirationOption: showsExpirationOption,
                     onIconButtonTap: { isIconPickerPresented = true }
                 )
                 .scrollDismissesKeyboard(.interactively)
@@ -125,8 +118,6 @@ private extension AddProjectSheet {
     var navigationTitleKey: String { project == nil ? CreateProjectSheetCopy.titleKey : CreateProjectSheetCopy.editTitleKey }
     var submitButtonTitleKey: String { project == nil ? CreateProjectSheetCopy.createButtonKey : CreateProjectSheetCopy.saveButtonKey }
     var iconButtonSystemImage: String { hasSelectedIcon ? selectedSymbol : AddProjectIconButton.placeholderSystemImage }
-    var showsExpirationOption: Bool { ProjectExpirationOption.isAvailable(for: tier) }
-    var projectExpirationDate: Date? { showsExpirationOption ? expirationDate : project?.expiresAt }
 
     private func saveProject() {
         guard canCreateProject else { return }
@@ -135,7 +126,7 @@ private extension AddProjectSheet {
             title: normalizedTitle,
             symbolName: selectedSymbol,
             colorIndex: ProjectIconPickerOption.normalizedColorIndex(selectedColorIndex),
-            expiresAt: projectExpirationDate
+            expiresAt: expirationDate
         ))
         dismiss()
     }

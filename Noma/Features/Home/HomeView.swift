@@ -49,7 +49,7 @@ struct HomeView: View {
                 }
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        HomeSettingsMenu()
+                        HomeMenu()
                     }
                 }
                 .onChange(of: dailyTaskGroups.groups, initial: true) { _, _ in refreshDailyTaskNotifications() }

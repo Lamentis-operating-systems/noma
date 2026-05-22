@@ -68,7 +68,7 @@ extension ProjectDetailView {
     }
 
     var canSubmitReminder: Bool {
-        subscriptionTier.tier.canAddTask(toGroupWithTaskCount: dailyTaskGroups.reminders(forDayID: todayID).count)
+        true
     }
 
     var canCompleteAllReminders: Bool {

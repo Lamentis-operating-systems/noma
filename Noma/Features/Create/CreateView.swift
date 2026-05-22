@@ -36,8 +36,6 @@ struct CreateView: View {
     let focusedKeyboardSpacing = NomaOffset.keyboardAccessoryOverlap
 
     @Environment(\.hapticFeedback) var hapticFeedback
-    @Environment(SubscriptionTierManager.self) var subscriptionTier
-    @Environment(OnDeviceFoundationModelService.self) var onDeviceFoundationModel
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @State var message = ""
     @State var reminders: [CreateReminder] = []
@@ -46,12 +44,7 @@ struct CreateView: View {
     @State var editingReminderID: CreateReminder.ID?
     @State var isKeyboardPresented = false
     @State var isProjectSheetPresented = false
-    @State var isUnlockMoreSheetPresented = false
     @State var isDatePickerSheetPresented = false
-    @State var isSubmittingReminder = false
-    @State var isPlanningDay = false
-    @State var shouldPlanAgainAfterCurrentPlanning = false
-    @State var taskOrganization: CreateReminderAIPlanningResult?
     @State var activeDayID: String
     @State var datePickerSelection: Date
     @AppStorage(CreateReminderFilterPreference.storageKey) var showsOnlyUnsolvedTasks = false
@@ -80,15 +73,15 @@ struct CreateView: View {
         .background { NavigationKeyboardDismissObserver(isInputFocused: $isInputFocused) }
         .ignoresSafeArea(
             .keyboard,
-            edges: isProjectSheetPresented || isUnlockMoreSheetPresented ? .bottom : []
+            edges: isProjectSheetPresented ? .bottom : []
         )
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-            guard !isProjectSheetPresented, !isUnlockMoreSheetPresented else { return }
+            guard !isProjectSheetPresented else { return }
             isKeyboardPresented = true
             scrollToReminderListBottomAfterKeyboardFocus()
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            guard !isProjectSheetPresented, !isUnlockMoreSheetPresented else { return }
+            guard !isProjectSheetPresented else { return }
             isKeyboardPresented = false
         }
         .task {
@@ -100,7 +93,6 @@ struct CreateView: View {
         .toolbarTitleDisplayMode(.inline)
         .toolbar { createToolbar }
         .sheet(isPresented: $isProjectSheetPresented) { projectSheet }
-        .sheet(isPresented: $isUnlockMoreSheetPresented) { unlockMoreSheet }
         .sheet(isPresented: $isDatePickerSheetPresented) { datePickerSheet }
     }
 

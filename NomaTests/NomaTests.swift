@@ -134,55 +134,20 @@ final class NomaTests: XCTestCase {
         XCTAssertNil(CreateReminderAutoScroll.targetAfterKeyboardFocus(visibleReminders: []))
     }
 
-    func testFreeTierLimitsTaskGroupsToFiveTasks() {
-        XCTAssertEqual(SubscriptionTier.free.taskLimitPerGroup, 5)
-        XCTAssertTrue(SubscriptionTier.free.canAddTask(toGroupWithTaskCount: 4))
-        XCTAssertFalse(SubscriptionTier.free.canAddTask(toGroupWithTaskCount: 5))
-    }
-
-    func testProTierCanAddTasksBeyondFreeLimit() {
-        XCTAssertNil(SubscriptionTier.pro.taskLimitPerGroup)
-        XCTAssertTrue(SubscriptionTier.pro.canAddTask(toGroupWithTaskCount: 5))
-        XCTAssertTrue(SubscriptionTier.pro.canAddTask(toGroupWithTaskCount: 50))
-    }
-
-    func testFreeTierLimitsProjectsToThreeProjects() {
-        XCTAssertEqual(SubscriptionTier.free.projectLimit, 3)
-        XCTAssertTrue(SubscriptionTier.free.canAddProject(toProjectCount: 2))
-        XCTAssertFalse(SubscriptionTier.free.canAddProject(toProjectCount: 3))
-        XCTAssertNil(SubscriptionTier.pro.projectLimit)
-        XCTAssertTrue(SubscriptionTier.pro.canAddProject(toProjectCount: 30))
-        XCTAssertTrue(CreateProjectListSection.showsUnlockMoreButton(tier: .free, projectCount: 3))
-        XCTAssertFalse(CreateProjectListSection.showsUnlockMoreButton(tier: .free, projectCount: 2))
-        XCTAssertFalse(CreateProjectListSection.showsUnlockMoreButton(tier: .pro, projectCount: 3))
+    func testProjectSheetKeepsProjectSelectionCopyWithoutLimits() {
         XCTAssertEqual(CreateProjectListSection.selectionInfoKey, "create.projects.selection.info")
     }
 
-    func testProjectExpirationOptionIsSmallDatePickerForProUsersOnly() {
-        XCTAssertFalse(ProjectExpirationOption.isAvailable(for: .free))
-        XCTAssertTrue(ProjectExpirationOption.isAvailable(for: .pro))
+    func testProjectExpirationOptionIsSmallDatePickerForEveryProject() {
         XCTAssertEqual(ProjectExpirationOption.titleKey, "create.project.expiration.title")
         XCTAssertEqual(ProjectExpirationOption.datePickerLabelKey, "create.project.expiration.date-picker")
         XCTAssertEqual(ProjectExpirationOption.controlSize, .small)
         XCTAssertEqual(ProjectExpirationOption.displayedComponents, .date)
-    }
-
-    func testRecentlyDeletedProjectsSettingsCopyAndRetention() {
-        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.titleKey, "settings.recently-deleted.projects.title")
-        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.emptyStateKey, "settings.recently-deleted.projects.empty")
-        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.restoreTitleKey, "settings.recently-deleted.projects.restore")
-        XCTAssertEqual(RecentlyDeletedProjectsSettingsCopy.deleteForeverTitleKey, "settings.recently-deleted.projects.delete-forever")
-        XCTAssertEqual(RecentlyDeletedProjectsSettingsPolicy.retentionDays, 7)
-    }
-
-    func testCreateReminderListShowsUnlockMoreAtFreeLimitOnly() {
-        XCTAssertFalse(CreateReminderListSection.showsUnlockMoreButton(tier: .free, reminderCount: 4))
-        XCTAssertTrue(CreateReminderListSection.showsUnlockMoreButton(tier: .free, reminderCount: 5))
-        XCTAssertFalse(CreateReminderListSection.showsUnlockMoreButton(tier: .pro, reminderCount: 5))
+        XCTAssertEqual(ProjectExpirationOption.defaultDurationDays, 7)
     }
 
     @MainActor
-    func testReminderInputStateDisablesSubmitWhenSubscriptionLimitIsReached() {
+    func testReminderInputStateDisablesSubmitWhenUnavailable() {
         let state = ReminderInputState(text: "Next task", isSubmissionAvailable: false)
 
         XCTAssertFalse(state.canSubmit)
@@ -197,28 +162,6 @@ final class NomaTests: XCTestCase {
     @MainActor
     func testPrimaryButtonUsesSharedSubmitHapticFeedback() {
         XCTAssertEqual(PrimaryButtonFeedback.feedback, .createTaskSubmit)
-    }
-
-    func testCreateReminderListLimitCalloutUsesProfessionalCopyAndSpacing() {
-        XCTAssertEqual(
-            CreateReminderListSection.unlockMoreMessageKey,
-            "create.tasks.unlock-more.today.message"
-        )
-        XCTAssertEqual(UnlockMoreCalloutLayout.spacingFromPreviousContent, NomaSpacing.xxl)
-        XCTAssertEqual(
-            CreateReminderLimitCalloutLayout.topPadding,
-            UnlockMoreCalloutLayout.topPadding(after: NomaSpacing.md)
-        )
-        XCTAssertEqual(UnlockMoreCalloutLayout.contentSpacing, NomaSpacing.lg)
-    }
-
-    @MainActor
-    func testDebugUnlockMorePromotesAccountToPro() async {
-        let subscriptionTier = SubscriptionTierManager()
-
-        subscriptionTier.debugUnlockPro()
-
-        XCTAssertEqual(subscriptionTier.tier, .pro)
     }
 
     func testCreateReminderListShowsEmptyStateOnlyWithoutTasks() {
@@ -421,8 +364,7 @@ final class NomaTests: XCTestCase {
                 sourceReminders: [existingReminder],
                 submission: submission,
                 projects: [],
-                selectedProjectID: nil,
-                tier: .pro
+                selectedProjectID: nil
             ),
             [existingReminder, submittedReminder]
         )
@@ -585,37 +527,6 @@ final class NomaTests: XCTestCase {
 
     func testSupabaseClientOptionsOptIntoLocalInitialSessionEmission() {
         XCTAssertTrue(SupabaseClientProvider.emitsLocalSessionAsInitialSession)
-    }
-
-    @MainActor
-    func testSubscriptionTierManagerStartsInFreeTier() async {
-        let subscriptionTier = SubscriptionTierManager()
-
-        XCTAssertEqual(subscriptionTier.tier, .free)
-        XCTAssertFalse(subscriptionTier.isPro)
-    }
-
-    @MainActor
-    func testSubscriptionTierManagerCanSwitchBetweenFreeAndPro() async {
-        let subscriptionTier = SubscriptionTierManager()
-
-        subscriptionTier.updateTier(.pro)
-
-        XCTAssertEqual(subscriptionTier.tier, .pro)
-        XCTAssertTrue(subscriptionTier.isPro)
-
-        subscriptionTier.updateTier(.free)
-
-        XCTAssertEqual(subscriptionTier.tier, .free)
-        XCTAssertFalse(subscriptionTier.isPro)
-    }
-
-    func testSubscriptionTierDisplayConfigurationMatchesTier() {
-        XCTAssertEqual(SubscriptionTier.free.titleKey, "subscription.tier.free.title")
-        XCTAssertFalse(SubscriptionTier.free.usesProminentTextGradient)
-
-        XCTAssertEqual(SubscriptionTier.pro.titleKey, "subscription.tier.pro.title")
-        XCTAssertTrue(SubscriptionTier.pro.usesProminentTextGradient)
     }
 
     func testSignupLayoutUsesRequestedSpacing() {

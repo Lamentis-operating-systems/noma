@@ -1,6 +1,7 @@
 import SwiftUI
 
-struct SettingsNotificationsView: View {
+struct HomeNotificationsView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(AppSettingsStore.self) private var appSettings
 
     var body: some View {
@@ -29,6 +30,12 @@ struct SettingsNotificationsView: View {
         }
         .navigationTitle("settings.notifications.section-title")
         .toolbarTitleDisplayMode(.inline)
+        .toolbar {
+            CloseToolbarButton(
+                accessibilityLabelKey: "settings.notifications.close.accessibility-label",
+                action: { dismiss() }
+            )
+        }
     }
 
     private var morningPlanningEnabled: Binding<Bool> {
