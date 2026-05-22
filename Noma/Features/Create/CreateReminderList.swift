@@ -182,6 +182,7 @@ struct CreateReminderList: View {
     let projects: [TaskProject]
     let onSwipeDeleteThreshold: () -> Void
     let onToggleReminder: (CreateReminder) -> Void, onEditReminder: (CreateReminder) -> Void, onDeleteReminder: (CreateReminder) -> Void
+    let onCarryForwardReminder: (CreateReminder) -> Void
     let onCompleteCarryForwardReminder: (CreateReminder) -> Void
 
     var body: some View {
@@ -228,6 +229,7 @@ struct CreateReminderList: View {
                         CreateReminderCarryForwardPreviewRow(
                             reminder: reminder,
                             project: carryForwardProject(for: reminder),
+                            onCarryForward: { onCarryForwardReminder(reminder) },
                             onComplete: { onCompleteCarryForwardReminder(reminder) }
                         )
                         .transition(

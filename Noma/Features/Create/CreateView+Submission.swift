@@ -367,6 +367,7 @@ extension CreateView {
                     onToggleReminder: toggleReminder,
                     onEditReminder: beginEditingReminder,
                     onDeleteReminder: deleteReminder,
+                    onCarryForwardReminder: { reminder in addCarryForwardReminders([reminder]) },
                     onCompleteCarryForwardReminder: completeCarryForwardReminder
                 )
             }

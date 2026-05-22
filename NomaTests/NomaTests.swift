@@ -199,6 +199,78 @@ final class NomaTests: XCTestCase {
         )
     }
 
+    func testCarryForwardPreviewSortsOldestRemindersFirst() {
+        let oldestDate = Date(timeIntervalSince1970: 100)
+        let middleDate = Date(timeIntervalSince1970: 200)
+        let newestDate = Date(timeIntervalSince1970: 300)
+        let previousOpenReminders = [
+            CreateReminder(text: "Newest", createdAt: newestDate),
+            CreateReminder(text: "Oldest", createdAt: oldestDate),
+            CreateReminder(text: "Middle", createdAt: middleDate)
+        ]
+
+        XCTAssertEqual(
+            CreateReminderCarryForwardPreview.visibleReminders(
+                currentReminders: [],
+                previousOpenReminders: previousOpenReminders
+            )
+            .map(\.text),
+            ["Oldest", "Middle", "Newest"]
+        )
+    }
+
+    func testCarryForwardPreviewKeepsOriginalOrderWhenCreatedAtMatches() {
+        let createdAt = Date(timeIntervalSince1970: 100)
+        let previousOpenReminders = [
+            CreateReminder(text: "First", createdAt: createdAt),
+            CreateReminder(text: "Second", createdAt: createdAt),
+            CreateReminder(text: "Third", createdAt: createdAt)
+        ]
+
+        XCTAssertEqual(
+            CreateReminderCarryForwardPreview.visibleReminders(
+                currentReminders: [],
+                previousOpenReminders: previousOpenReminders
+            )
+            .map(\.text),
+            ["First", "Second", "Third"]
+        )
+    }
+
+    func testCarriedForwardReminderPreservesCreatedAtAndIncrementsCarryCount() {
+        let createdAt = Date(timeIntervalSince1970: 100)
+        let sourceReminder = CreateReminder(
+            text: "Move invoice",
+            createdAt: createdAt,
+            carryForwardCount: 1
+        )
+
+        let carriedReminder = CreateReminderCarryForwardTransfer.carriedReminder(from: sourceReminder)
+
+        XCTAssertEqual(carriedReminder.text, sourceReminder.text)
+        XCTAssertEqual(carriedReminder.createdAt, createdAt)
+        XCTAssertEqual(carriedReminder.carryForwardCount, 2)
+        XCTAssertTrue(carriedReminder.wasCarriedForward)
+    }
+
+    @MainActor
+    func testLegacyReminderDecodingBackfillsCarryForwardMetadata() throws {
+        let json = """
+        {
+          "id": "00000000-0000-0000-0000-000000000072",
+          "text": "Legacy task",
+          "isCompleted": false
+        }
+        """.data(using: .utf8)!
+
+        let reminder = try JSONDecoder().decode(CreateReminder.self, from: json)
+
+        XCTAssertEqual(reminder.text, "Legacy task")
+        XCTAssertEqual(reminder.createdAt, .distantPast)
+        XCTAssertEqual(reminder.carryForwardCount, 0)
+        XCTAssertFalse(reminder.wasCarriedForward)
+    }
+
     func testCarryForwardPreviewCompletionMarksOriginalReminderDone() {
         let reminderID = UUID(uuidString: "00000000-0000-0000-0000-000000000052")!
         let targetReminder = CreateReminder(id: reminderID, text: "Send update")

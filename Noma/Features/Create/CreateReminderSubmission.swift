@@ -6,17 +6,23 @@ struct CreateReminder: Codable, Equatable, Identifiable {
     let text: String
     let isCompleted: Bool
     let projectID: TaskProject.ID?
+    let createdAt: Date
+    let carryForwardCount: Int
 
     init(
         id: UUID = UUID(),
         text: String,
         isCompleted: Bool = false,
-        projectID: TaskProject.ID? = nil
+        projectID: TaskProject.ID? = nil,
+        createdAt: Date = Date(),
+        carryForwardCount: Int = 0
     ) {
         self.id = id
         self.text = text
         self.isCompleted = isCompleted
         self.projectID = projectID
+        self.createdAt = createdAt
+        self.carryForwardCount = carryForwardCount
     }
 
     enum CodingKeys: String, CodingKey {
@@ -24,6 +30,8 @@ struct CreateReminder: Codable, Equatable, Identifiable {
         case text
         case isCompleted
         case projectID
+        case createdAt
+        case carryForwardCount
     }
 
     init(from decoder: Decoder) throws {
@@ -32,10 +40,23 @@ struct CreateReminder: Codable, Equatable, Identifiable {
         text = try container.decode(String.self, forKey: .text)
         isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
         projectID = try container.decodeIfPresent(TaskProject.ID.self, forKey: .projectID)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? .distantPast
+        carryForwardCount = try container.decodeIfPresent(Int.self, forKey: .carryForwardCount) ?? 0
+    }
+
+    var wasCarriedForward: Bool {
+        carryForwardCount > 0
     }
 
     func togglingCompletion() -> CreateReminder {
-        CreateReminder(id: id, text: text, isCompleted: !isCompleted, projectID: projectID)
+        CreateReminder(
+            id: id,
+            text: text,
+            isCompleted: !isCompleted,
+            projectID: projectID,
+            createdAt: createdAt,
+            carryForwardCount: carryForwardCount
+        )
     }
 }
 
@@ -136,7 +157,9 @@ enum CreateReminderSubmissionPersistence {
             id: submission.reminder.id,
             text: submission.reminder.text,
             isCompleted: submission.reminder.isCompleted,
-            projectID: submittedProjectID
+            projectID: submittedProjectID,
+            createdAt: submission.reminder.createdAt,
+            carryForwardCount: submission.reminder.carryForwardCount
         )
     }
 

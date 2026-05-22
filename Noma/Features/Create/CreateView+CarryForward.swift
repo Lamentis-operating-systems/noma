@@ -102,7 +102,7 @@ extension CreateView {
 
     func addCarryForwardReminders(_ remindersToCarryForward: [CreateReminder]) {
         let remindersToAdd = remindersToCarryForward.map { reminder in
-            CreateReminder(text: reminder.text, projectID: reminder.projectID)
+            CreateReminderCarryForwardTransfer.carriedReminder(from: reminder)
         }
         guard !remindersToAdd.isEmpty else { return }
         let sourceDayID = previousDayID
