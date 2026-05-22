@@ -8,8 +8,8 @@ extension HomeView {
     }
 
     var dailyGroupsList: some View {
-        VStack(alignment: .leading, spacing: NomaSpacing.xxl) {
-            if !todayReminders.isEmpty {
+        VStack(alignment: .leading, spacing: 0) {
+            if showsTodaySection {
                 HomeTodaySectionView(
                     reminders: todayReminders,
                     projects: todayProjects,
@@ -19,14 +19,22 @@ extension HomeView {
                 )
             }
 
-            if !commonProjectSummaries.isEmpty {
+            if showsProjectSection {
+                if showsTodaySection {
+                    HomeSectionDivider()
+                }
+
                 CommonProjectsSectionView(
                     summaries: commonProjectSummaries,
                     onSelectProject: { path.append(.project($0.project.id)) }
                 )
             }
 
-            if !dailyGroupSummaries.isEmpty {
+            if showsDailyGroupsSection {
+                if showsTodaySection || showsProjectSection {
+                    HomeSectionDivider()
+                }
+
                 DailyGroupsSectionView(
                     summaries: dailyGroupSummaries,
                     onSelectGroup: { path.append(.create(dayID: $0.id)) }
@@ -42,6 +50,9 @@ extension HomeView {
 
     var dailyGroupSummaries: [DailyTaskGroupSummary] { dailyTaskGroups.summaries() }
     var commonProjectSummaries: [CommonProjectSummary] { dailyTaskGroups.commonProjectSummaries() }
+    var showsTodaySection: Bool { !todayReminders.isEmpty }
+    var showsProjectSection: Bool { !commonProjectSummaries.isEmpty }
+    var showsDailyGroupsSection: Bool { !dailyGroupSummaries.isEmpty }
     var todayID: String { dailyTaskGroups.todayID() }
     var todayProjects: [TaskProject] { dailyTaskGroups.projects(forDayID: todayID) }
     var todayReminders: [CreateReminder] {
@@ -82,5 +93,13 @@ extension HomeView {
                 settings: notificationSettings
             )
         }
+    }
+}
+
+private struct HomeSectionDivider: View {
+    var body: some View {
+        Divider()
+            .padding(.top, NomaSpacing.xxl + NomaSpacing.md)
+            .padding(.bottom, NomaSpacing.xl)
     }
 }

@@ -377,7 +377,7 @@ final class DailyTaskGroupTests: XCTestCase {
         XCTAssertEqual(DailyTaskGroupsProgressCopy.completedKey, "home.daily-groups.progress.completed")
     }
 
-    func testDailyTaskGroupRowShowsCompletionIconOnlyWhenAllTasksAreDone() throws {
+    func testDailyTaskGroupRowUsesStatusIconsForOpenAndCompletedGroups() throws {
         let calendar = Calendar(identifier: .gregorian)
         let date = try XCTUnwrap(DateComponents(calendar: calendar, year: 2026, month: 5, day: 16).date)
         let incompleteSummary = DailyTaskGroupSummary(
@@ -400,9 +400,12 @@ final class DailyTaskGroupTests: XCTestCase {
             )
         )
 
-        XCTAssertNil(DailyTaskGroupRowStatus.systemImage(for: incompleteSummary))
         XCTAssertEqual(
-            DailyTaskGroupRowStatus.systemImage(for: completedSummary),
+            DailyTaskGroupRowStatus.status(for: incompleteSummary).systemImage,
+            DailyTaskGroupRowStatus.openSystemImage
+        )
+        XCTAssertEqual(
+            DailyTaskGroupRowStatus.status(for: completedSummary).systemImage,
             DailyTaskGroupRowStatus.completedSystemImage
         )
     }

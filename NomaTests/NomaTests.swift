@@ -26,7 +26,8 @@ final class NomaTests: XCTestCase {
 
     func testDailyTaskGroupRowsUseScaleFeedbackAndCompletionCopy() {
         XCTAssertTrue(DailyTaskGroupRowInteraction.usesScaleButtonStyle)
-        XCTAssertEqual(DailyTaskGroupRowLayout.completedIconAdditionalTrailingPadding, NomaSpacing.xs)
+        XCTAssertEqual(DailyTaskGroupRowLayout.statusIconWidth, NomaSize.taskMetadataIconColumn)
+        XCTAssertEqual(DailyTaskGroupRowLayout.statusIconHeight, NomaSize.radioCheckboxOuter)
         XCTAssertEqual(DailyTaskGroupsProgressCopy.completedKey, "home.daily-groups.progress.completed")
     }
 
@@ -533,6 +534,23 @@ final class NomaTests: XCTestCase {
         XCTAssertEqual(SignInWithAppleGlassButtonLayout.verticalPadding, 12)
         XCTAssertEqual(SignupViewLayout.edgePadding, 32)
         XCTAssertEqual(SignupViewLayout.bottomPadding, 32)
+        XCTAssertEqual(SignupViewLayout.logoSize, NomaSize.projectIconPreview + NomaSpacing.sm)
+        XCTAssertEqual(SignupViewLayout.workflowIconColumnWidth, NomaSize.taskMetadataIconColumn)
+        XCTAssertEqual(SignupViewLayout.contentMaxWidth, NomaSize.taskPreview)
+    }
+
+    func testSignupCopyExplainsWorkflow() {
+        XCTAssertEqual(SignupViewCopy.titleKey, "signup.title")
+        XCTAssertEqual(SignupViewCopy.subtitleKey, "signup.subtitle")
+        XCTAssertEqual(
+            SignupViewCopy.workflowSteps,
+            [
+                SignupWorkflowStep(number: 1, titleKey: "signup.workflow.create"),
+                SignupWorkflowStep(number: 2, titleKey: "signup.workflow.complete"),
+                SignupWorkflowStep(number: 3, titleKey: "signup.workflow.carry-forward"),
+                SignupWorkflowStep(number: 4, titleKey: "signup.workflow.decide")
+            ]
+        )
     }
 
     func testSignInWithAppleLoadingStateUsesSpinnerAndBlocksRepeatedTaps() {

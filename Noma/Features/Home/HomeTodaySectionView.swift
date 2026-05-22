@@ -9,9 +9,7 @@ struct HomeTodaySectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            CreateReminderSectionHeader(
-                title: String(localized: String.LocalizationValue(HomeTodaySection.headerTitleKey))
-            )
+            SectionHeader(HomeTodaySection.headerTitleKey)
 
             CreateReminderRows(
                 reminders: reminders,

@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "%lld." : {
+
+    },
     "auth.apple.button.title" : {
       "comment" : "Primary Apple SSO authentication button title.",
       "localizations" : {
@@ -1227,23 +1230,6 @@
         }
       }
     },
-    "settings.notifications.daily-planning" : {
-      "comment" : "Notifications row title for the daily planning notification.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tagesplanung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Daily planning"
-          }
-        }
-      }
-    },
     "settings.notifications.close.accessibility-label" : {
       "comment" : "Accessibility label for closing the notifications sheet.",
       "localizations" : {
@@ -1257,6 +1243,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close notifications"
+          }
+        }
+      }
+    },
+    "settings.notifications.daily-planning" : {
+      "comment" : "Notifications row title for the daily planning notification.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tagesplanung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily planning"
           }
         }
       }
@@ -1312,19 +1315,110 @@
         }
       }
     },
-    "signup.title" : {
-      "comment" : "Centered headline on the authentication signup screen.",
+    "signup.subtitle" : {
+      "comment" : "Short invitation copy below the authentication headline.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plane Aufgaben,\nerreiche Ziele!"
+            "value" : "Halte deinen Tag klar, ohne Aufgaben aus den Augen zu verlieren."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plan tasks,\nreach goals!"
+            "value" : "Keep your day clear without losing track of what matters."
+          }
+        }
+      }
+    },
+    "signup.title" : {
+      "comment" : "Centered headline on the authentication signup screen.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plane bewusster.\nBleib dran."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan with intent.\nFollow through."
+          }
+        }
+      }
+    },
+    "signup.workflow.carry-forward" : {
+      "comment" : "Signup workflow step explaining that unfinished tasks move to the next day.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was heute offen bleibt, wartet morgen wieder auf dich."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anything unfinished today is ready for you tomorrow."
+          }
+        }
+      }
+    },
+    "signup.workflow.complete" : {
+      "comment" : "Signup workflow step for completing tasks.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hake ab, was erledigt ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check off what you complete."
+          }
+        }
+      }
+    },
+    "signup.workflow.create" : {
+      "comment" : "Signup workflow step for creating tasks.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erstelle Aufgaben, sobald sie entstehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create tasks the moment they come up."
+          }
+        }
+      }
+    },
+    "signup.workflow.decide" : {
+      "comment" : "Signup workflow step for deciding whether carried tasks still matter today.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entscheide morgen bewusst, ob sie heute noch wichtig sind."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decide tomorrow whether they still matter today."
           }
         }
       }

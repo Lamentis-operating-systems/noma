@@ -15,7 +15,7 @@ struct CreateReminderProjectIcon: View {
         .frame(
             width: CreateReminderMetadataIconLayout.columnWidth,
             height: NomaSize.radioCheckboxOuter,
-            alignment: .center
+            alignment: .leading
         )
         .padding(.top, CreateReminderMetadataIconLayout.firstLineCenterOffset)
     }
