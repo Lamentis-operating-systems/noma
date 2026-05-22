@@ -7,10 +7,26 @@ protocol AuthClient {
     func authStateSnapshots() -> AsyncStream<AuthSessionSnapshot>
     func signInWithApple(idToken: String, nonce: String) async throws -> AuthSessionSnapshot
     func signOut() async throws
+    func deleteAccount() async throws
+}
+
+enum AccountDeletionError: LocalizedError {
+    case missingSession
+    case failed(statusCode: Int, message: String)
+
+    var errorDescription: String? {
+        switch self {
+        case .missingSession:
+            "No active session was found."
+        case let .failed(statusCode, message):
+            "Account deletion failed (\(statusCode)): \(message)"
+        }
+    }
 }
 
 struct SupabaseAuthClient: AuthClient {
     let client: SupabaseClient
+    let configuration: SupabaseConfiguration
 
     func currentSessionSnapshot() async -> AuthSessionSnapshot {
         AuthSessionSnapshot(session: client.auth.currentSession)
@@ -41,6 +57,35 @@ struct SupabaseAuthClient: AuthClient {
     func signOut() async throws {
         try await client.auth.signOut()
     }
+
+    func deleteAccount() async throws {
+        guard let session = client.auth.currentSession else {
+            throw AccountDeletionError.missingSession
+        }
+
+        var request = URLRequest(
+            url: SupabaseClientProvider.edgeFunctionURL(
+                named: "delete-account",
+                configuration: configuration
+            )
+        )
+        request.httpMethod = "POST"
+        request.setValue(configuration.publishableKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(session.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AccountDeletionError.failed(statusCode: -1, message: "Invalid response")
+        }
+
+        guard (200..<300).contains(httpResponse.statusCode) else {
+            let message = String(data: data, encoding: .utf8) ?? "Unknown server error"
+            throw AccountDeletionError.failed(statusCode: httpResponse.statusCode, message: message)
+        }
+
+        try? await client.auth.signOut()
+    }
 }
 
 struct UnconfiguredAuthClient: AuthClient {
@@ -61,6 +106,10 @@ struct UnconfiguredAuthClient: AuthClient {
     }
 
     func signOut() async throws {}
+
+    func deleteAccount() async throws {
+        throw error
+    }
 }
 
 private extension AuthSessionSnapshot {

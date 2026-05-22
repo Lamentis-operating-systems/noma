@@ -4,8 +4,8 @@ struct DailyTaskGroupStorage {
     nonisolated static let defaultStorageKey = "noma.daily-task-groups"
     nonisolated static let signedOutStorageScope = "signed-out"
 
-    private let userDefaults: UserDefaults
-    private let storageKey: String
+    let userDefaults: UserDefaults
+    let storageKey: String
 
     nonisolated static func storageKey(forUserID userID: String?) -> String {
         let scope = userID ?? signedOutStorageScope

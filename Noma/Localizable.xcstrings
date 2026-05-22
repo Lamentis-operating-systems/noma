@@ -24,6 +24,91 @@
         }
       }
     },
+    "auth.delete-account.alert.message" : {
+      "comment" : "Confirmation message before permanently deleting a signed-in account.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Account wird dauerhaft gelöscht. Lokal gespeicherte Aufgaben und Projekte für diesen Account werden von diesem Gerät entfernt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account will be permanently deleted. Locally stored tasks and projects for this account will be removed from this device."
+          }
+        }
+      }
+    },
+    "auth.delete-account.alert.title" : {
+      "comment" : "Confirmation alert title before permanently deleting a signed-in account.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account löschen?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account?"
+          }
+        }
+      }
+    },
+    "auth.delete-account.confirm" : {
+      "comment" : "Destructive confirmation button for account deletion.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account"
+          }
+        }
+      }
+    },
+    "auth.delete-account.error.title" : {
+      "comment" : "Alert title shown when account deletion fails.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account konnte nicht gelöscht werden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete account"
+          }
+        }
+      }
+    },
+    "auth.delete-account.title" : {
+      "comment" : "Menu item title for deleting the signed-in account.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account"
+          }
+        }
+      }
+    },
     "auth.logout.title" : {
       "comment" : "Menu item title for signing out of the app.",
       "localizations" : {
@@ -37,6 +122,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign out"
+          }
+        }
+      }
+    },
+    "common.cancel" : {
+      "comment" : "Generic cancel action.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "common.ok" : {
+      "comment" : "Generic acknowledgement action.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         }
       }

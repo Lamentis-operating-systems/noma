@@ -312,33 +312,49 @@ final class DailyTaskGroupTests: XCTestCase {
 
     func testDailyTaskGroupStorageScopesSavedGroupsByUserID() throws {
         let defaults = UserDefaults.standard
-        let firstUserID = UUID().uuidString
-        let secondUserID = UUID().uuidString
-        let firstStorageKey = DailyTaskGroupStorage.storageKey(forUserID: firstUserID)
-        let secondStorageKey = DailyTaskGroupStorage.storageKey(forUserID: secondUserID)
-        defaults.removeObject(forKey: firstStorageKey)
-        defaults.removeObject(forKey: secondStorageKey)
+        let scopedStorage = makeScopedStoragePair(defaults: defaults)
         defer {
-            defaults.removeObject(forKey: firstStorageKey)
-            defaults.removeObject(forKey: secondStorageKey)
+            defaults.removeObject(forKey: scopedStorage.firstKey)
+            defaults.removeObject(forKey: scopedStorage.secondKey)
         }
         let calendar = Calendar(identifier: .gregorian)
         let date = try XCTUnwrap(DateComponents(calendar: calendar, year: 2026, month: 5, day: 16).date)
-        let firstStorage = DailyTaskGroupStorage(userDefaults: defaults, storageKey: firstStorageKey)
-        let secondStorage = DailyTaskGroupStorage(userDefaults: defaults, storageKey: secondStorageKey)
 
-        firstStorage.save(groups: [
+        scopedStorage.first.save(groups: [
             DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Private task")])
         ])
 
-        XCTAssertTrue(secondStorage.loadGroups().isEmpty)
+        XCTAssertTrue(scopedStorage.second.loadGroups().isEmpty)
 
-        secondStorage.save(groups: [
+        scopedStorage.second.save(groups: [
             DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Other account task")])
         ])
 
-        XCTAssertEqual(firstStorage.loadGroups().first?.reminders.map(\.text), ["Private task"])
-        XCTAssertEqual(secondStorage.loadGroups().first?.reminders.map(\.text), ["Other account task"])
+        XCTAssertEqual(scopedStorage.first.loadGroups().first?.reminders.map(\.text), ["Private task"])
+        XCTAssertEqual(scopedStorage.second.loadGroups().first?.reminders.map(\.text), ["Other account task"])
+    }
+
+    func testDailyTaskGroupStorageDeletesOnlyRequestedUserScope() throws {
+        let defaults = UserDefaults.standard
+        let scopedStorage = makeScopedStoragePair(defaults: defaults)
+        defer {
+            defaults.removeObject(forKey: scopedStorage.firstKey)
+            defaults.removeObject(forKey: scopedStorage.secondKey)
+        }
+        let calendar = Calendar(identifier: .gregorian)
+        let date = try XCTUnwrap(DateComponents(calendar: calendar, year: 2026, month: 5, day: 16).date)
+
+        scopedStorage.first.save(groups: [
+            DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Private task")])
+        ])
+        scopedStorage.second.save(groups: [
+            DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Other account task")])
+        ])
+
+        DailyTaskGroupStorage.deleteState(forUserID: scopedStorage.firstUserID, userDefaults: defaults)
+
+        XCTAssertTrue(scopedStorage.first.loadGroups().isEmpty)
+        XCTAssertEqual(scopedStorage.second.loadGroups().first?.reminders.map(\.text), ["Other account task"])
     }
 
     @MainActor
@@ -526,6 +542,31 @@ private struct DailyTaskGroupTestFixture {
     func date(year: Int, month: Int, day: Int) throws -> Date {
         try XCTUnwrap(DateComponents(calendar: calendar, year: year, month: month, day: day).date)
     }
+}
+
+private struct ScopedStoragePair {
+    let firstUserID: String
+    let firstKey: String
+    let secondKey: String
+    let first: DailyTaskGroupStorage
+    let second: DailyTaskGroupStorage
+}
+
+private func makeScopedStoragePair(defaults: UserDefaults) -> ScopedStoragePair {
+    let firstUserID = UUID().uuidString
+    let secondUserID = UUID().uuidString
+    let firstKey = DailyTaskGroupStorage.storageKey(forUserID: firstUserID)
+    let secondKey = DailyTaskGroupStorage.storageKey(forUserID: secondUserID)
+    defaults.removeObject(forKey: firstKey)
+    defaults.removeObject(forKey: secondKey)
+
+    return ScopedStoragePair(
+        firstUserID: firstUserID,
+        firstKey: firstKey,
+        secondKey: secondKey,
+        first: DailyTaskGroupStorage(userDefaults: defaults, storageKey: firstKey),
+        second: DailyTaskGroupStorage(userDefaults: defaults, storageKey: secondKey)
+    )
 }
 
 private func taskProject(id: String, title: String, expiresAt: Date? = nil) -> TaskProject {

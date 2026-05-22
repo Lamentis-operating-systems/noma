@@ -149,6 +149,16 @@ final class DailyTaskGroupStore {
         purgeRecentlyDeletedProjects(asOf: now())
     }
 
+    func deleteLocalData(forUserID userID: String?) {
+        DailyTaskGroupStorage.deleteState(forUserID: userID, userDefaults: userDefaults)
+
+        guard self.userID == userID else { return }
+        groups = []
+        storedProjects = []
+        recentlyDeletedProjects = []
+        storedSelectedProjectID = nil
+    }
+
     func save(reminders: [CreateReminder], for date: Date) {
         let dayID = Self.dayID(for: date, calendar: calendar)
         save(reminders: reminders, forDayID: dayID, date: date)

@@ -10,9 +10,12 @@ struct HomeTopBar: View {
 }
 
 struct HomeMenu: View {
-    @Environment(AuthStateManager.self) private var authState
-    @Environment(AppSettingsStore.self) private var appSettings
-    @State private var isNotificationsPresented = false
+    @Environment(AuthStateManager.self) var authState
+    @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
+    @Environment(AppSettingsStore.self) var appSettings
+    @State var isNotificationsPresented = false
+    @State var isDeleteAccountAlertPresented = false
+    @State var deleteAccountErrorMessage: String?
 
     var body: some View {
         Menu {
@@ -35,6 +38,16 @@ struct HomeMenu: View {
             Divider()
 
             Button(role: .destructive) {
+                isDeleteAccountAlertPresented = true
+            } label: {
+                Label(
+                    "auth.delete-account.title",
+                    systemImage: "person.crop.circle.badge.xmark"
+                )
+            }
+            .disabled(authState.isDeletingAccount)
+
+            Button(role: .destructive) {
                 authState.signOut()
             } label: {
                 Label(
@@ -51,12 +64,20 @@ struct HomeMenu: View {
             }
                 .presentationDetents([.large])
         }
-    }
-
-    private var appearancePreference: Binding<AppAppearancePreference> {
-        Binding(
-            get: { appSettings.appearancePreference },
-            set: { appSettings.appearancePreference = $0 }
-        )
+        .alert("auth.delete-account.alert.title", isPresented: $isDeleteAccountAlertPresented) {
+            Button("common.cancel", role: .cancel) {}
+            Button("auth.delete-account.confirm", role: .destructive) {
+                deleteAccount()
+            }
+        } message: {
+            Text("auth.delete-account.alert.message")
+        }
+        .alert("auth.delete-account.error.title", isPresented: isDeleteAccountErrorPresented) {
+            Button("common.ok", role: .cancel) {
+                deleteAccountErrorMessage = nil
+            }
+        } message: {
+            Text(deleteAccountErrorMessage ?? "")
+        }
     }
 }

@@ -93,6 +93,42 @@ final class AuthStateManagerTests: XCTestCase {
         XCTAssertNil(authState.storageUserID)
         XCTAssertNil(authState.errorMessage)
     }
+
+    @MainActor
+    func testDeleteAccountAppliesSignedOutSnapshot() async {
+        let authState = AuthStateManager(
+            authClient: DeleteAccountSucceedsAuthClient(),
+            appleSignInProvider: StubAppleSignInProvider()
+        )
+        authState.phase = .signedIn
+        authState.storageUserID = "signed-in-user"
+
+        let didDelete = await authState.deleteAccountFlow()
+
+        XCTAssertTrue(didDelete)
+        XCTAssertEqual(authState.phase, .signedOut)
+        XCTAssertNil(authState.storageUserID)
+        XCTAssertNil(authState.errorMessage)
+        XCTAssertFalse(authState.isDeletingAccount)
+    }
+
+    @MainActor
+    func testDeleteAccountReportsFailureAndKeepsSignedInState() async {
+        let authState = AuthStateManager(
+            authClient: DeleteAccountFailsAuthClient(),
+            appleSignInProvider: StubAppleSignInProvider()
+        )
+        authState.phase = .signedIn
+        authState.storageUserID = "signed-in-user"
+
+        let didDelete = await authState.deleteAccountFlow()
+
+        XCTAssertFalse(didDelete)
+        XCTAssertEqual(authState.phase, .signedIn)
+        XCTAssertEqual(authState.storageUserID, "signed-in-user")
+        XCTAssertEqual(authState.errorMessage, TestAuthError.deleteRejected.localizedDescription)
+        XCTAssertFalse(authState.isDeletingAccount)
+    }
 }
 
 private func allowAuthObserverToRun() async {
@@ -132,6 +168,8 @@ private struct StartupAuthClient: AuthClient {
     }
 
     func signOut() async throws {}
+
+    func deleteAccount() async throws {}
 }
 
 private struct SignInSucceedsAuthClient: AuthClient {
@@ -150,6 +188,8 @@ private struct SignInSucceedsAuthClient: AuthClient {
     }
 
     func signOut() async throws {}
+
+    func deleteAccount() async throws {}
 }
 
 private struct SignInFailsAuthClient: AuthClient {
@@ -168,6 +208,8 @@ private struct SignInFailsAuthClient: AuthClient {
     }
 
     func signOut() async throws {}
+
+    func deleteAccount() async throws {}
 }
 
 private struct SignOutSucceedsAuthClient: AuthClient {
@@ -186,12 +228,62 @@ private struct SignOutSucceedsAuthClient: AuthClient {
     }
 
     func signOut() async throws {}
+
+    func deleteAccount() async throws {}
+}
+
+private struct DeleteAccountSucceedsAuthClient: AuthClient {
+    func currentSessionSnapshot() async -> AuthSessionSnapshot {
+        AuthSessionSnapshot(isSignedIn: true, userID: "signed-in-user")
+    }
+
+    func authStateSnapshots() -> AsyncStream<AuthSessionSnapshot> {
+        AsyncStream { continuation in
+            continuation.finish()
+        }
+    }
+
+    func signInWithApple(idToken: String, nonce: String) async throws -> AuthSessionSnapshot {
+        AuthSessionSnapshot(isSignedIn: true)
+    }
+
+    func signOut() async throws {}
+
+    func deleteAccount() async throws {}
+}
+
+private struct DeleteAccountFailsAuthClient: AuthClient {
+    func currentSessionSnapshot() async -> AuthSessionSnapshot {
+        AuthSessionSnapshot(isSignedIn: true, userID: "signed-in-user")
+    }
+
+    func authStateSnapshots() -> AsyncStream<AuthSessionSnapshot> {
+        AsyncStream { continuation in
+            continuation.finish()
+        }
+    }
+
+    func signInWithApple(idToken: String, nonce: String) async throws -> AuthSessionSnapshot {
+        AuthSessionSnapshot(isSignedIn: true)
+    }
+
+    func signOut() async throws {}
+
+    func deleteAccount() async throws {
+        throw TestAuthError.deleteRejected
+    }
 }
 
 private enum TestAuthError: LocalizedError {
     case signInRejected
+    case deleteRejected
 
     var errorDescription: String? {
-        "Sign in rejected"
+        switch self {
+        case .signInRejected:
+            "Sign in rejected"
+        case .deleteRejected:
+            "Delete rejected"
+        }
     }
 }
