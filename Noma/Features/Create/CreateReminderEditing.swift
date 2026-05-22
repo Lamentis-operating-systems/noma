@@ -35,7 +35,9 @@ extension CreateReminderSubmissionPersistence {
             id: submittedReminder.id,
             text: submittedReminder.text,
             isCompleted: sourceReminders[index].isCompleted,
-            projectID: submittedReminder.projectID
+            projectID: submittedReminder.projectID,
+            createdAt: sourceReminders[index].createdAt,
+            carryForwardCount: sourceReminders[index].carryForwardCount
         )
         return updatedReminders
     }

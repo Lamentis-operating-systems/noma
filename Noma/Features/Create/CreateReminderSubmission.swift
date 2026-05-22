@@ -299,23 +299,6 @@ enum CreateReminderCompletionVisibility {
         visibleIDs.formUnion(reminderIDs)
     }
 
-    @MainActor
-    static func scheduleRemoval(
-        of reminderIDs: [CreateReminder.ID],
-        isNeeded: Bool,
-        visibleIDs: Binding<Set<CreateReminder.ID>>
-    ) {
-        guard isNeeded, !reminderIDs.isEmpty else { return }
-
-        Task {
-            try? await Task.sleep(nanoseconds: CreateReminderListFilter.completedVisibilityDelayNanoseconds)
-            await MainActor.run {
-                withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-                    reminderIDs.forEach { visibleIDs.wrappedValue.remove($0) }
-                }
-            }
-        }
-    }
 }
 
 enum CreateReminderListOrganization {

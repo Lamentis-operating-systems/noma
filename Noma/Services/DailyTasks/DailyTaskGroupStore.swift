@@ -30,6 +30,7 @@ final class DailyTaskGroupStore {
 
     @ObservationIgnored
     private(set) var storedSelectedProjectID: TaskProject.ID?
+    private(set) var projectExpirationRevision = 0
 
     init(
         userDefaults: UserDefaults = .standard,
@@ -228,14 +229,19 @@ final class DailyTaskGroupStore {
     func expireProjects(asOf date: Date) {
         let expiredProjectIDs = storedProjects
             .filter { project in
-                guard let expiresAt = project.expiresAt else { return false }
-                return expiresAt <= date
+                isExpired(project, asOf: date)
             }
             .map(\.id)
 
         guard !expiredProjectIDs.isEmpty else { return }
 
         expiredProjectIDs.forEach { deleteProject(withID: $0, at: date) }
+        projectExpirationRevision += 1
+    }
+
+    func isExpired(_ project: TaskProject, asOf date: Date) -> Bool {
+        guard let expiresAt = project.expiresAt else { return false }
+        return calendar.compare(date, to: expiresAt, toGranularity: .day) == .orderedDescending
     }
 
     func restoreRecentlyDeletedProject(withID projectID: TaskProject.ID) {

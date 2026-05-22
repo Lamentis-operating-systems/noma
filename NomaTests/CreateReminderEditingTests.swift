@@ -13,7 +13,9 @@ final class CreateReminderEditingTests: XCTestCase {
             id: reminderID,
             text: "Old copy",
             isCompleted: true,
-            projectID: originalProjectID
+            projectID: originalProjectID,
+            createdAt: Date(timeIntervalSince1970: 100),
+            carryForwardCount: 2
         )
 
         let updatedReminders = CreateReminderSubmissionPersistence.updatedRemindersAfterEditing(
@@ -29,6 +31,9 @@ final class CreateReminderEditingTests: XCTestCase {
         XCTAssertEqual(updatedReminders?.first?.text, "New copy")
         XCTAssertEqual(updatedReminders?.first?.isCompleted, true)
         XCTAssertEqual(updatedReminders?.first?.projectID, updatedProject.id)
+        XCTAssertEqual(updatedReminders?.first?.createdAt, existingReminder.createdAt)
+        XCTAssertEqual(updatedReminders?.first?.carryForwardCount, 2)
+        XCTAssertEqual(updatedReminders?.first?.wasCarriedForward, true)
     }
 
     func testEditingReminderRejectsInvalidSubmittedText() {

@@ -90,6 +90,9 @@ struct CreateView: View {
         .onChange(of: message) { _, draftText in
             resetEditingIfDraftWasCleared(draftText)
         }
+        .onChange(of: dailyTaskGroups.projectExpirationRevision) { _, _ in
+            loadDailyGroup()
+        }
         .toolbarTitleDisplayMode(.inline)
         .toolbar { createToolbar }
         .sheet(isPresented: $isProjectSheetPresented) { projectSheet }

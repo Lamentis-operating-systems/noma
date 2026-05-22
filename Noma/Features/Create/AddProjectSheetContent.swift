@@ -6,6 +6,7 @@ struct AddProjectSheetContent: View {
     let iconSystemImage: String
     let iconColor: Color
     @Binding var expirationDate: Date
+    @Binding var isExpirationEnabled: Bool
     let onIconButtonTap: () -> Void
 
     var body: some View {
@@ -28,7 +29,10 @@ struct AddProjectSheetContent: View {
                     ProjectTitleInput(title: $title, focus: focus)
                 }
 
-                ProjectExpirationDatePicker(expirationDate: $expirationDate)
+                ProjectExpirationDatePicker(
+                    expirationDate: $expirationDate,
+                    isExpirationEnabled: $isExpirationEnabled
+                )
             }
             .padding(.horizontal, NomaSpacing.xl)
             .padding(.top, NomaSpacing.xl)
@@ -40,20 +44,26 @@ struct AddProjectSheetContent: View {
 
 private struct ProjectExpirationDatePicker: View {
     @Binding var expirationDate: Date
+    @Binding var isExpirationEnabled: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: NomaSpacing.xs) {
-            Text(LocalizedStringKey(ProjectExpirationOption.titleKey))
-                .font(.subheadline)
-                .foregroundStyle(.textSecondary)
+        VStack(alignment: .leading, spacing: NomaSpacing.sm) {
+            Toggle(isOn: $isExpirationEnabled) {
+                Text(LocalizedStringKey(ProjectExpirationOption.titleKey))
+                    .font(.subheadline)
+                    .foregroundStyle(.textSecondary)
+            }
+            .toggleStyle(.switch)
 
-            DatePicker(
-                LocalizedStringKey(ProjectExpirationOption.datePickerLabelKey),
-                selection: $expirationDate,
-                displayedComponents: ProjectExpirationOption.displayedComponents
-            )
-            .datePickerStyle(.compact)
-            .controlSize(ProjectExpirationOption.controlSize)
+            if isExpirationEnabled {
+                DatePicker(
+                    LocalizedStringKey(ProjectExpirationOption.datePickerLabelKey),
+                    selection: $expirationDate,
+                    displayedComponents: ProjectExpirationOption.displayedComponents
+                )
+                .datePickerStyle(.compact)
+                .controlSize(ProjectExpirationOption.controlSize)
+            }
         }
     }
 }

@@ -345,6 +345,8 @@ extension CreateView {
 
         saveCurrentDailyGroup()
         activeDayID = newDayID
+        editingReminderID = nil
+        message = ""
         temporarilyVisibleCompletedReminderIDs.removeAll()
         pendingScrollTargetID = nil
         loadDailyGroup()

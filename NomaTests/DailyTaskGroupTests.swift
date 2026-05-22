@@ -133,13 +133,38 @@ final class DailyTaskGroupTests: XCTestCase {
                 forDayID: "2026-05-17"
             )
 
-            store.expireProjects(asOf: expirationDate)
+            store.expireProjects(asOf: try! fixture.date(year: 2026, month: 5, day: 18))
 
             XCTAssertTrue(store.projects(forDayID: "2026-05-18").isEmpty)
             XCTAssertEqual(store.allReminders().map(\.text), ["Inbox"])
             XCTAssertNil(store.selectedProjectID(forDayID: "2026-05-18"))
             XCTAssertEqual(store.recentlyDeletedProjects.map(\.project.id), [project.id])
             XCTAssertEqual(store.recentlyDeletedProjects.first?.taskSnapshots.map(\.reminder.text), ["Today", "Tomorrow"])
+        }
+    }
+
+    func testProjectExpirationKeepsProjectsThroughSelectedCalendarDay() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let expirationDate = try fixture.date(year: 2026, month: 5, day: 17)
+        let project = taskProject(
+            id: "00000000-0000-0000-0000-000000000027",
+            title: "Launch",
+            expiresAt: expirationDate
+        )
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.saveProjectForExpiration(project, dayID: "2026-05-17")
+
+            store.expireProjects(asOf: expirationDate.addingTimeInterval(23 * 60 * 60))
+            XCTAssertEqual(store.projects(forDayID: "2026-05-17").map(\.id), [project.id])
+            XCTAssertEqual(store.projectExpirationRevision, 0)
+
+            store.expireProjects(asOf: try! fixture.date(year: 2026, month: 5, day: 18))
+            XCTAssertTrue(store.projects(forDayID: "2026-05-18").isEmpty)
+            XCTAssertEqual(store.projectExpirationRevision, 1)
         }
     }
 
@@ -571,4 +596,16 @@ private func makeScopedStoragePair(defaults: UserDefaults) -> ScopedStoragePair 
 
 private func taskProject(id: String, title: String, expiresAt: Date? = nil) -> TaskProject {
     TaskProject(id: UUID(uuidString: id)!, title: title, expiresAt: expiresAt)
+}
+
+@MainActor
+private extension DailyTaskGroupStore {
+    func saveProjectForExpiration(_ project: TaskProject, dayID: String) {
+        save(
+            reminders: [CreateReminder(text: "Ship beta", projectID: project.id)],
+            projects: [project],
+            selectedProjectID: project.id,
+            forDayID: dayID
+        )
+    }
 }

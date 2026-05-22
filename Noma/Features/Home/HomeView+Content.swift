@@ -10,13 +10,7 @@ extension HomeView {
     var dailyGroupsList: some View {
         VStack(alignment: .leading, spacing: 0) {
             if showsTodaySection {
-                HomeTodaySectionView(
-                    reminders: todayReminders,
-                    projects: todayProjects,
-                    onToggleReminder: toggleTodayReminder,
-                    onDeleteReminder: deleteTodayReminder,
-                    onSwipeDeleteThreshold: {}
-                )
+                todaySection
             }
 
             if showsProjectSection {
@@ -63,24 +57,36 @@ extension HomeView {
         )
     }
 
-    func toggleTodayReminder(_ reminder: CreateReminder) {
-        var reminders = dailyTaskGroups.reminders(forDayID: todayID)
+    var todaySection: some View {
+        let renderedDayID = todayID
+
+        return HomeTodaySectionView(
+            reminders: todayReminders,
+            projects: todayProjects,
+            onToggleReminder: { toggleTodayReminder($0, dayID: renderedDayID) },
+            onDeleteReminder: { deleteTodayReminder($0, dayID: renderedDayID) },
+            onSwipeDeleteThreshold: {}
+        )
+    }
+
+    func toggleTodayReminder(_ reminder: CreateReminder, dayID: String) {
+        var reminders = dailyTaskGroups.reminders(forDayID: dayID)
         _ = CreateReminderCompletionVisibility.toggleReminderWithCompletionFeedback(
             reminder,
             in: &reminders,
             showsOnlyUnsolved: true,
             visibleIDs: $temporarilyVisibleCompletedReminderIDs,
             hapticFeedback: hapticFeedback,
-            persist: { dailyTaskGroups.save(reminders: $0, forDayID: todayID) }
+            persist: { dailyTaskGroups.save(reminders: $0, forDayID: dayID) }
         )
     }
 
-    func deleteTodayReminder(_ reminder: CreateReminder) {
-        var reminders = dailyTaskGroups.reminders(forDayID: todayID)
+    func deleteTodayReminder(_ reminder: CreateReminder, dayID: String) {
+        var reminders = dailyTaskGroups.reminders(forDayID: dayID)
         reminders.removeAll { $0.id == reminder.id }
         withAnimation(.smooth(duration: NomaTiming.taskSwipeRelease)) {
             temporarilyVisibleCompletedReminderIDs.remove(reminder.id)
-            dailyTaskGroups.save(reminders: reminders, forDayID: todayID)
+            dailyTaskGroups.save(reminders: reminders, forDayID: dayID)
         }
     }
 

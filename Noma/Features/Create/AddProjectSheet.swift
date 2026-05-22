@@ -55,6 +55,7 @@ struct AddProjectSheet: View {
     @State private var selectedColorIndex = 0
     @State private var selectedSymbol = ProjectIconPickerOption.defaultSymbol
     @State private var expirationDate = Date()
+    @State private var isExpirationEnabled = false
     @State private var hasSelectedIcon = false
     @State private var isIconPickerPresented = false
     @State private var isKeyboardPresented = false
@@ -69,6 +70,7 @@ struct AddProjectSheet: View {
         ))
         _selectedSymbol = State(initialValue: project?.symbolName ?? ProjectIconPickerOption.defaultSymbol)
         _expirationDate = State(initialValue: project?.expiresAt ?? ProjectExpirationOption.defaultDate())
+        _isExpirationEnabled = State(initialValue: project?.expiresAt != nil)
         _hasSelectedIcon = State(initialValue: project != nil)
     }
 
@@ -81,6 +83,7 @@ struct AddProjectSheet: View {
                     iconSystemImage: iconButtonSystemImage,
                     iconColor: selectedColor,
                     expirationDate: $expirationDate,
+                    isExpirationEnabled: $isExpirationEnabled,
                     onIconButtonTap: { isIconPickerPresented = true }
                 )
                 .scrollDismissesKeyboard(.interactively)
@@ -126,7 +129,7 @@ private extension AddProjectSheet {
             title: normalizedTitle,
             symbolName: selectedSymbol,
             colorIndex: ProjectIconPickerOption.normalizedColorIndex(selectedColorIndex),
-            expiresAt: expirationDate
+            expiresAt: isExpirationEnabled ? expirationDate : nil
         ))
         dismiss()
     }
