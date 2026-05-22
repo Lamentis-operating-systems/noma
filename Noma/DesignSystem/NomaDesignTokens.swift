@@ -31,11 +31,13 @@ enum NomaSize {
     static let projectColorOption: NomaMetric.Value = NomaSize.projectControl - NomaSpacing.xs
     static let projectColorSelectionBorder: NomaMetric.Value = NomaSpacing.xs
     static let projectIconPreview: NomaMetric.Value = 72
+    static let taskPreview: NomaMetric.Value = 320
     static let taskMetadataIconColumn: NomaMetric.Value = NomaSpacing.xl
 }
 
 enum NomaRadius {
     static let composer: NomaMetric.Value = 25
+    static let taskPreview: NomaMetric.Value = NomaSpacing.md
     static let projectControl: NomaMetric.Value = NomaSize.projectControl / 2
 }
 

@@ -4,8 +4,6 @@ extension CreateView {
     func loadDailyGroup() {
         reminders = dailyTaskGroups.reminders(forDayID: activeDayID)
         projects = dailyTaskGroups.projects(forDayID: activeDayID)
-        taskOrganization = nil
-        isPlanningDay = false
 
         let storedSelectedProjectID = dailyTaskGroups.selectedProjectID(forDayID: activeDayID)
         selectedProjectID = projects.contains { $0.id == storedSelectedProjectID } ? storedSelectedProjectID : nil
@@ -45,8 +43,7 @@ extension CreateView {
     }
 
     var showsCarryForwardButton: Bool {
-        subscriptionTier.tier == .pro
-            && CreateReminderSubmission.normalizedText(from: message).isEmpty
+        CreateReminderSubmission.normalizedText(from: message).isEmpty
             && !carryForwardReminders.isEmpty
     }
 
@@ -105,7 +102,7 @@ extension CreateView {
 
     func addCarryForwardReminders(_ remindersToCarryForward: [CreateReminder]) {
         let remindersToAdd = remindersToCarryForward.map { reminder in
-            CreateReminder(text: reminder.text, projectID: reminder.projectID)
+            CreateReminderCarryForwardTransfer.carriedReminder(from: reminder)
         }
         guard !remindersToAdd.isEmpty else { return }
         let sourceDayID = previousDayID
@@ -115,7 +112,6 @@ extension CreateView {
         withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
             reminders.append(contentsOf: remindersToAdd)
         }
-        taskOrganization = nil
         saveCurrentDailyGroup()
         if let sourceDayID {
             dailyTaskGroups.save(

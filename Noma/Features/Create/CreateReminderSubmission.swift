@@ -6,17 +6,23 @@ struct CreateReminder: Codable, Equatable, Identifiable {
     let text: String
     let isCompleted: Bool
     let projectID: TaskProject.ID?
+    let createdAt: Date
+    let carryForwardCount: Int
 
     init(
         id: UUID = UUID(),
         text: String,
         isCompleted: Bool = false,
-        projectID: TaskProject.ID? = nil
+        projectID: TaskProject.ID? = nil,
+        createdAt: Date = Date(),
+        carryForwardCount: Int = 0
     ) {
         self.id = id
         self.text = text
         self.isCompleted = isCompleted
         self.projectID = projectID
+        self.createdAt = createdAt
+        self.carryForwardCount = carryForwardCount
     }
 
     enum CodingKeys: String, CodingKey {
@@ -24,6 +30,8 @@ struct CreateReminder: Codable, Equatable, Identifiable {
         case text
         case isCompleted
         case projectID
+        case createdAt
+        case carryForwardCount
     }
 
     init(from decoder: Decoder) throws {
@@ -32,10 +40,23 @@ struct CreateReminder: Codable, Equatable, Identifiable {
         text = try container.decode(String.self, forKey: .text)
         isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
         projectID = try container.decodeIfPresent(TaskProject.ID.self, forKey: .projectID)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? .distantPast
+        carryForwardCount = try container.decodeIfPresent(Int.self, forKey: .carryForwardCount) ?? 0
+    }
+
+    var wasCarriedForward: Bool {
+        carryForwardCount > 0
     }
 
     func togglingCompletion() -> CreateReminder {
-        CreateReminder(id: id, text: text, isCompleted: !isCompleted, projectID: projectID)
+        CreateReminder(
+            id: id,
+            text: text,
+            isCompleted: !isCompleted,
+            projectID: projectID,
+            createdAt: createdAt,
+            carryForwardCount: carryForwardCount
+        )
     }
 }
 
@@ -136,7 +157,9 @@ enum CreateReminderSubmissionPersistence {
             id: submission.reminder.id,
             text: submission.reminder.text,
             isCompleted: submission.reminder.isCompleted,
-            projectID: submittedProjectID
+            projectID: submittedProjectID,
+            createdAt: submission.reminder.createdAt,
+            carryForwardCount: submission.reminder.carryForwardCount
         )
     }
 
@@ -144,11 +167,8 @@ enum CreateReminderSubmissionPersistence {
         sourceReminders: [CreateReminder],
         submission: CreateReminderSubmissionResult,
         projects: [TaskProject],
-        selectedProjectID: TaskProject.ID?,
-        tier: SubscriptionTier
+        selectedProjectID: TaskProject.ID?
     ) -> [CreateReminder]? {
-        guard tier.canAddTask(toGroupWithTaskCount: sourceReminders.count) else { return nil }
-
         return sourceReminders + [
             submittedReminder(
                 from: submission,
@@ -166,57 +186,124 @@ enum CreateReminderCompletionFeedback {
 }
 
 enum CreateReminderListFilter {
+    static let completedVisibilityDelayNanoseconds: UInt64 = 700_000_000
+
     static func visibleReminders(
         _ reminders: [CreateReminder],
-        showsOnlyUnsolved: Bool
+        showsOnlyUnsolved: Bool,
+        temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     ) -> [CreateReminder] {
         guard showsOnlyUnsolved else { return reminders }
-        return reminders.filter { !$0.isCompleted }
+        return reminders.filter { reminder in
+            !reminder.isCompleted || temporarilyVisibleCompletedReminderIDs.contains(reminder.id)
+        }
+    }
+
+    static func keepsCompletedReminderTemporarilyVisible(
+        _ reminder: CreateReminder,
+        showsOnlyUnsolved: Bool
+    ) -> Bool {
+        showsOnlyUnsolved && reminder.isCompleted
     }
 }
 
-enum CreateReminderListOrganization {
-    static func sortedReminders(
-        _ reminders: [CreateReminder],
-        using organization: CreateReminderAIPlanningResult?
-    ) -> [CreateReminder] {
-        guard let organization, !organization.organizedTasks.isEmpty else { return reminders }
+enum CreateReminderFilterPreference {
+    static let storageKey = "create.showsOnlyUnsolvedTasks"
 
-        let originalOffsets = Dictionary(uniqueKeysWithValues: reminders.enumerated().map { ($0.element.id, $0.offset) })
-        let organizationByID = Dictionary(uniqueKeysWithValues: organization.organizedTasks.map { ($0.reminderID, $0) })
-
-        return reminders.sorted { first, second in
-            sortKey(for: first, organizationByID: organizationByID, originalOffsets: originalOffsets)
-                < sortKey(for: second, organizationByID: organizationByID, originalOffsets: originalOffsets)
-        }
+    static func isEnabled(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.bool(forKey: storageKey)
     }
 
-    private static func sortKey(
-        for reminder: CreateReminder,
-        organizationByID: [CreateReminder.ID: CreateReminderAIOrganizedTask],
-        originalOffsets: [CreateReminder.ID: Int]
-    ) -> SortKey {
-        let organization = organizationByID[reminder.id]
-        return SortKey(
-            completionRank: reminder.isCompleted ? 1 : 0,
-            priorityRank: organization?.priorityRank ?? Int.max,
-            category: organization?.category ?? "",
-            originalOffset: originalOffsets[reminder.id] ?? Int.max
+    static func setIsEnabled(_ isEnabled: Bool, in defaults: UserDefaults = .standard) {
+        defaults.set(isEnabled, forKey: storageKey)
+    }
+}
+
+enum CreateReminderCompletionVisibility {
+    static func toggleReminder(
+        _ reminder: CreateReminder,
+        in reminders: inout [CreateReminder],
+        showsOnlyUnsolved: Bool,
+        visibleIDs: inout Set<CreateReminder.ID>
+    ) -> (updatedReminder: CreateReminder, keepsVisible: Bool)? {
+        guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return nil }
+
+        let updatedReminder = reminders[index].togglingCompletion()
+        let keepsVisible = updateTemporarilyVisibleCompletedReminderIDs(
+            for: updatedReminder,
+            showsOnlyUnsolved: showsOnlyUnsolved,
+            visibleIDs: &visibleIDs
         )
+        reminders[index] = updatedReminder
+
+        return (updatedReminder, keepsVisible)
     }
 
-    private struct SortKey: Comparable {
-        let completionRank: Int
-        let priorityRank: Int
-        let category: String
-        let originalOffset: Int
-
-        static func < (lhs: SortKey, rhs: SortKey) -> Bool {
-            if lhs.completionRank != rhs.completionRank { return lhs.completionRank < rhs.completionRank }
-            if lhs.priorityRank != rhs.priorityRank { return lhs.priorityRank < rhs.priorityRank }
-            if lhs.category != rhs.category { return lhs.category < rhs.category }
-            return lhs.originalOffset < rhs.originalOffset
+    @MainActor
+    static func toggleReminderWithCompletionFeedback(
+        _ reminder: CreateReminder,
+        in reminders: inout [CreateReminder],
+        showsOnlyUnsolved: Bool,
+        visibleIDs: Binding<Set<CreateReminder.ID>>,
+        hapticFeedback: HapticFeedbackService,
+        persist: ([CreateReminder]) -> Void
+    ) -> Bool {
+        var keepsVisible = false
+        var updatedReminder: CreateReminder?
+        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            let visibility = toggleReminder(
+                reminder,
+                in: &reminders,
+                showsOnlyUnsolved: showsOnlyUnsolved,
+                visibleIDs: &visibleIDs.wrappedValue
+            )
+            updatedReminder = visibility?.updatedReminder
+            keepsVisible = visibility?.keepsVisible ?? false
+            persist(reminders)
         }
+        guard let updatedReminder else { return false }
+
+        if let feedback = CreateReminderCompletionFeedback.feedback(isCompleted: updatedReminder.isCompleted) {
+            hapticFeedback.play(feedback)
+        }
+
+        scheduleRemoval(of: [updatedReminder.id], isNeeded: keepsVisible, visibleIDs: visibleIDs)
+        return true
+    }
+
+    static func updateTemporarilyVisibleCompletedReminderIDs(
+        for reminder: CreateReminder,
+        showsOnlyUnsolved: Bool,
+        visibleIDs: inout Set<CreateReminder.ID>
+    ) -> Bool {
+        let isRetained = CreateReminderListFilter.keepsCompletedReminderTemporarilyVisible(
+            reminder,
+            showsOnlyUnsolved: showsOnlyUnsolved
+        )
+
+        if isRetained {
+            visibleIDs.insert(reminder.id)
+        } else {
+            visibleIDs.remove(reminder.id)
+        }
+
+        return isRetained
+    }
+
+    static func retainCompletedReminderIDs(
+        _ reminderIDs: [CreateReminder.ID],
+        isNeeded: Bool,
+        visibleIDs: inout Set<CreateReminder.ID>
+    ) {
+        guard isNeeded else { return }
+        visibleIDs.formUnion(reminderIDs)
+    }
+
+}
+
+enum CreateReminderListOrganization {
+    static func sortedReminders(_ reminders: [CreateReminder]) -> [CreateReminder] {
+        reminders
     }
 }
 

@@ -8,6 +8,18 @@ struct CreateProjectSheetCopy {
     static let saveButtonKey = "create.project.save-button"
 }
 
+enum ProjectExpirationOption {
+    static let titleKey = "create.project.expiration.title"
+    static let datePickerLabelKey = "create.project.expiration.date-picker"
+    static let controlSize: ControlSize = .small
+    static let displayedComponents: DatePickerComponents = .date
+    static let defaultDurationDays = 7
+
+    static func defaultDate() -> Date {
+        Calendar.current.date(byAdding: .day, value: defaultDurationDays, to: Date()) ?? Date()
+    }
+}
+
 enum CreateProjectSheetLayout {
     static let focusedHorizontalPadding = NomaSpacing.sm
     static let collapsedHorizontalPadding = NomaSpacing.xxl
@@ -42,6 +54,8 @@ struct AddProjectSheet: View {
     @State private var title = ""
     @State private var selectedColorIndex = 0
     @State private var selectedSymbol = ProjectIconPickerOption.defaultSymbol
+    @State private var expirationDate = Date()
+    @State private var isExpirationEnabled = false
     @State private var hasSelectedIcon = false
     @State private var isIconPickerPresented = false
     @State private var isKeyboardPresented = false
@@ -51,12 +65,12 @@ struct AddProjectSheet: View {
         self.project = project
         self.onSave = onSave
         _title = State(initialValue: project?.title ?? "")
-        _selectedColorIndex = State(
-            initialValue: ProjectIconPickerOption.normalizedColorIndex(
-                project?.colorIndex ?? ProjectIconPickerOption.defaultColorIndex
-            )
-        )
+        _selectedColorIndex = State(initialValue: ProjectIconPickerOption.normalizedColorIndex(
+            project?.colorIndex ?? ProjectIconPickerOption.defaultColorIndex
+        ))
         _selectedSymbol = State(initialValue: project?.symbolName ?? ProjectIconPickerOption.defaultSymbol)
+        _expirationDate = State(initialValue: project?.expiresAt ?? ProjectExpirationOption.defaultDate())
+        _isExpirationEnabled = State(initialValue: project?.expiresAt != nil)
         _hasSelectedIcon = State(initialValue: project != nil)
     }
 
@@ -68,6 +82,8 @@ struct AddProjectSheet: View {
                     focus: $isTitleFocused,
                     iconSystemImage: iconButtonSystemImage,
                     iconColor: selectedColor,
+                    expirationDate: $expirationDate,
+                    isExpirationEnabled: $isExpirationEnabled,
                     onIconButtonTap: { isIconPickerPresented = true }
                 )
                 .scrollDismissesKeyboard(.interactively)
@@ -79,10 +95,7 @@ struct AddProjectSheet: View {
                     .disabled(!canCreateProject)
                     .opacity(canCreateProject ? 1 : NomaOpacity.disabledControlBackground)
                         .padding(.horizontal, CreateProjectSheetLayout.horizontalPadding(isKeyboardPresented: isKeyboardPresented))
-                        .padding(.bottom, CreateProjectSheetLayout.bottomPadding(
-                            isKeyboardPresented: isKeyboardPresented,
-                            bottomSafeAreaInset: proxy.safeAreaInsets.bottom
-                        ))
+                        .padding(.bottom, CreateProjectSheetLayout.bottomPadding(isKeyboardPresented: isKeyboardPresented, bottomSafeAreaInset: proxy.safeAreaInsets.bottom))
                 }
             }
         }
@@ -94,9 +107,9 @@ struct AddProjectSheet: View {
         }
         .sheet(isPresented: $isIconPickerPresented) {
             ProjectIconPickerSheet(selectedColorIndex: $selectedColorIndex, selectedSymbol: selectedIconBinding)
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .presentationContentInteraction(.scrolls)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationContentInteraction(.scrolls)
         }
     }
 }
@@ -115,7 +128,8 @@ private extension AddProjectSheet {
             id: project?.id ?? UUID(),
             title: normalizedTitle,
             symbolName: selectedSymbol,
-            colorIndex: ProjectIconPickerOption.normalizedColorIndex(selectedColorIndex)
+            colorIndex: ProjectIconPickerOption.normalizedColorIndex(selectedColorIndex),
+            expiresAt: isExpirationEnabled ? expirationDate : nil
         ))
         dismiss()
     }

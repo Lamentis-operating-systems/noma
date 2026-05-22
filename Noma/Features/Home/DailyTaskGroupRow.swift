@@ -5,7 +5,8 @@ enum DailyTaskGroupRowInteraction {
 }
 
 enum DailyTaskGroupRowLayout {
-    static let completedIconAdditionalTrailingPadding = NomaSpacing.xs
+    static let statusIconWidth = NomaSize.taskMetadataIconColumn
+    static let statusIconHeight = NomaSize.radioCheckboxOuter
 }
 
 struct DailyGroupsSectionView: View {
@@ -46,17 +47,28 @@ struct DailyTaskGroupRow: View {
 
             Spacer(minLength: 0)
 
-            if let systemImage = DailyTaskGroupRowStatus.systemImage(for: summary) {
-                Image(systemName: systemImage)
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(.controlSuccess)
-                    .padding(.trailing, DailyTaskGroupRowLayout.completedIconAdditionalTrailingPadding)
-            }
+            DailyTaskGroupStatusIcon(status: DailyTaskGroupRowStatus.status(for: summary))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
     }
 
+}
+
+struct DailyTaskGroupStatusIcon: View {
+    let status: DailyTaskGroupRowStatus
+
+    var body: some View {
+        Image(systemName: status.systemImage)
+            .font(.title3.weight(.bold))
+            .foregroundStyle(status.color)
+            .frame(
+                width: DailyTaskGroupRowLayout.statusIconWidth,
+                height: DailyTaskGroupRowLayout.statusIconHeight,
+                alignment: .center
+            )
+            .accessibilityHidden(!status.isCompleted)
+    }
 }
 
 struct DailyTaskGroupProgressText: View {
@@ -72,8 +84,33 @@ struct DailyTaskGroupProgressText: View {
 
 enum DailyTaskGroupRowStatus {
     static let completedSystemImage = "checkmark.circle.fill"
+    static let openSystemImage = "inset.filled.circle.dashed"
 
-    static func systemImage(for summary: DailyTaskGroupSummary) -> String? {
-        summary.isCompleted ? completedSystemImage : nil
+    case completed
+    case open
+
+    static func status(for summary: DailyTaskGroupSummary) -> DailyTaskGroupRowStatus {
+        summary.isCompleted ? .completed : .open
+    }
+
+    var systemImage: String {
+        switch self {
+        case .completed: Self.completedSystemImage
+        case .open: Self.openSystemImage
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .completed: .controlSuccess
+        case .open: .textSecondary
+        }
+    }
+
+    var isCompleted: Bool {
+        switch self {
+        case .completed: true
+        case .open: false
+        }
     }
 }

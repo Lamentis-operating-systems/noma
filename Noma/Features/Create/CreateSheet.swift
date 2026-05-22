@@ -25,12 +25,6 @@ enum CreateProjectListSection {
     static let editProjectTitleKey = "create.projects.edit.title"
     static let deleteProjectTitleKey = "create.projects.delete.title"
     static let deleteProjectMessageKey = "create.projects.delete.message"
-    static let unlockMoreTitleKey = CreateReminderListSection.unlockMoreTitleKey
-    static let unlockMoreMessageKey = "create.projects.unlock-more.message"
-
-    static func showsUnlockMoreButton(tier: SubscriptionTier, projectCount: Int) -> Bool {
-        !tier.canAddProject(toProjectCount: projectCount)
-    }
 }
 
 enum CreateProjectEditorPresentation: Identifiable {
@@ -61,15 +55,12 @@ struct CreateSheet: View {
     @Binding var projects: [TaskProject]
     @Binding var selectedProjectID: TaskProject.ID?
     let allReminders: [CreateReminder]
-    let tier: SubscriptionTier
     let onCreateProject: (TaskProject) -> Void
     let onSelectProject: (TaskProject.ID?) -> Void
     let onUpdateProject: (TaskProject) -> Void
     let onDeleteProject: (TaskProject.ID) -> Void
-    let onUnlockMore: () -> Void
     @State var projectEditorPresentation: CreateProjectEditorPresentation?
     @State var pendingDeleteProjectID: TaskProject.ID?
-    @State var isUnlockMoreSheetPresented = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -82,16 +73,14 @@ struct CreateSheet: View {
                         CloseToolbarButton(accessibilityLabelKey: "create.project.close.accessibility-label", action: { dismiss() })
                     }
                     .safeAreaBar(edge: .bottom, spacing: 0) {
-                        if tier.canAddProject(toProjectCount: projects.count) {
-                            CreateDatePickerSubmitButton(
-                                title: String(
-                                    localized: String.LocalizationValue(CreateProjectListSection.createNewProjectTitleKey)
-                                ),
-                                action: openAddProjectSheet
-                            )
-                            .padding(.horizontal, NomaSpacing.xxl)
-                            .padding(.bottom, max(0, NomaSpacing.xxl - proxy.safeAreaInsets.bottom))
-                        }
+                        CreateDatePickerSubmitButton(
+                            title: String(
+                                localized: String.LocalizationValue(CreateProjectListSection.createNewProjectTitleKey)
+                            ),
+                            action: openAddProjectSheet
+                        )
+                        .padding(.horizontal, NomaSpacing.xxl)
+                        .padding(.bottom, max(0, NomaSpacing.xxl - proxy.safeAreaInsets.bottom))
                     }
             }
         }
@@ -102,13 +91,6 @@ struct CreateSheet: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .presentationContentInteraction(.scrolls)
-        }
-        .sheet(isPresented: $isUnlockMoreSheetPresented) {
-            UnlockMoreSheet {
-                isUnlockMoreSheetPresented = false
-            }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
         }
         .confirmationDialog(
             LocalizedStringKey(CreateProjectListSection.deleteProjectTitleKey),

@@ -68,7 +68,7 @@ extension ProjectDetailView {
     }
 
     var canSubmitReminder: Bool {
-        subscriptionTier.tier.canAddTask(toGroupWithTaskCount: dailyTaskGroups.reminders(forDayID: todayID).count)
+        true
     }
 
     var canCompleteAllReminders: Bool {
@@ -82,7 +82,8 @@ extension ProjectDetailView {
     func visibleReminders(in reminders: [CreateReminder]) -> [CreateReminder] {
         CreateReminderListFilter.visibleReminders(
             reminders,
-            showsOnlyUnsolved: showsOnlyUnsolvedTasks
+            showsOnlyUnsolved: showsOnlyUnsolvedTasks,
+            temporarilyVisibleCompletedReminderIDs: temporarilyVisibleCompletedReminderIDs
         )
     }
 }

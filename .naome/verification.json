@@ -154,6 +154,19 @@
         "docs/naome/architecture-fitness.md"
       ],
       "lastVerified": null
+    },
+    {
+      "id": "swiftui-contract-check",
+      "command": "node .naome/bin/naome.js ui check --changed --json",
+      "cwd": ".",
+      "purpose": "Validate changed SwiftUI views against the NAOME UI contract.",
+      "cost": "fast",
+      "source": "NAOME built-in",
+      "evidence": [
+        ".naome/ui-contract.json",
+        "**/*.swift"
+      ],
+      "lastVerified": null
     }
   ],
   "phases": [
@@ -190,6 +203,14 @@
       "order": 60,
       "checkIds": [
         "diff-check"
+      ]
+    },
+    {
+      "id": "stack-profile",
+      "order": 30,
+      "checkIds": [
+        "swiftui-contract-check",
+        "ui-style-check"
       ]
     }
   ],
@@ -327,6 +348,39 @@
         "repository-quality-check",
         "repository-semantic-check",
         "architecture-fitness-check",
+        "diff-check"
+      ],
+      "recommendedChecks": [],
+      "humanReview": false
+    },
+    {
+      "id": "architecture-policy",
+      "description": "Architecture fitness policy and configuration.",
+      "paths": [
+        "naome.arch.yaml"
+      ],
+      "requiredChecks": [
+        "architecture-fitness-check",
+        "repository-quality-check",
+        "repository-semantic-check",
+        "diff-check"
+      ],
+      "recommendedChecks": [],
+      "humanReview": false
+    },
+    {
+      "id": "swiftui-source",
+      "description": "SwiftUI view, app entrypoint, and UI contract changes.",
+      "paths": [
+        "*.swift",
+        "**/*.swift",
+        ".naome/ui-contract.json"
+      ],
+      "requiredChecks": [
+        "swiftui-contract-check",
+        "ui-style-check",
+        "repository-quality-check",
+        "repository-semantic-check",
         "diff-check"
       ],
       "recommendedChecks": [],

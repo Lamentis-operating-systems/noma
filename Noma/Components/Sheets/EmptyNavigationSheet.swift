@@ -1,6 +1,8 @@
 import SwiftUI
 
-struct UnlockMoreSheet: View {
+struct EmptyNavigationSheet: View {
+    let titleKey: String
+    let closeAccessibilityLabelKey: LocalizedStringKey
     let close: () -> Void
 
     var body: some View {
@@ -8,11 +10,11 @@ struct UnlockMoreSheet: View {
             Rectangle()
                 .fill(.primaryBackground)
                 .ignoresSafeArea(.container)
-                .navigationTitle(LocalizedStringKey("create.unlock-more.sheet.title"))
+                .navigationTitle(LocalizedStringKey(titleKey))
                 .toolbarTitleDisplayMode(.inline)
                 .toolbar {
                     CloseToolbarButton(
-                        accessibilityLabelKey: "create.unlock-more.close.accessibility-label",
+                        accessibilityLabelKey: closeAccessibilityLabelKey,
                         action: close
                     )
                 }

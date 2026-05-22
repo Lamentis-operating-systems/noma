@@ -1,47 +1,51 @@
 import SwiftUI
 
 struct HomeTopBar: View {
-    @Environment(SubscriptionTierManager.self) private var subscriptionTier
-
     var body: some View {
-        HStack(spacing: NomaSpacing.sm) {
-            Text("Noma")
-                .font(Font.title)
-                .fontWeight(.medium)
-
-            subscriptionTierText
-        }
-        .padding(.top, NomaSpacing.sm)
-    }
-
-    @ViewBuilder
-    private var subscriptionTierText: some View {
-        let text = Text(LocalizedStringKey(subscriptionTier.tier.titleKey))
+        Text("Noma")
             .font(Font.title)
             .fontWeight(.medium)
-
-        if subscriptionTier.tier.usesProminentTextGradient {
-            text.foregroundStyle(NomaGradient.proTierText)
-        } else {
-            text.foregroundStyle(.secondary)
-        }
+        .padding(.top, NomaSpacing.sm)
     }
 }
 
-struct HomeSettingsMenu: View {
-    @Environment(AuthStateManager.self) private var authState
-    @Environment(SubscriptionTierManager.self) private var subscriptionTier
+struct HomeMenu: View {
+    @Environment(AuthStateManager.self) var authState
+    @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
+    @Environment(AppSettingsStore.self) var appSettings
+    @State var isNotificationsPresented = false
+    @State var isDeleteAccountAlertPresented = false
+    @State var deleteAccountErrorMessage: String?
 
     var body: some View {
         Menu {
-            #if DEBUG
-            Toggle(isOn: debugProBinding) {
+            Button {
+                isNotificationsPresented = true
+            } label: {
                 Label(
-                    "subscription.debug.pro.title",
-                    systemImage: "sparkles"
+                    "settings.notifications.section-title",
+                    systemImage: "bell"
                 )
             }
-            #endif
+
+            Picker("settings.appearance.section-title", selection: appearancePreference) {
+                Text("settings.appearance.system").tag(AppAppearancePreference.system)
+                Text("settings.appearance.light").tag(AppAppearancePreference.light)
+                Text("settings.appearance.dark").tag(AppAppearancePreference.dark)
+            }
+            .pickerStyle(.inline)
+
+            Divider()
+
+            Button(role: .destructive) {
+                isDeleteAccountAlertPresented = true
+            } label: {
+                Label(
+                    "auth.delete-account.title",
+                    systemImage: "person.crop.circle.badge.xmark"
+                )
+            }
+            .disabled(authState.isDeletingAccount)
 
             Button(role: .destructive) {
                 authState.signOut()
@@ -54,15 +58,26 @@ struct HomeSettingsMenu: View {
         } label: {
             Image(systemName: "gearshape")
         }
-    }
-
-    #if DEBUG
-    private var debugProBinding: Binding<Bool> {
-        Binding {
-            subscriptionTier.isPro
-        } set: { isPro in
-            subscriptionTier.updateTier(isPro ? .pro : .free)
+        .sheet(isPresented: $isNotificationsPresented) {
+            NavigationStack {
+                HomeNotificationsView()
+            }
+                .presentationDetents([.large])
+        }
+        .alert("auth.delete-account.alert.title", isPresented: $isDeleteAccountAlertPresented) {
+            Button("common.cancel", role: .cancel) {}
+            Button("auth.delete-account.confirm", role: .destructive) {
+                deleteAccount()
+            }
+        } message: {
+            Text("auth.delete-account.alert.message")
+        }
+        .alert("auth.delete-account.error.title", isPresented: isDeleteAccountErrorPresented) {
+            Button("common.ok", role: .cancel) {
+                deleteAccountErrorMessage = nil
+            }
+        } message: {
+            Text(deleteAccountErrorMessage ?? "")
         }
     }
-    #endif
 }

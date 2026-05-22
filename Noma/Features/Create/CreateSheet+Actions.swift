@@ -20,11 +20,9 @@ extension CreateSheet {
                 projectCount: projects.count,
                 selectedProjectID: selectedProjectID,
                 allReminders: allReminders,
-                tier: tier,
                 onSelectProject: selectProject,
                 onEditProject: editProject,
-                onDeleteProject: deleteProject,
-                onUnlockMore: unlockMoreProjects
+                onDeleteProject: deleteProject
             )
         }
     }
@@ -62,14 +60,6 @@ extension CreateSheet {
 
     func openAddProjectSheet() {
         projectEditorPresentation = .add
-    }
-
-    func unlockMoreProjects() {
-        #if DEBUG
-        onUnlockMore()
-        #else
-        isUnlockMoreSheetPresented = true
-        #endif
     }
 
     func saveProject(_ project: TaskProject) {

@@ -47,6 +47,53 @@ struct DailyTaskGroupState: Codable, Equatable {
     var groups: [DailyTaskGroup]
     var projects: [TaskProject]
     var selectedProjectID: TaskProject.ID?
+    var recentlyDeletedProjects: [RecentlyDeletedProject]
+
+    init(
+        groups: [DailyTaskGroup],
+        projects: [TaskProject],
+        selectedProjectID: TaskProject.ID?,
+        recentlyDeletedProjects: [RecentlyDeletedProject] = []
+    ) {
+        self.groups = groups
+        self.projects = projects
+        self.selectedProjectID = selectedProjectID
+        self.recentlyDeletedProjects = recentlyDeletedProjects
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case groups
+        case projects
+        case selectedProjectID
+        case recentlyDeletedProjects
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        groups = try container.decode([DailyTaskGroup].self, forKey: .groups)
+        projects = try container.decode([TaskProject].self, forKey: .projects)
+        selectedProjectID = try container.decodeIfPresent(TaskProject.ID.self, forKey: .selectedProjectID)
+        recentlyDeletedProjects = try container.decodeIfPresent(
+            [RecentlyDeletedProject].self,
+            forKey: .recentlyDeletedProjects
+        ) ?? []
+    }
+}
+
+struct RecentlyDeletedProject: Codable, Equatable, Identifiable {
+    let project: TaskProject
+    let deletedAt: Date
+    let taskSnapshots: [RecentlyDeletedProjectTaskSnapshot]
+
+    var id: TaskProject.ID { project.id }
+}
+
+struct RecentlyDeletedProjectTaskSnapshot: Codable, Equatable, Identifiable {
+    let dayID: String
+    let dayDate: Date
+    let reminder: CreateReminder
+
+    var id: CreateReminder.ID { reminder.id }
 }
 
 struct DailyTaskGroupSummary: Equatable, Identifiable {
@@ -82,6 +129,10 @@ enum CommonProjectsSection {
     static func taskCountText(for summary: CommonProjectSummary) -> String {
         "\(summary.taskCount)"
     }
+}
+
+enum HomeTodaySection {
+    static let headerTitleKey = "home.today.section-header"
 }
 
 enum DailyTaskGroupsSection {

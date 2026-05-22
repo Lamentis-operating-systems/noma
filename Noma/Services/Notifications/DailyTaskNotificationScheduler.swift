@@ -14,11 +14,11 @@ enum DailyTaskNotificationIdentifier {
 
 enum DailyTaskNotificationSchedule {
     static var morningComponents: DateComponents {
-        DateComponents(hour: 9, minute: 0)
+        DailyTaskNotificationSettings.default.morningPlanning.dateComponents
     }
 
     static var eveningComponents: DateComponents {
-        DateComponents(hour: 21, minute: 0)
+        DailyTaskNotificationSettings.default.eveningOpenTasks.dateComponents
     }
 }
 
@@ -46,29 +46,37 @@ struct DailyTaskNotificationRequest: Equatable {
 }
 
 enum DailyTaskNotificationRequestFactory {
-    static func requests(reminders: [CreateReminder]) -> [DailyTaskNotificationRequest] {
-        var requests = [
-            DailyTaskNotificationRequest(
-                identifier: DailyTaskNotificationIdentifier.morningPlanning,
-                titleKey: "notifications.daily-planning.title",
-                bodyKey: "notifications.daily-planning.body",
-                dateComponents: DailyTaskNotificationSchedule.morningComponents
-            )
-        ]
+    static func requests(
+        reminders: [CreateReminder],
+        settings: DailyTaskNotificationSettings = .default
+    ) -> [DailyTaskNotificationRequest] {
+        var requests: [DailyTaskNotificationRequest] = []
 
-        if reminders.contains(where: { !$0.isCompleted }) {
+        if settings.morningPlanning.isEnabled {
+            requests.append(
+                DailyTaskNotificationRequest(
+                    identifier: DailyTaskNotificationIdentifier.morningPlanning,
+                    titleKey: "notifications.daily-planning.title",
+                    bodyKey: "notifications.daily-planning.body",
+                    dateComponents: settings.morningPlanning.dateComponents
+                )
+            )
+        }
+
+        if settings.eveningOpenTasks.isEnabled, reminders.contains(where: { !$0.isCompleted }) {
             requests.append(
                 DailyTaskNotificationRequest(
                     identifier: DailyTaskNotificationIdentifier.eveningOpenTasks,
                     titleKey: "notifications.open-tasks.title",
                     bodyKey: "notifications.open-tasks.body",
-                    dateComponents: DailyTaskNotificationSchedule.eveningComponents
+                    dateComponents: settings.eveningOpenTasks.dateComponents
                 )
             )
         }
 
         return requests
     }
+
 }
 
 @MainActor
@@ -80,7 +88,10 @@ final class DailyTaskNotificationScheduler {
         self.center = center
     }
 
-    func refreshDailyTaskReminders(for reminders: [CreateReminder]) async {
+    func refreshDailyTaskReminders(
+        for reminders: [CreateReminder],
+        settings: DailyTaskNotificationSettings = .default
+    ) async {
         guard await canScheduleNotifications() else {
             center.removePendingNotificationRequests(withIdentifiers: DailyTaskNotificationIdentifier.all)
             return
@@ -88,7 +99,7 @@ final class DailyTaskNotificationScheduler {
 
         center.removePendingNotificationRequests(withIdentifiers: DailyTaskNotificationIdentifier.all)
 
-        for request in DailyTaskNotificationRequestFactory.requests(reminders: reminders) {
+        for request in DailyTaskNotificationRequestFactory.requests(reminders: reminders, settings: settings) {
             try? await center.add(request.userNotificationRequest())
         }
     }

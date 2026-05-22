@@ -1,0 +1,65 @@
+layers:
+  application:
+    paths:
+      - "Noma/**"
+  tests:
+    paths:
+      - "NomaTests/**"
+      - "NomaUITests/**"
+  tooling:
+    paths:
+      - ".naome/**"
+      - "docs/naome/**"
+      - "package.json"
+      - "package-lock.json"
+
+contexts:
+  app:
+    paths:
+      - "Noma/**"
+  tests:
+    paths:
+      - "NomaTests/**"
+      - "NomaUITests/**"
+  harness:
+    paths:
+      - ".naome/**"
+      - "docs/naome/**"
+
+rules:
+  no_forbidden_layer_dependencies:
+    enabled: true
+    severity: error
+  public_api_boundary:
+    enabled: true
+    severity: error
+  no_cycles:
+    enabled: true
+    severity: error
+  max_imports_per_file:
+    enabled: true
+    value: 20
+    severity: warning
+  max_fan_out:
+    enabled: true
+    value: 25
+    severity: warning
+  max_file_lines:
+    enabled: true
+    value: 650
+    severity: error
+
+allowed_dependencies:
+  application:
+    - application
+  tests:
+    - application
+    - tests
+  tooling:
+    - tooling
+
+ignore:
+  - path: "node_modules/**"
+    reason: "Generated dependency output is not architecture-owned."
+  - path: "Noma.xcodeproj/**"
+    reason: "Xcode project metadata is validated by Xcode and NAOME project checks."

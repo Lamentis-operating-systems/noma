@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "%lld." : {
+
+    },
     "auth.apple.button.title" : {
       "comment" : "Primary Apple SSO authentication button title.",
       "localizations" : {
@@ -21,6 +24,91 @@
         }
       }
     },
+    "auth.delete-account.alert.message" : {
+      "comment" : "Confirmation message before permanently deleting a signed-in account.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Account wird dauerhaft gelöscht. Lokal gespeicherte Aufgaben und Projekte für diesen Account werden von diesem Gerät entfernt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account will be permanently deleted. Locally stored tasks and projects for this account will be removed from this device."
+          }
+        }
+      }
+    },
+    "auth.delete-account.alert.title" : {
+      "comment" : "Confirmation alert title before permanently deleting a signed-in account.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account löschen?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account?"
+          }
+        }
+      }
+    },
+    "auth.delete-account.confirm" : {
+      "comment" : "Destructive confirmation button for account deletion.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account"
+          }
+        }
+      }
+    },
+    "auth.delete-account.error.title" : {
+      "comment" : "Alert title shown when account deletion fails.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account konnte nicht gelöscht werden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not delete account"
+          }
+        }
+      }
+    },
+    "auth.delete-account.title" : {
+      "comment" : "Menu item title for deleting the signed-in account.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete account"
+          }
+        }
+      }
+    },
     "auth.logout.title" : {
       "comment" : "Menu item title for signing out of the app.",
       "localizations" : {
@@ -33,41 +121,41 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logout"
+            "value" : "Sign out"
           }
         }
       }
     },
-    "create.ai-generating.task-organization" : {
-      "comment" : "Animated status shown while the on-device AI organizes the current task list.",
+    "common.cancel" : {
+      "comment" : "Generic cancel action.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Organisiere deine Aufgaben auf dem Gerät..."
+            "value" : "Abbrechen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Organizing your tasks on-device..."
+            "value" : "Cancel"
           }
         }
       }
     },
-    "create.ai-generating.smart-capture" : {
-      "comment" : "Animated status shown while the on-device AI cleans up a submitted task.",
+    "common.ok" : {
+      "comment" : "Generic acknowledgement action.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verfeinere deine Aufgabe auf dem Gerät..."
+            "value" : "OK"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Refining your task on-device..."
+            "value" : "OK"
           }
         }
       }
@@ -90,7 +178,7 @@
       }
     },
     "create.carry-forward-yesterday.title" : {
-      "comment" : "Pro-only action title for adding open tasks from the previous day to the current day.",
+      "comment" : "Action title for adding open tasks from the previous day to the current day.",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -347,6 +435,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Organize tasks with projects"
+          }
+        }
+      }
+    },
+    "create.project.expiration.date-picker" : {
+      "comment" : "Date picker label for choosing when a project should expire.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Läuft bis"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs until"
+          }
+        }
+      }
+    },
+    "create.project.expiration.title" : {
+      "comment" : "Section label for the project expiration date picker.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-delete"
           }
         }
       }
@@ -674,24 +798,6 @@
         }
       }
     },
-    "create.projects.unlock-more.message" : {
-      "comment" : "Informational text shown above the unlock button when the free project limit is reached.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Im Free-Tier kannst du bis zu 3 Projekte erstellen. Mit Pro kannst du unbegrenzt viele Projekte nutzen, um deine Aufgaben noch besser zu organisieren."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Free tier lets you create up to 3 projects. With Pro, you can use unlimited projects to organize your tasks more effectively."
-          }
-        }
-      }
-    },
     "create.send.accessibility-label" : {
       "comment" : "Accessibility label for the create view send button.",
       "localizations" : {
@@ -726,6 +832,24 @@
         }
       }
     },
+    "create.tasks.context-menu.edit" : {
+      "comment" : "Context menu action title for editing an existing task.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bearbeiten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
     "create.tasks.date.section-header" : {
       "comment" : "Section header format shown above reminders entered in the create task view. The placeholder is the selected day.",
       "extractionState" : "stale",
@@ -740,6 +864,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tasks for %@"
+          }
+        }
+      }
+    },
+    "create.tasks.empty.filtered.subtitle" : {
+      "comment" : "Subtitle for the filtered empty task list hint when all tasks are completed.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schalte den Filter aus, um erledigte Aufgaben wieder zu sehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn off the filter to see completed tasks again."
+          }
+        }
+      }
+    },
+    "create.tasks.empty.filtered.title" : {
+      "comment" : "Title for the filtered empty task list hint when all tasks are completed.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle offenen Aufgaben sind erledigt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All open tasks are done"
           }
         }
       }
@@ -776,42 +936,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add tasks for today"
-          }
-        }
-      }
-    },
-    "create.tasks.unlock-more" : {
-      "comment" : "Button title shown when the free task limit for a group is reached.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mehr freischalten"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock more"
-          }
-        }
-      }
-    },
-    "create.tasks.unlock-more.today.message" : {
-      "comment" : "Informational text shown above the unlock button when the free task limit for a group is reached.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Im Free-Tier kannst du bis zu 5 Aufgaben für heute erstellen. Mit Pro kannst du unbegrenzt viele Aufgaben hinzufügen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The Free tier lets you create up to 5 tasks for today. With Pro, you can add unlimited tasks."
           }
         }
       }
@@ -885,40 +1009,6 @@
         }
       }
     },
-    "create.unlock-more.close.accessibility-label" : {
-      "comment" : "Accessibility label for closing the unlock more sheet.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noma Pro schließen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close Noma Pro"
-          }
-        }
-      }
-    },
-    "create.unlock-more.sheet.title" : {
-      "comment" : "Title shown in the unlock more information sheet.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noma Pro"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Noma Pro"
-          }
-        }
-      }
-    },
     "home.common-projects.section-header" : {
       "comment" : "Section header above the most used projects on the Home screen.",
       "extractionState" : "stale",
@@ -980,13 +1070,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tagesgruppen"
+            "value" : "Gruppen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Daily Groups"
+            "value" : "Groups"
           }
         }
       }
@@ -1023,6 +1113,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "task"
+          }
+        }
+      }
+    },
+    "home.today.section-header" : {
+      "comment" : "Section header above open tasks due today on the Home screen.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
           }
         }
       }
@@ -1155,72 +1263,281 @@
         }
       }
     },
+    "settings.appearance.dark" : {
+      "comment" : "Appearance menu option for dark mode.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dunkel"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark"
+          }
+        }
+      }
+    },
+    "settings.appearance.light" : {
+      "comment" : "Appearance menu option for light mode.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hell"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light"
+          }
+        }
+      }
+    },
+    "settings.appearance.mode" : {
+      "comment" : "Picker label for selecting the app appearance mode.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darstellung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "settings.appearance.section-title" : {
+      "comment" : "Menu title for app appearance controls.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Darstellung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "settings.appearance.system" : {
+      "comment" : "Appearance menu option for following the system appearance.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        }
+      }
+    },
+    "settings.notifications.close.accessibility-label" : {
+      "comment" : "Accessibility label for closing the notifications sheet.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungen schließen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close notifications"
+          }
+        }
+      }
+    },
+    "settings.notifications.daily-planning" : {
+      "comment" : "Notifications row title for the daily planning notification.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tagesplanung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily planning"
+          }
+        }
+      }
+    },
+    "settings.notifications.open-tasks" : {
+      "comment" : "Notifications row title for the open tasks notification.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offene Aufgaben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open tasks"
+          }
+        }
+      }
+    },
+    "settings.notifications.section-title" : {
+      "comment" : "Menu and sheet title for notification controls.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benachrichtigungen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
+          }
+        }
+      }
+    },
+    "settings.notifications.time" : {
+      "comment" : "Date picker label for a notification time.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        }
+      }
+    },
+    "signup.subtitle" : {
+      "comment" : "Short invitation copy below the authentication headline.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halte deinen Tag klar, ohne Aufgaben aus den Augen zu verlieren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep your day clear without losing track of what matters."
+          }
+        }
+      }
+    },
     "signup.title" : {
       "comment" : "Centered headline on the authentication signup screen.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plane Aufgaben,\nerreiche Ziele!"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan tasks,\nreach goals!"
-          }
-        }
-      }
-    },
-    "subscription.debug.pro.title" : {
-      "comment" : "Debug-only menu toggle title for switching the local subscription tier to Pro.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pro"
-          }
-        }
-      }
-    },
-    "subscription.tier.free.title" : {
-      "comment" : "Short label shown in the home top bar when the user is on the free tier.",
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Free"
+            "value" : "Plane bewusster.\nBleib dran."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Free"
+            "value" : "Plan with intent.\nFollow through."
           }
         }
       }
     },
-    "subscription.tier.pro.title" : {
-      "comment" : "Short label shown in the home top bar when the user is on the pro tier.",
+    "signup.workflow.carry-forward" : {
+      "comment" : "Signup workflow step explaining that unfinished tasks move to the next day.",
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro"
+            "value" : "Was heute offen bleibt, wartet morgen wieder auf dich."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pro"
+            "value" : "Anything unfinished today is ready for you tomorrow."
+          }
+        }
+      }
+    },
+    "signup.workflow.complete" : {
+      "comment" : "Signup workflow step for completing tasks.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hake ab, was erledigt ist."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check off what you complete."
+          }
+        }
+      }
+    },
+    "signup.workflow.create" : {
+      "comment" : "Signup workflow step for creating tasks.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erstelle Aufgaben, sobald sie entstehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create tasks the moment they come up."
+          }
+        }
+      }
+    },
+    "signup.workflow.decide" : {
+      "comment" : "Signup workflow step for deciding whether carried tasks still matter today.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entscheide morgen bewusst, ob sie heute noch wichtig sind."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decide tomorrow whether they still matter today."
           }
         }
       }

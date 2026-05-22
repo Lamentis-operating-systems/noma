@@ -116,11 +116,9 @@ struct CreateProjectList: View {
     let projectCount: Int
     let selectedProjectID: TaskProject.ID?
     let allReminders: [CreateReminder]
-    let tier: SubscriptionTier
     let onSelectProject: (TaskProject.ID?) -> Void
     let onEditProject: (TaskProject) -> Void
     let onDeleteProject: (TaskProject.ID) -> Void
-    let onUnlockMore: () -> Void
 
     var body: some View {
         ScrollView {
@@ -149,16 +147,6 @@ struct CreateProjectList: View {
                     ) {
                         onSelectProject(project.id)
                     }
-                }
-
-                if CreateProjectListSection.showsUnlockMoreButton(tier: tier, projectCount: projectCount) {
-                    UnlockMoreCallout(
-                        messageKey: CreateProjectListSection.unlockMoreMessageKey,
-                        buttonTitleKey: CreateProjectListSection.unlockMoreTitleKey,
-                        action: onUnlockMore
-                    )
-                    .padding(.top, UnlockMoreCalloutLayout.topPadding(after: NomaSpacing.xl))
-                    .padding(.horizontal, CreateProjectListLayout.contentHorizontalPadding)
                 }
 
                 Spacer(minLength: 0)

@@ -72,6 +72,7 @@
     "go.mod",
     "go.sum",
     "Makefile",
+    "naome.arch.yaml",
     ".gitignore",
     ".naomeignore"
   ],

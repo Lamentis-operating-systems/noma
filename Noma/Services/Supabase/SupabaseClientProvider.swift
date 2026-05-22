@@ -57,6 +57,16 @@ enum SupabaseClientProvider {
         clientOptions.auth.emitLocalSessionAsInitialSession
     }
 
+    static func edgeFunctionURL(
+        named functionName: String,
+        configuration: SupabaseConfiguration = currentConfiguration
+    ) -> URL {
+        configuration.projectURL
+            .appending(path: "functions")
+            .appending(path: "v1")
+            .appending(path: functionName)
+    }
+
     static func makeClient(configuration: SupabaseConfiguration = currentConfiguration) throws -> SupabaseClient {
         guard configuration.isConfigured else {
             throw SupabaseConfigurationError.missingPublishableKey
@@ -72,7 +82,11 @@ enum SupabaseClientProvider {
     @MainActor
     static func makeAuthClient() -> any AuthClient {
         do {
-            return SupabaseAuthClient(client: try makeClient())
+            let configuration = currentConfiguration
+            return SupabaseAuthClient(
+                client: try makeClient(configuration: configuration),
+                configuration: configuration
+            )
         } catch {
             return UnconfiguredAuthClient(error: error)
         }

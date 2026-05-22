@@ -9,10 +9,10 @@ import SwiftUI
 
 @main
 struct NomaApp: App {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var authState = AuthStateManager()
-    @State private var subscriptionTier = SubscriptionTierManager()
-    @State private var onDeviceFoundationModel = OnDeviceFoundationModelService()
     @State private var dailyTaskNotifications = DailyTaskNotificationScheduler()
+    @State private var appSettings = AppSettingsStore()
     #if DEBUG
     @State private var dailyTaskGroups = DailyTaskGroupStore(usesMockData: true)
     #else
@@ -23,12 +23,18 @@ struct NomaApp: App {
         WindowGroup {
             ContentView()
                 .environment(authState)
-                .environment(subscriptionTier)
-                .environment(onDeviceFoundationModel)
                 .environment(dailyTaskNotifications)
+                .environment(appSettings)
                 .environment(dailyTaskGroups)
+                .preferredColorScheme(appSettings.appearancePreference.colorScheme)
                 .onChange(of: authState.storageUserID, initial: true) { _, userID in
                     dailyTaskGroups.switchUserID(userID)
+                }
+                .onChange(of: scenePhase, initial: true) { _, phase in
+                    guard phase == .active else { return }
+                    let now = Date()
+                    dailyTaskGroups.expireProjects(asOf: now)
+                    dailyTaskGroups.purgeRecentlyDeletedProjects(asOf: now)
                 }
         }
     }

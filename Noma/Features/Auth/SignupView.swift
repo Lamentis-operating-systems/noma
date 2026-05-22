@@ -3,6 +3,40 @@ import SwiftUI
 enum SignupViewLayout {
     static let edgePadding: NomaMetric.Value = NomaSpacing.xxl
     static let bottomPadding: NomaMetric.Value = NomaSpacing.xxl
+    static let contentSpacing: NomaMetric.Value = NomaSpacing.xxl
+    static let logoSize: NomaMetric.Value = NomaSize.projectIconPreview + NomaSpacing.sm
+    static let workflowSpacing: NomaMetric.Value = NomaSpacing.lg
+    static let workflowRowSpacing: NomaMetric.Value = NomaSpacing.md
+    static let workflowIconColumnWidth: NomaMetric.Value = NomaSize.taskMetadataIconColumn
+    static let contentMaxWidth: NomaMetric.Value = NomaSize.taskPreview
+}
+
+struct SignupWorkflowStep: Equatable {
+    let number: Int
+    let titleKey: String
+}
+
+enum SignupViewCopy {
+    static let titleKey = "signup.title"
+    static let subtitleKey = "signup.subtitle"
+    static let workflowSteps = [
+        SignupWorkflowStep(
+            number: 1,
+            titleKey: "signup.workflow.create"
+        ),
+        SignupWorkflowStep(
+            number: 2,
+            titleKey: "signup.workflow.complete"
+        ),
+        SignupWorkflowStep(
+            number: 3,
+            titleKey: "signup.workflow.carry-forward"
+        ),
+        SignupWorkflowStep(
+            number: 4,
+            titleKey: "signup.workflow.decide"
+        )
+    ]
 }
 
 struct SignupView: View {
@@ -26,10 +60,16 @@ struct SignupView: View {
                 .fill(.primaryBackground)
                 .ignoresSafeArea()
 
-            Text("signup.title")
-                .font(.title.weight(.black))
-                .foregroundStyle(.textPrimary)
-                .multilineTextAlignment(.center)
+            VStack(spacing: SignupViewLayout.contentSpacing) {
+                Spacer()
+
+                SignupMarketingContent()
+                    .frame(maxWidth: SignupViewLayout.contentMaxWidth)
+                    .padding(.horizontal, SignupViewLayout.edgePadding)
+
+                Spacer()
+                Spacer()
+            }
 
             VStack {
                 Spacer()

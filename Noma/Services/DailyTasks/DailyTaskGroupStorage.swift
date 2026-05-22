@@ -4,8 +4,8 @@ struct DailyTaskGroupStorage {
     nonisolated static let defaultStorageKey = "noma.daily-task-groups"
     nonisolated static let signedOutStorageScope = "signed-out"
 
-    private let userDefaults: UserDefaults
-    private let storageKey: String
+    let userDefaults: UserDefaults
+    let storageKey: String
 
     nonisolated static func storageKey(forUserID userID: String?) -> String {
         let scope = userID ?? signedOutStorageScope
@@ -84,18 +84,14 @@ struct DailyTaskGroupStorage {
         let selectedProjectID = state.selectedProjectID.flatMap { projectID in
             validProjectIDs.contains(projectID) ? projectID : nil
         }
+        let recentlyDeletedProjects = uniqueRecentlyDeletedProjects(in: state.recentlyDeletedProjects)
 
         return DailyTaskGroupState(
             groups: groups,
             projects: projects,
-            selectedProjectID: selectedProjectID
+            selectedProjectID: selectedProjectID,
+            recentlyDeletedProjects: recentlyDeletedProjects
         )
     }
 
-    private func uniqueProjects(in projects: [TaskProject]) -> [TaskProject] {
-        var seenIDs = Set<TaskProject.ID>()
-        return projects.filter { project in
-            seenIDs.insert(project.id).inserted
-        }
-    }
 }

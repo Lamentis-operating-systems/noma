@@ -26,11 +26,9 @@ struct CommonProjectRow: View {
     let summary: CommonProjectSummary
 
     var body: some View {
-        HStack(spacing: NomaSpacing.md) {
-            Image(systemName: summary.project.symbolName)
-                .font(.headline)
-                .foregroundStyle(TaskProjectIconPresentation.appSurfaceColor)
-                .frame(width: NomaSize.projectControl, alignment: .center)
+        HStack(alignment: .top, spacing: 0) {
+            CreateReminderProjectIcon(project: summary.project)
+                .padding(.trailing, CreateReminderMetadataIconLayout.spacingToText)
 
             Text(summary.project.title)
                 .font(.headline)

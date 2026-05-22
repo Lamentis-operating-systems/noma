@@ -7,7 +7,16 @@ enum CreateReminderCarryForwardPreview {
         previousOpenReminders: [CreateReminder]
     ) -> [CreateReminder] {
         let currentReminderKeys = Set(currentReminders.map(CarryForwardReminderKey.init(reminder:)))
-        return previousOpenReminders.filter { !currentReminderKeys.contains(CarryForwardReminderKey(reminder: $0)) }
+        return previousOpenReminders
+            .enumerated()
+            .filter { !currentReminderKeys.contains(CarryForwardReminderKey(reminder: $0.element)) }
+            .sorted { left, right in
+                guard left.element.createdAt == right.element.createdAt else {
+                    return left.element.createdAt < right.element.createdAt
+                }
+                return left.offset < right.offset
+            }
+            .map(\.element)
     }
 }
 
@@ -24,6 +33,7 @@ private struct CarryForwardReminderKey: Hashable {
 struct CreateReminderCarryForwardPreviewRow: View {
     let reminder: CreateReminder
     let project: TaskProject?
+    let onCarryForward: () -> Void
     let onComplete: () -> Void
 
     var body: some View {
@@ -31,29 +41,27 @@ struct CreateReminderCarryForwardPreviewRow: View {
             CreateReminderProjectIcon(project: project, color: .textSecondary)
                 .padding(.trailing, CreateReminderMetadataIconLayout.spacingToText)
 
-            Text(reminder.text)
-                .font(.headline.weight(.regular))
-                .foregroundStyle(.textSecondary)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            Button(action: onCarryForward) {
+                Text(reminder.text)
+                    .font(.headline.weight(reminder.wasCarriedForward ? .bold : .regular))
+                    .foregroundStyle(.textSecondary)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
 
-            RadioCheckbox(
-                isOn: false,
-                borderColor: .textSecondary,
-                fillColor: .textSecondary
-            )
-            .padding(.leading, NomaSpacing.md)
-            .padding(.top, CreateReminderMetadataIconLayout.firstLineCenterOffset)
+            Button(action: onComplete) {
+                RadioCheckbox(
+                    isOn: false,
+                    borderColor: .textSecondary,
+                    fillColor: .textSecondary
+                )
+                .padding(.leading, NomaSpacing.md)
+                .padding(.top, CreateReminderMetadataIconLayout.firstLineCenterOffset)
+            }
+            .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
-        .overlay {
-            CreateReminderRowGestureOverlay(
-                onTap: onComplete,
-                onSwipeChanged: { _ in },
-                onSwipeEnded: {}
-            )
-        }
     }
 }
 
@@ -68,6 +76,15 @@ enum CreateReminderCarryForwardCompletion {
 }
 
 enum CreateReminderCarryForwardTransfer {
+    static func carriedReminder(from reminder: CreateReminder) -> CreateReminder {
+        CreateReminder(
+            text: reminder.text,
+            projectID: reminder.projectID,
+            createdAt: reminder.createdAt,
+            carryForwardCount: reminder.carryForwardCount + 1
+        )
+    }
+
     static func sourceRemindersAfterTransfer(
         sourceReminders: [CreateReminder],
         transferredReminders: [CreateReminder]

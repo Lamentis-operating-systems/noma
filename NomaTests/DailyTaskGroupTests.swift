@@ -104,6 +104,120 @@ final class DailyTaskGroupTests: XCTestCase {
         }
     }
 
+    func testExpiredProjectMovesProjectAndTasksToRecentlyDeleted() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let expirationDate = try fixture.date(year: 2026, month: 5, day: 17)
+        let project = taskProject(
+            id: "00000000-0000-0000-0000-000000000024",
+            title: "Launch",
+            expiresAt: expirationDate
+        )
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.save(
+                reminders: [CreateReminder(text: "Today", projectID: project.id)],
+                projects: [project],
+                selectedProjectID: project.id,
+                forDayID: "2026-05-16"
+            )
+            store.save(
+                reminders: [
+                    CreateReminder(text: "Tomorrow", projectID: project.id),
+                    CreateReminder(text: "Inbox")
+                ],
+                projects: [project],
+                selectedProjectID: project.id,
+                forDayID: "2026-05-17"
+            )
+
+            store.expireProjects(asOf: try! fixture.date(year: 2026, month: 5, day: 18))
+
+            XCTAssertTrue(store.projects(forDayID: "2026-05-18").isEmpty)
+            XCTAssertEqual(store.allReminders().map(\.text), ["Inbox"])
+            XCTAssertNil(store.selectedProjectID(forDayID: "2026-05-18"))
+            XCTAssertEqual(store.recentlyDeletedProjects.map(\.project.id), [project.id])
+            XCTAssertEqual(store.recentlyDeletedProjects.first?.taskSnapshots.map(\.reminder.text), ["Today", "Tomorrow"])
+        }
+    }
+
+    func testProjectExpirationKeepsProjectsThroughSelectedCalendarDay() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let expirationDate = try fixture.date(year: 2026, month: 5, day: 17)
+        let project = taskProject(
+            id: "00000000-0000-0000-0000-000000000027",
+            title: "Launch",
+            expiresAt: expirationDate
+        )
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.saveProjectForExpiration(project, dayID: "2026-05-17")
+
+            store.expireProjects(asOf: expirationDate.addingTimeInterval(23 * 60 * 60))
+            XCTAssertEqual(store.projects(forDayID: "2026-05-17").map(\.id), [project.id])
+            XCTAssertEqual(store.projectExpirationRevision, 0)
+
+            store.expireProjects(asOf: try! fixture.date(year: 2026, month: 5, day: 18))
+            XCTAssertTrue(store.projects(forDayID: "2026-05-18").isEmpty)
+            XCTAssertEqual(store.projectExpirationRevision, 1)
+        }
+    }
+
+    func testRestoringRecentlyDeletedProjectRecreatesProjectAndTasks() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let deletionDate = try fixture.date(year: 2026, month: 5, day: 18)
+        let project = taskProject(id: "00000000-0000-0000-0000-000000000025", title: "Work")
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.save(
+                reminders: [CreateReminder(text: "Today", projectID: project.id)],
+                projects: [project],
+                selectedProjectID: nil,
+                forDayID: "2026-05-16"
+            )
+            store.deleteProject(withID: project.id, at: deletionDate)
+
+            store.restoreRecentlyDeletedProject(withID: project.id)
+
+            XCTAssertEqual(store.projects(forDayID: "2026-05-18").map(\.id), [project.id])
+            XCTAssertTrue(store.recentlyDeletedProjects.isEmpty)
+            XCTAssertEqual(store.reminders(forDayID: "2026-05-16").map(\.text), ["Today"])
+        }
+    }
+
+    func testRecentlyDeletedProjectsArePurgedAfterSevenDays() async throws {
+        let fixture = DailyTaskGroupTestFixture()
+        defer { fixture.cleanUp() }
+        let deletionDate = try fixture.date(year: 2026, month: 5, day: 18)
+        let project = taskProject(id: "00000000-0000-0000-0000-000000000026", title: "Work")
+
+        await MainActor.run {
+            let store = fixture.makeStore()
+
+            store.save(
+                reminders: [CreateReminder(text: "Today", projectID: project.id)],
+                projects: [project],
+                selectedProjectID: nil,
+                forDayID: "2026-05-16"
+            )
+            store.deleteProject(withID: project.id, at: deletionDate)
+
+            store.purgeRecentlyDeletedProjects(asOf: deletionDate.addingTimeInterval(6 * 86_400))
+            XCTAssertEqual(store.recentlyDeletedProjects.map(\.project.id), [project.id])
+
+            store.purgeRecentlyDeletedProjects(asOf: deletionDate.addingTimeInterval(7 * 86_400))
+            XCTAssertTrue(store.recentlyDeletedProjects.isEmpty)
+        }
+    }
+
     func testOpenRemindersFromPreviousDayReturnsOnlyUncompletedPreviousDayTasks() async throws {
         let fixture = DailyTaskGroupTestFixture()
         defer { fixture.cleanUp() }
@@ -223,33 +337,49 @@ final class DailyTaskGroupTests: XCTestCase {
 
     func testDailyTaskGroupStorageScopesSavedGroupsByUserID() throws {
         let defaults = UserDefaults.standard
-        let firstUserID = UUID().uuidString
-        let secondUserID = UUID().uuidString
-        let firstStorageKey = DailyTaskGroupStorage.storageKey(forUserID: firstUserID)
-        let secondStorageKey = DailyTaskGroupStorage.storageKey(forUserID: secondUserID)
-        defaults.removeObject(forKey: firstStorageKey)
-        defaults.removeObject(forKey: secondStorageKey)
+        let scopedStorage = makeScopedStoragePair(defaults: defaults)
         defer {
-            defaults.removeObject(forKey: firstStorageKey)
-            defaults.removeObject(forKey: secondStorageKey)
+            defaults.removeObject(forKey: scopedStorage.firstKey)
+            defaults.removeObject(forKey: scopedStorage.secondKey)
         }
         let calendar = Calendar(identifier: .gregorian)
         let date = try XCTUnwrap(DateComponents(calendar: calendar, year: 2026, month: 5, day: 16).date)
-        let firstStorage = DailyTaskGroupStorage(userDefaults: defaults, storageKey: firstStorageKey)
-        let secondStorage = DailyTaskGroupStorage(userDefaults: defaults, storageKey: secondStorageKey)
 
-        firstStorage.save(groups: [
+        scopedStorage.first.save(groups: [
             DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Private task")])
         ])
 
-        XCTAssertTrue(secondStorage.loadGroups().isEmpty)
+        XCTAssertTrue(scopedStorage.second.loadGroups().isEmpty)
 
-        secondStorage.save(groups: [
+        scopedStorage.second.save(groups: [
             DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Other account task")])
         ])
 
-        XCTAssertEqual(firstStorage.loadGroups().first?.reminders.map(\.text), ["Private task"])
-        XCTAssertEqual(secondStorage.loadGroups().first?.reminders.map(\.text), ["Other account task"])
+        XCTAssertEqual(scopedStorage.first.loadGroups().first?.reminders.map(\.text), ["Private task"])
+        XCTAssertEqual(scopedStorage.second.loadGroups().first?.reminders.map(\.text), ["Other account task"])
+    }
+
+    func testDailyTaskGroupStorageDeletesOnlyRequestedUserScope() throws {
+        let defaults = UserDefaults.standard
+        let scopedStorage = makeScopedStoragePair(defaults: defaults)
+        defer {
+            defaults.removeObject(forKey: scopedStorage.firstKey)
+            defaults.removeObject(forKey: scopedStorage.secondKey)
+        }
+        let calendar = Calendar(identifier: .gregorian)
+        let date = try XCTUnwrap(DateComponents(calendar: calendar, year: 2026, month: 5, day: 16).date)
+
+        scopedStorage.first.save(groups: [
+            DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Private task")])
+        ])
+        scopedStorage.second.save(groups: [
+            DailyTaskGroup(id: "2026-05-16", date: date, reminders: [CreateReminder(text: "Other account task")])
+        ])
+
+        DailyTaskGroupStorage.deleteState(forUserID: scopedStorage.firstUserID, userDefaults: defaults)
+
+        XCTAssertTrue(scopedStorage.first.loadGroups().isEmpty)
+        XCTAssertEqual(scopedStorage.second.loadGroups().first?.reminders.map(\.text), ["Other account task"])
     }
 
     @MainActor
@@ -288,7 +418,7 @@ final class DailyTaskGroupTests: XCTestCase {
         XCTAssertEqual(DailyTaskGroupsProgressCopy.completedKey, "home.daily-groups.progress.completed")
     }
 
-    func testDailyTaskGroupRowShowsCompletionIconOnlyWhenAllTasksAreDone() throws {
+    func testDailyTaskGroupRowUsesStatusIconsForOpenAndCompletedGroups() throws {
         let calendar = Calendar(identifier: .gregorian)
         let date = try XCTUnwrap(DateComponents(calendar: calendar, year: 2026, month: 5, day: 16).date)
         let incompleteSummary = DailyTaskGroupSummary(
@@ -311,9 +441,12 @@ final class DailyTaskGroupTests: XCTestCase {
             )
         )
 
-        XCTAssertNil(DailyTaskGroupRowStatus.systemImage(for: incompleteSummary))
         XCTAssertEqual(
-            DailyTaskGroupRowStatus.systemImage(for: completedSummary),
+            DailyTaskGroupRowStatus.status(for: incompleteSummary).systemImage,
+            DailyTaskGroupRowStatus.openSystemImage
+        )
+        XCTAssertEqual(
+            DailyTaskGroupRowStatus.status(for: completedSummary).systemImage,
             DailyTaskGroupRowStatus.completedSystemImage
         )
     }
@@ -333,7 +466,36 @@ final class DailyTaskGroupTests: XCTestCase {
         )
     }
 
-    func testCreateReminderOrganizationSortsByHiddenPriorityWithoutChangingTasks() throws {
+    func testCreateReminderFilterTemporarilyKeepsJustCompletedTasksVisible() throws {
+        let completedReminder = CreateReminder(text: "Done", isCompleted: true)
+        let unsolvedReminder = CreateReminder(text: "Open")
+        let reminders = [completedReminder, unsolvedReminder]
+
+        XCTAssertEqual(
+            CreateReminderListFilter.visibleReminders(
+                reminders,
+                showsOnlyUnsolved: true,
+                temporarilyVisibleCompletedReminderIDs: [completedReminder.id]
+            ),
+            reminders
+        )
+    }
+
+    func testCreateReminderFilterPreferencePersistsUnsolvedMode() throws {
+        let suiteName = "NomaTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        XCTAssertFalse(CreateReminderFilterPreference.isEnabled(in: defaults))
+
+        CreateReminderFilterPreference.setIsEnabled(true, in: defaults)
+        XCTAssertTrue(CreateReminderFilterPreference.isEnabled(in: defaults))
+
+        CreateReminderFilterPreference.setIsEnabled(false, in: defaults)
+        XCTAssertFalse(CreateReminderFilterPreference.isEnabled(in: defaults))
+    }
+
+    func testCreateReminderOrganizationKeepsManualOrder() throws {
         let firstID = UUID(uuidString: "00000000-0000-0000-0000-000000000041")!
         let secondID = UUID(uuidString: "00000000-0000-0000-0000-000000000042")!
         let thirdID = UUID(uuidString: "00000000-0000-0000-0000-000000000043")!
@@ -342,19 +504,11 @@ final class DailyTaskGroupTests: XCTestCase {
             CreateReminder(id: secondID, text: "High priority"),
             CreateReminder(id: thirdID, text: "Done", isCompleted: true)
         ]
-        let organization = CreateReminderAIPlanningResult(
-            organizedTasks: [
-                CreateReminderAIOrganizedTask(reminderID: thirdID, priorityRank: 1, category: "work"),
-                CreateReminderAIOrganizedTask(reminderID: secondID, priorityRank: 1, category: "work"),
-                CreateReminderAIOrganizedTask(reminderID: firstID, priorityRank: 3, category: "admin")
-            ],
-            carryForwardReminderIDs: []
-        )
 
-        let sortedReminders = CreateReminderListOrganization.sortedReminders(reminders, using: organization)
+        let sortedReminders = CreateReminderListOrganization.sortedReminders(reminders)
 
-        XCTAssertEqual(sortedReminders.map(\.id), [secondID, firstID, thirdID])
-        XCTAssertEqual(sortedReminders.map(\.text), ["High priority", "Low priority", "Done"])
+        XCTAssertEqual(sortedReminders.map(\.id), [firstID, secondID, thirdID])
+        XCTAssertEqual(sortedReminders.map(\.text), ["Low priority", "High priority", "Done"])
     }
 
     func testCreateReminderBatchCompletionCompletesEveryTaskWithoutChangingIdentity() throws {
@@ -409,8 +563,49 @@ private struct DailyTaskGroupTestFixture {
     func cleanUp() {
         defaults.removeObject(forKey: storageKey)
     }
+
+    func date(year: Int, month: Int, day: Int) throws -> Date {
+        try XCTUnwrap(DateComponents(calendar: calendar, year: year, month: month, day: day).date)
+    }
 }
 
-private func taskProject(id: String, title: String) -> TaskProject {
-    TaskProject(id: UUID(uuidString: id)!, title: title)
+private struct ScopedStoragePair {
+    let firstUserID: String
+    let firstKey: String
+    let secondKey: String
+    let first: DailyTaskGroupStorage
+    let second: DailyTaskGroupStorage
+}
+
+private func makeScopedStoragePair(defaults: UserDefaults) -> ScopedStoragePair {
+    let firstUserID = UUID().uuidString
+    let secondUserID = UUID().uuidString
+    let firstKey = DailyTaskGroupStorage.storageKey(forUserID: firstUserID)
+    let secondKey = DailyTaskGroupStorage.storageKey(forUserID: secondUserID)
+    defaults.removeObject(forKey: firstKey)
+    defaults.removeObject(forKey: secondKey)
+
+    return ScopedStoragePair(
+        firstUserID: firstUserID,
+        firstKey: firstKey,
+        secondKey: secondKey,
+        first: DailyTaskGroupStorage(userDefaults: defaults, storageKey: firstKey),
+        second: DailyTaskGroupStorage(userDefaults: defaults, storageKey: secondKey)
+    )
+}
+
+private func taskProject(id: String, title: String, expiresAt: Date? = nil) -> TaskProject {
+    TaskProject(id: UUID(uuidString: id)!, title: title, expiresAt: expiresAt)
+}
+
+@MainActor
+private extension DailyTaskGroupStore {
+    func saveProjectForExpiration(_ project: TaskProject, dayID: String) {
+        save(
+            reminders: [CreateReminder(text: "Ship beta", projectID: project.id)],
+            projects: [project],
+            selectedProjectID: project.id,
+            forDayID: dayID
+        )
+    }
 }

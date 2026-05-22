@@ -10,13 +10,13 @@ struct ProjectDetailView: View {
     let projectID: TaskProject.ID
 
     @Environment(\.hapticFeedback) var hapticFeedback
-    @Environment(SubscriptionTierManager.self) var subscriptionTier
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @State var message = ""
     @State var project: TaskProject?
     @State var isKeyboardPresented = false
     @State var isEditProjectSheetPresented = false
-    @State var showsOnlyUnsolvedTasks = false
+    @AppStorage(CreateReminderFilterPreference.storageKey) var showsOnlyUnsolvedTasks = false
+    @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     @State var pendingScrollTargetID: String?
     @FocusState var isInputFocused: Bool
 

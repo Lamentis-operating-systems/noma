@@ -6,6 +6,7 @@
 //
 
 @testable import Noma
+import SwiftUI
 import XCTest
 
 final class NomaTests: XCTestCase {
@@ -25,7 +26,8 @@ final class NomaTests: XCTestCase {
 
     func testDailyTaskGroupRowsUseScaleFeedbackAndCompletionCopy() {
         XCTAssertTrue(DailyTaskGroupRowInteraction.usesScaleButtonStyle)
-        XCTAssertEqual(DailyTaskGroupRowLayout.completedIconAdditionalTrailingPadding, NomaSpacing.xs)
+        XCTAssertEqual(DailyTaskGroupRowLayout.statusIconWidth, NomaSize.taskMetadataIconColumn)
+        XCTAssertEqual(DailyTaskGroupRowLayout.statusIconHeight, NomaSize.radioCheckboxOuter)
         XCTAssertEqual(DailyTaskGroupsProgressCopy.completedKey, "home.daily-groups.progress.completed")
     }
 
@@ -133,38 +135,20 @@ final class NomaTests: XCTestCase {
         XCTAssertNil(CreateReminderAutoScroll.targetAfterKeyboardFocus(visibleReminders: []))
     }
 
-    func testFreeTierLimitsTaskGroupsToFiveTasks() {
-        XCTAssertEqual(SubscriptionTier.free.taskLimitPerGroup, 5)
-        XCTAssertTrue(SubscriptionTier.free.canAddTask(toGroupWithTaskCount: 4))
-        XCTAssertFalse(SubscriptionTier.free.canAddTask(toGroupWithTaskCount: 5))
-    }
-
-    func testProTierCanAddTasksBeyondFreeLimit() {
-        XCTAssertNil(SubscriptionTier.pro.taskLimitPerGroup)
-        XCTAssertTrue(SubscriptionTier.pro.canAddTask(toGroupWithTaskCount: 5))
-        XCTAssertTrue(SubscriptionTier.pro.canAddTask(toGroupWithTaskCount: 50))
-    }
-
-    func testFreeTierLimitsProjectsToThreeProjects() {
-        XCTAssertEqual(SubscriptionTier.free.projectLimit, 3)
-        XCTAssertTrue(SubscriptionTier.free.canAddProject(toProjectCount: 2))
-        XCTAssertFalse(SubscriptionTier.free.canAddProject(toProjectCount: 3))
-        XCTAssertNil(SubscriptionTier.pro.projectLimit)
-        XCTAssertTrue(SubscriptionTier.pro.canAddProject(toProjectCount: 30))
-        XCTAssertTrue(CreateProjectListSection.showsUnlockMoreButton(tier: .free, projectCount: 3))
-        XCTAssertFalse(CreateProjectListSection.showsUnlockMoreButton(tier: .free, projectCount: 2))
-        XCTAssertFalse(CreateProjectListSection.showsUnlockMoreButton(tier: .pro, projectCount: 3))
+    func testProjectSheetKeepsProjectSelectionCopyWithoutLimits() {
         XCTAssertEqual(CreateProjectListSection.selectionInfoKey, "create.projects.selection.info")
     }
 
-    func testCreateReminderListShowsUnlockMoreAtFreeLimitOnly() {
-        XCTAssertFalse(CreateReminderListSection.showsUnlockMoreButton(tier: .free, reminderCount: 4))
-        XCTAssertTrue(CreateReminderListSection.showsUnlockMoreButton(tier: .free, reminderCount: 5))
-        XCTAssertFalse(CreateReminderListSection.showsUnlockMoreButton(tier: .pro, reminderCount: 5))
+    func testProjectExpirationOptionIsSmallDatePickerForEveryProject() {
+        XCTAssertEqual(ProjectExpirationOption.titleKey, "create.project.expiration.title")
+        XCTAssertEqual(ProjectExpirationOption.datePickerLabelKey, "create.project.expiration.date-picker")
+        XCTAssertEqual(ProjectExpirationOption.controlSize, .small)
+        XCTAssertEqual(ProjectExpirationOption.displayedComponents, .date)
+        XCTAssertEqual(ProjectExpirationOption.defaultDurationDays, 7)
     }
 
     @MainActor
-    func testReminderInputStateDisablesSubmitWhenSubscriptionLimitIsReached() {
+    func testReminderInputStateDisablesSubmitWhenUnavailable() {
         let state = ReminderInputState(text: "Next task", isSubmissionAvailable: false)
 
         XCTAssertFalse(state.canSubmit)
@@ -179,28 +163,6 @@ final class NomaTests: XCTestCase {
     @MainActor
     func testPrimaryButtonUsesSharedSubmitHapticFeedback() {
         XCTAssertEqual(PrimaryButtonFeedback.feedback, .createTaskSubmit)
-    }
-
-    func testCreateReminderListLimitCalloutUsesProfessionalCopyAndSpacing() {
-        XCTAssertEqual(
-            CreateReminderListSection.unlockMoreMessageKey,
-            "create.tasks.unlock-more.today.message"
-        )
-        XCTAssertEqual(UnlockMoreCalloutLayout.spacingFromPreviousContent, NomaSpacing.xxl)
-        XCTAssertEqual(
-            CreateReminderLimitCalloutLayout.topPadding,
-            UnlockMoreCalloutLayout.topPadding(after: NomaSpacing.md)
-        )
-        XCTAssertEqual(UnlockMoreCalloutLayout.contentSpacing, NomaSpacing.lg)
-    }
-
-    @MainActor
-    func testDebugUnlockMorePromotesAccountToPro() async {
-        let subscriptionTier = SubscriptionTierManager()
-
-        subscriptionTier.debugUnlockPro()
-
-        XCTAssertEqual(subscriptionTier.tier, .pro)
     }
 
     func testCreateReminderListShowsEmptyStateOnlyWithoutTasks() {
@@ -235,6 +197,78 @@ final class NomaTests: XCTestCase {
             .map(\.text),
             ["Send update"]
         )
+    }
+
+    func testCarryForwardPreviewSortsOldestRemindersFirst() {
+        let oldestDate = Date(timeIntervalSince1970: 100)
+        let middleDate = Date(timeIntervalSince1970: 200)
+        let newestDate = Date(timeIntervalSince1970: 300)
+        let previousOpenReminders = [
+            CreateReminder(text: "Newest", createdAt: newestDate),
+            CreateReminder(text: "Oldest", createdAt: oldestDate),
+            CreateReminder(text: "Middle", createdAt: middleDate)
+        ]
+
+        XCTAssertEqual(
+            CreateReminderCarryForwardPreview.visibleReminders(
+                currentReminders: [],
+                previousOpenReminders: previousOpenReminders
+            )
+            .map(\.text),
+            ["Oldest", "Middle", "Newest"]
+        )
+    }
+
+    func testCarryForwardPreviewKeepsOriginalOrderWhenCreatedAtMatches() {
+        let createdAt = Date(timeIntervalSince1970: 100)
+        let previousOpenReminders = [
+            CreateReminder(text: "First", createdAt: createdAt),
+            CreateReminder(text: "Second", createdAt: createdAt),
+            CreateReminder(text: "Third", createdAt: createdAt)
+        ]
+
+        XCTAssertEqual(
+            CreateReminderCarryForwardPreview.visibleReminders(
+                currentReminders: [],
+                previousOpenReminders: previousOpenReminders
+            )
+            .map(\.text),
+            ["First", "Second", "Third"]
+        )
+    }
+
+    func testCarriedForwardReminderPreservesCreatedAtAndIncrementsCarryCount() {
+        let createdAt = Date(timeIntervalSince1970: 100)
+        let sourceReminder = CreateReminder(
+            text: "Move invoice",
+            createdAt: createdAt,
+            carryForwardCount: 1
+        )
+
+        let carriedReminder = CreateReminderCarryForwardTransfer.carriedReminder(from: sourceReminder)
+
+        XCTAssertEqual(carriedReminder.text, sourceReminder.text)
+        XCTAssertEqual(carriedReminder.createdAt, createdAt)
+        XCTAssertEqual(carriedReminder.carryForwardCount, 2)
+        XCTAssertTrue(carriedReminder.wasCarriedForward)
+    }
+
+    @MainActor
+    func testLegacyReminderDecodingBackfillsCarryForwardMetadata() throws {
+        let json = """
+        {
+          "id": "00000000-0000-0000-0000-000000000072",
+          "text": "Legacy task",
+          "isCompleted": false
+        }
+        """.data(using: .utf8)!
+
+        let reminder = try JSONDecoder().decode(CreateReminder.self, from: json)
+
+        XCTAssertEqual(reminder.text, "Legacy task")
+        XCTAssertEqual(reminder.createdAt, .distantPast)
+        XCTAssertEqual(reminder.carryForwardCount, 0)
+        XCTAssertFalse(reminder.wasCarriedForward)
     }
 
     func testCarryForwardPreviewCompletionMarksOriginalReminderDone() {
@@ -403,8 +437,7 @@ final class NomaTests: XCTestCase {
                 sourceReminders: [existingReminder],
                 submission: submission,
                 projects: [],
-                selectedProjectID: nil,
-                tier: .pro
+                selectedProjectID: nil
             ),
             [existingReminder, submittedReminder]
         )
@@ -569,41 +602,27 @@ final class NomaTests: XCTestCase {
         XCTAssertTrue(SupabaseClientProvider.emitsLocalSessionAsInitialSession)
     }
 
-    @MainActor
-    func testSubscriptionTierManagerStartsInFreeTier() async {
-        let subscriptionTier = SubscriptionTierManager()
-
-        XCTAssertEqual(subscriptionTier.tier, .free)
-        XCTAssertFalse(subscriptionTier.isPro)
-    }
-
-    @MainActor
-    func testSubscriptionTierManagerCanSwitchBetweenFreeAndPro() async {
-        let subscriptionTier = SubscriptionTierManager()
-
-        subscriptionTier.updateTier(.pro)
-
-        XCTAssertEqual(subscriptionTier.tier, .pro)
-        XCTAssertTrue(subscriptionTier.isPro)
-
-        subscriptionTier.updateTier(.free)
-
-        XCTAssertEqual(subscriptionTier.tier, .free)
-        XCTAssertFalse(subscriptionTier.isPro)
-    }
-
-    func testSubscriptionTierDisplayConfigurationMatchesTier() {
-        XCTAssertEqual(SubscriptionTier.free.titleKey, "subscription.tier.free.title")
-        XCTAssertFalse(SubscriptionTier.free.usesProminentTextGradient)
-
-        XCTAssertEqual(SubscriptionTier.pro.titleKey, "subscription.tier.pro.title")
-        XCTAssertTrue(SubscriptionTier.pro.usesProminentTextGradient)
-    }
-
     func testSignupLayoutUsesRequestedSpacing() {
         XCTAssertEqual(SignInWithAppleGlassButtonLayout.verticalPadding, 12)
         XCTAssertEqual(SignupViewLayout.edgePadding, 32)
         XCTAssertEqual(SignupViewLayout.bottomPadding, 32)
+        XCTAssertEqual(SignupViewLayout.logoSize, NomaSize.projectIconPreview + NomaSpacing.sm)
+        XCTAssertEqual(SignupViewLayout.workflowIconColumnWidth, NomaSize.taskMetadataIconColumn)
+        XCTAssertEqual(SignupViewLayout.contentMaxWidth, NomaSize.taskPreview)
+    }
+
+    func testSignupCopyExplainsWorkflow() {
+        XCTAssertEqual(SignupViewCopy.titleKey, "signup.title")
+        XCTAssertEqual(SignupViewCopy.subtitleKey, "signup.subtitle")
+        XCTAssertEqual(
+            SignupViewCopy.workflowSteps,
+            [
+                SignupWorkflowStep(number: 1, titleKey: "signup.workflow.create"),
+                SignupWorkflowStep(number: 2, titleKey: "signup.workflow.complete"),
+                SignupWorkflowStep(number: 3, titleKey: "signup.workflow.carry-forward"),
+                SignupWorkflowStep(number: 4, titleKey: "signup.workflow.decide")
+            ]
+        )
     }
 
     func testSignInWithAppleLoadingStateUsesSpinnerAndBlocksRepeatedTaps() {
