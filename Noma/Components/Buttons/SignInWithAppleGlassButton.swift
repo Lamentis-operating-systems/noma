@@ -6,26 +6,38 @@ enum SignInWithAppleGlassButtonLayout {
 
 struct SignInWithAppleGlassButtonState: Equatable {
     let isLoading: Bool
+    let hasAcceptedPrivacyPolicy: Bool
+
+    init(isLoading: Bool, hasAcceptedPrivacyPolicy: Bool = true) {
+        self.isLoading = isLoading
+        self.hasAcceptedPrivacyPolicy = hasAcceptedPrivacyPolicy
+    }
 
     var showsProgressSpinner: Bool { isLoading }
-    var allowsInteraction: Bool { !isLoading }
+    var allowsInteraction: Bool { !isLoading && hasAcceptedPrivacyPolicy }
     var usesBlurReplaceTransition: Bool { isLoading }
     var preservesLabelLayout: Bool { true }
 }
 
 struct SignInWithAppleGlassButton: View {
     let isLoading: Bool
+    let hasAcceptedPrivacyPolicy: Bool
     let action: () -> Void
 
     private var state: SignInWithAppleGlassButtonState {
-        SignInWithAppleGlassButtonState(isLoading: isLoading)
+        SignInWithAppleGlassButtonState(
+            isLoading: isLoading,
+            hasAcceptedPrivacyPolicy: hasAcceptedPrivacyPolicy
+        )
     }
 
     init(
         isLoading: Bool = false,
+        hasAcceptedPrivacyPolicy: Bool = true,
         action: @escaping () -> Void
     ) {
         self.isLoading = isLoading
+        self.hasAcceptedPrivacyPolicy = hasAcceptedPrivacyPolicy
         self.action = action
     }
 
