@@ -126,40 +126,6 @@
         }
       }
     },
-    "signup.consent.acceptance" : {
-      "comment" : "Signup consent toggle label shown before Apple sign-in is enabled.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ich akzeptiere die Datenschutzbestimmungen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I accept the privacy policy."
-          }
-        }
-      }
-    },
-    "signup.consent.privacy-link" : {
-      "comment" : "External privacy policy link on the signup screen.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Datenschutzbestimmungen öffnen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open privacy policy"
-          }
-        }
-      }
-    },
     "common.cancel" : {
       "comment" : "Generic cancel action.",
       "localizations" : {
@@ -1464,6 +1430,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Time"
+          }
+        }
+      }
+    },
+    "signup.consent.acceptance" : {
+      "comment" : "Signup consent toggle label shown before Apple sign-in is enabled.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich akzeptiere die Datenschutzbestimmungen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I accept the privacy policy."
+          }
+        }
+      }
+    },
+    "signup.consent.privacy-link" : {
+      "comment" : "External privacy policy link on the signup screen.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutzbestimmungen öffnen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open privacy policy"
           }
         }
       }
