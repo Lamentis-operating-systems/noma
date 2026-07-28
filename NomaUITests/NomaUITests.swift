@@ -69,6 +69,13 @@ final class NomaUITests: XCTestCase {
         XCTAssertEqual(signOut.label, "Sign out")
         XCTAssertEqual(deleteAccount.descendants(matching: .image).count, 0)
         XCTAssertEqual(signOut.descendants(matching: .image).count, 0)
+
+        let appearance = app.buttons["Appearance"]
+        XCTAssertTrue(appearance.waitForExistence(timeout: 3))
+        appearance.tap()
+        XCTAssertTrue(app.buttons["System"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["Light"].exists)
+        XCTAssertTrue(app.buttons["Dark"].exists)
     }
 
     private enum Scenario: String {

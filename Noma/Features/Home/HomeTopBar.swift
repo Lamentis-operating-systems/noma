@@ -18,12 +18,16 @@ struct HomeMenu: View {
 
     var body: some View {
         Menu {
-            Picker("settings.appearance.section-title", selection: appearancePreference) {
-                Text("settings.appearance.system").tag(AppAppearancePreference.system)
-                Text("settings.appearance.light").tag(AppAppearancePreference.light)
-                Text("settings.appearance.dark").tag(AppAppearancePreference.dark)
+            Menu {
+                Picker("settings.appearance.section-title", selection: appearancePreference) {
+                    Text("settings.appearance.system").tag(AppAppearancePreference.system)
+                    Text("settings.appearance.light").tag(AppAppearancePreference.light)
+                    Text("settings.appearance.dark").tag(AppAppearancePreference.dark)
+                }
+                .pickerStyle(.inline)
+            } label: {
+                Text("settings.appearance.section-title")
             }
-            .pickerStyle(.inline)
 
             Divider()
 
