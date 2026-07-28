@@ -13,21 +13,11 @@ struct HomeMenu: View {
     @Environment(AuthStateManager.self) var authState
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @Environment(AppSettingsStore.self) var appSettings
-    @State var isNotificationsPresented = false
     @State var isDeleteAccountAlertPresented = false
     @State var deleteAccountErrorMessage: String?
 
     var body: some View {
         Menu {
-            Button {
-                isNotificationsPresented = true
-            } label: {
-                Label(
-                    "settings.notifications.section-title",
-                    systemImage: "bell"
-                )
-            }
-
             Picker("settings.appearance.section-title", selection: appearancePreference) {
                 Text("settings.appearance.system").tag(AppAppearancePreference.system)
                 Text("settings.appearance.light").tag(AppAppearancePreference.light)
@@ -40,33 +30,26 @@ struct HomeMenu: View {
             Button(role: .destructive) {
                 isDeleteAccountAlertPresented = true
             } label: {
-                Label(
-                    "auth.delete-account.title",
-                    systemImage: "person.crop.circle.badge.xmark"
-                )
+                Text("auth.delete-account.title")
             }
             .disabled(authState.isDeletingAccount)
+            .accessibilityLabel(Text("auth.delete-account.title"))
+            .accessibilityIdentifier("home-delete-account-action")
 
             Button(role: .destructive) {
                 authState.signOut()
             } label: {
-                Label(
-                    "auth.logout.title",
-                    systemImage: "rectangle.portrait.and.arrow.right"
-                )
+                Text("auth.logout.title")
             }
             .disabled(!HomeMenuActionAvailability.allowsSignOut(
                 isDeletingAccount: authState.isDeletingAccount
             ))
+            .accessibilityLabel(Text("auth.logout.title"))
+            .accessibilityIdentifier("home-sign-out-action")
         } label: {
             Image(systemName: "gearshape")
         }
-        .sheet(isPresented: $isNotificationsPresented) {
-            NavigationStack {
-                HomeNotificationsView()
-            }
-                .presentationDetents([.large])
-        }
+        .accessibilityIdentifier("home-settings-menu")
         .alert("auth.delete-account.alert.title", isPresented: $isDeleteAccountAlertPresented) {
             Button("common.cancel", role: .cancel) {}
             Button("auth.delete-account.confirm", role: .destructive) {

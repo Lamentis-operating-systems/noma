@@ -1672,25 +1672,25 @@
       }
     },
     "home.empty.subtitle" : {
-      "comment" : "Home empty state subtitle inviting users to create their first tasks and projects.",
+      "comment" : "Home empty state subtitle inviting users to create their first task.",
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Erstelle Aufgaben und Projekte, damit dein Tag hier Gestalt annimmt."
+            "value" : "Erstelle eine Aufgabe, damit dein Tag hier Gestalt annimmt."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Create tasks and projects to start shaping your day here."
+            "value" : "Create a task to start shaping your day here."
           }
         }
       }
     },
     "home.empty.title" : {
-      "comment" : "Home empty state title shown when no tasks, projects, or daily groups exist.",
+      "comment" : "Home empty state title shown when Today has no tasks.",
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
@@ -1917,91 +1917,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "System"
-          }
-        }
-      }
-    },
-    "settings.notifications.close.accessibility-label" : {
-      "comment" : "Accessibility label for closing the notifications sheet.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benachrichtigungen schließen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close notifications"
-          }
-        }
-      }
-    },
-    "settings.notifications.daily-planning" : {
-      "comment" : "Notifications row title for the daily planning notification.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tagesplanung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Daily planning"
-          }
-        }
-      }
-    },
-    "settings.notifications.open-tasks" : {
-      "comment" : "Notifications row title for the open tasks notification.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Offene Aufgaben"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open tasks"
-          }
-        }
-      }
-    },
-    "settings.notifications.section-title" : {
-      "comment" : "Menu and sheet title for notification controls.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Benachrichtigungen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notifications"
-          }
-        }
-      }
-    },
-    "settings.notifications.time" : {
-      "comment" : "Date picker label for a notification time.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeit"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Time"
           }
         }
       }

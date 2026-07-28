@@ -69,12 +69,8 @@ extension HomeView {
 
     func refreshDailyTaskNotifications() {
         let todayReminders = dailyTaskGroups.reminders(forDayID: dailyTaskGroups.todayID())
-        let notificationSettings = appSettings.notificationSettings
         Task {
-            await dailyTaskNotifications.refreshDailyTaskReminders(
-                for: todayReminders,
-                settings: notificationSettings
-            )
+            await dailyTaskNotifications.refreshDailyTaskReminders(for: todayReminders)
         }
     }
 }

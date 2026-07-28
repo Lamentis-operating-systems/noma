@@ -20,6 +20,8 @@ final class NomaUITests: XCTestCase {
         let capture = app.buttons["home-create-button"]
 
         XCTAssertTrue(app.staticTexts["Nothing planned yet"].waitForExistence(timeout: 8))
+        XCTAssertTrue(app.staticTexts["Create a task to start shaping your day here."].exists)
+        XCTAssertFalse(app.staticTexts["Create tasks and projects to start shaping your day here."].exists)
         XCTAssertTrue(capture.waitForExistence(timeout: 3))
         XCTAssertTrue(capture.isEnabled)
         XCTAssertTrue(capture.isHittable)
@@ -48,6 +50,25 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(done.isEnabled)
         done.tap()
         XCTAssertFalse(done.isEnabled)
+    }
+
+    func testSettingsMenuHasNoNotificationRouteAndTextOnlyDestructiveActions() {
+        let app = launch(.workspace, language: "en")
+        let settingsMenu = app.buttons["home-settings-menu"]
+        XCTAssertTrue(settingsMenu.waitForExistence(timeout: 8))
+        settingsMenu.tap()
+
+        XCTAssertEqual(app.buttons.matching(identifier: "Notifications").count, 0)
+        XCTAssertEqual(app.staticTexts.matching(identifier: "Notifications").count, 0)
+
+        let deleteAccount = app.buttons["home-delete-account-action"]
+        let signOut = app.buttons["home-sign-out-action"]
+        XCTAssertTrue(deleteAccount.waitForExistence(timeout: 3))
+        XCTAssertTrue(signOut.exists)
+        XCTAssertEqual(deleteAccount.label, "Delete account")
+        XCTAssertEqual(signOut.label, "Sign out")
+        XCTAssertEqual(deleteAccount.descendants(matching: .image).count, 0)
+        XCTAssertEqual(signOut.descendants(matching: .image).count, 0)
     }
 
     private enum Scenario: String {

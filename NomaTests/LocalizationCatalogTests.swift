@@ -29,6 +29,29 @@ final class LocalizationCatalogTests: XCTestCase {
         }
     }
 
+    func testHomeEmptySubtitleUsesTaskOnlyCopyInBothLocales() throws {
+        let entry = try XCTUnwrap(loadCatalog().strings["home.empty.subtitle"])
+
+        XCTAssertEqual(
+            entry.localizations?["en"]?.stringUnit.value,
+            "Create a task to start shaping your day here."
+        )
+        XCTAssertEqual(
+            entry.localizations?["de"]?.stringUnit.value,
+            "Erstelle eine Aufgabe, damit dein Tag hier Gestalt annimmt."
+        )
+    }
+
+    func testNotificationSettingsLocalizationKeysAreRemoved() throws {
+        let strings = try loadCatalog().strings
+
+        XCTAssertNil(strings["settings.notifications.close.accessibility-label"])
+        XCTAssertNil(strings["settings.notifications.daily-planning"])
+        XCTAssertNil(strings["settings.notifications.open-tasks"])
+        XCTAssertNil(strings["settings.notifications.section-title"])
+        XCTAssertNil(strings["settings.notifications.time"])
+    }
+
     private func loadCatalog() throws -> Catalog {
         let repositoryURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
