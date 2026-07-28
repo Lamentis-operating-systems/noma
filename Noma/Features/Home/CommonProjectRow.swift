@@ -16,6 +16,7 @@ struct CommonProjectsSectionView: View {
                         CommonProjectRow(summary: summary)
                     }
                     .buttonStyle(ScaleButtonStyle())
+                    .accessibilityIdentifier("home-project-\(summary.project.id.uuidString)")
                 }
             }
         }

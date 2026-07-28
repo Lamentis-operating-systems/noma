@@ -1,25 +1,33 @@
 import SwiftUI
 
 extension ProjectDetailView {
-    func loadProject() {
-        project = dailyTaskGroups.projects(forDayID: dailyTaskGroups.todayID()).first { $0.id == projectID }
+    func leaveUnavailableProject() {
+        message = ""
+        isInputFocused = false
+        isEditProjectSheetPresented = false
+        dismiss()
     }
 
-    func submitReminder(_ submittedText: String) {
-        guard canSubmitReminder else { return }
+    func submitReminder(_ submittedText: String) -> Bool {
+        guard currentProject != nil else {
+            leaveUnavailableProject()
+            return false
+        }
         guard let submission = CreateReminderSubmission.submit(
             text: submittedText,
             projectID: projectID
-        ) else { return }
+        ) else { return false }
 
-        message = submission.remainingText
         var todayReminders = dailyTaskGroups.reminders(forDayID: todayID)
-        hapticFeedback.play(.createTaskSubmit)
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+        let didPersist = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
             todayReminders.append(submission.reminder)
-            dailyTaskGroups.save(reminders: todayReminders, forDayID: todayID)
+            return dailyTaskGroups.replaceRemindersAtomically(todayReminders, forDayID: todayID)
         }
+        guard didPersist else { return false }
+
+        hapticFeedback.play(.createTaskSubmit)
         pendingScrollTargetID = CreateReminderAutoScroll.targetAfterAppending(submission.reminder)
+        return true
     }
 
     func toggleReminder(_ reminder: CreateReminder, inDayID dayID: String) {
@@ -30,7 +38,7 @@ extension ProjectDetailView {
             showsOnlyUnsolved: showsOnlyUnsolvedTasks,
             visibleIDs: $temporarilyVisibleCompletedReminderIDs,
             hapticFeedback: hapticFeedback,
-            persist: { dailyTaskGroups.save(reminders: $0, forDayID: dayID) }
+            persist: { dailyTaskGroups.setReminders($0, forDayID: dayID) }
         )
     }
 
@@ -38,34 +46,31 @@ extension ProjectDetailView {
         var reminders = dailyTaskGroups.reminders(forDayID: dayID)
         guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
 
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            temporarilyVisibleCompletedReminderIDs.remove(reminder.id)
+        let didDelete = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
             _ = reminders.remove(at: index)
-            dailyTaskGroups.save(reminders: reminders, forDayID: dayID)
+            guard dailyTaskGroups.setReminders(reminders, forDayID: dayID) else { return false }
+            temporarilyVisibleCompletedReminderIDs.remove(reminder.id)
+            return true
         }
+        guard didDelete else { return }
     }
 
     func completeAllRemindersForProject() {
         guard canCompleteAllReminders else { return }
 
-        hapticFeedback.play(.createTaskSubmit)
-        let groups = dailyTaskGroups.groups
-        let completedReminderIDs = groups.flatMap(\.reminders).compactMap(openProjectReminderID)
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+        let completedReminderIDs = dailyTaskGroups.groups.flatMap(\.reminders).compactMap(openProjectReminderID)
+        let didComplete = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            guard dailyTaskGroups.completeAllReminders(forProjectID: projectID) else { return false }
             CreateReminderCompletionVisibility.retainCompletedReminderIDs(
                 completedReminderIDs,
                 isNeeded: showsOnlyUnsolvedTasks,
                 visibleIDs: &temporarilyVisibleCompletedReminderIDs
             )
-            for group in groups {
-                let updatedReminders = group.reminders.map { reminder in
-                    reminder.projectID == projectID && !reminder.isCompleted
-                        ? reminder.togglingCompletion()
-                        : reminder
-                }
-                dailyTaskGroups.save(reminders: updatedReminders, forDayID: group.id)
-            }
+            return true
         }
+        guard didComplete else { return }
+
+        hapticFeedback.play(.createTaskSubmit)
         CreateReminderCompletionVisibility.scheduleRemoval(of: completedReminderIDs, isNeeded: showsOnlyUnsolvedTasks, visibleIDs: $temporarilyVisibleCompletedReminderIDs)
     }
 
@@ -83,10 +88,6 @@ extension ProjectDetailView {
         }
 
         pendingScrollTargetID = targetID
-    }
-
-    func playSwipeDeleteThresholdFeedback() {
-        hapticFeedback.play(.createTaskSubmit)
     }
 
     func openProjectReminderID(_ reminder: CreateReminder) -> CreateReminder.ID? {

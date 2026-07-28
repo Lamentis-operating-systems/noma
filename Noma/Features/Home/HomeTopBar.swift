@@ -55,6 +55,9 @@ struct HomeMenu: View {
                     systemImage: "rectangle.portrait.and.arrow.right"
                 )
             }
+            .disabled(!HomeMenuActionAvailability.allowsSignOut(
+                isDeletingAccount: authState.isDeletingAccount
+            ))
         } label: {
             Image(systemName: "gearshape")
         }
@@ -79,5 +82,11 @@ struct HomeMenu: View {
         } message: {
             Text(deleteAccountErrorMessage ?? "")
         }
+    }
+}
+
+enum HomeMenuActionAvailability {
+    static func allowsSignOut(isDeletingAccount: Bool) -> Bool {
+        !isDeletingAccount
     }
 }

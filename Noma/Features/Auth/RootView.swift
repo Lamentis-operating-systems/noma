@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(AuthStateManager.self) private var authState
+    @Environment(DailyTaskGroupStore.self) private var dailyTaskGroups
 
     var body: some View {
         Group {
@@ -11,7 +12,8 @@ struct RootView: View {
             case .signedOut:
                 SignupView(
                     isLoading: authState.isSigningIn,
-                    errorMessage: authState.errorMessage
+                    errorMessage: authState.errorMessage,
+                    isSignInAvailable: !authState.isAccountDeletionRecoveryBlocked
                 ) {
                     authState.signInWithApple()
                 }
@@ -20,7 +22,9 @@ struct RootView: View {
             }
         }
         .task {
-            authState.start()
+            await authState.startAfterRecoveringPendingAccountDeletion(
+                dailyTaskGroups: dailyTaskGroups
+            )
         }
     }
 
@@ -42,4 +46,5 @@ struct RootView: View {
 
     RootView()
         .environment(authState)
+        .environment(DailyTaskGroupStore())
 }

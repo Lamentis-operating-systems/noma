@@ -8,8 +8,6 @@ final class CreateTaskEmptyHintTests: XCTestCase {
         XCTAssertEqual(emptyState.systemImage, "checkmark.circle")
         XCTAssertEqual(emptyState.titleKey, "create.tasks.empty.filtered.title")
         XCTAssertEqual(emptyState.subtitleKey, "create.tasks.empty.filtered.subtitle")
-        XCTAssertFalse(emptyState.mirrorsImageForRightToLeftLayoutDirection)
-        XCTAssertNil(emptyState.cta)
     }
 
     func testCreateReminderListShowsFilteredEmptyStateOnlyWhenFilterHidesExistingTasks() {

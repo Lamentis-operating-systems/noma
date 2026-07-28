@@ -27,10 +27,6 @@ enum CreateProjectSheetLayout {
     static let collapsedBottomPadding = NomaSpacing.xxl
     static let contentSpacing = NomaSpacing.xl
     static let iconInputSpacing = NomaSpacing.md
-    static let usesNativeSheetKeyboardAvoidance = true
-    static let usesScrollDrivenKeyboardDismissal = true
-    static let usesBottomSafeAreaBar = true
-
     static func bottomPadding(
         isKeyboardPresented: Bool,
         bottomSafeAreaInset: CGFloat = 0
@@ -50,7 +46,7 @@ enum AddProjectIconButton {
 struct AddProjectSheet: View {
     @Environment(\.dismiss) private var dismiss
     let project: TaskProject?
-    let onSave: (TaskProject) -> Void
+    let onSave: (TaskProject) -> Bool
     @State private var title = ""
     @State private var selectedColorIndex = 0
     @State private var selectedSymbol = ProjectIconPickerOption.defaultSymbol
@@ -61,7 +57,7 @@ struct AddProjectSheet: View {
     @State private var isKeyboardPresented = false
     @FocusState private var isTitleFocused: Bool
 
-    init(project: TaskProject? = nil, onSave: @escaping (TaskProject) -> Void) {
+    init(project: TaskProject? = nil, onSave: @escaping (TaskProject) -> Bool) {
         self.project = project
         self.onSave = onSave
         _title = State(initialValue: project?.title ?? "")
@@ -91,11 +87,15 @@ struct AddProjectSheet: View {
                 .toolbarTitleDisplayMode(.inline)
                 .toolbar { closeButton }
                 .safeAreaBar(edge: .bottom, spacing: 0) {
-                    CreateProjectSubmitButton(titleKey: submitButtonTitleKey, action: saveProject)
-                    .disabled(!canCreateProject)
-                    .opacity(canCreateProject ? 1 : NomaOpacity.disabledControlBackground)
+                    PrimaryGlassButton(
+                        title: LocalizedStringKey(submitButtonTitleKey),
+                        width: .fullWidth,
+                        isDisabled: !canCreateProject,
+                        action: saveProject
+                    )
                         .padding(.horizontal, CreateProjectSheetLayout.horizontalPadding(isKeyboardPresented: isKeyboardPresented))
                         .padding(.bottom, CreateProjectSheetLayout.bottomPadding(isKeyboardPresented: isKeyboardPresented, bottomSafeAreaInset: proxy.safeAreaInsets.bottom))
+                        .accessibilityIdentifier("project-editor-save-button")
                 }
             }
         }
@@ -124,13 +124,13 @@ private extension AddProjectSheet {
 
     private func saveProject() {
         guard canCreateProject else { return }
-        onSave(TaskProject(
+        guard onSave(TaskProject(
             id: project?.id ?? UUID(),
             title: normalizedTitle,
             symbolName: selectedSymbol,
             colorIndex: ProjectIconPickerOption.normalizedColorIndex(selectedColorIndex),
             expiresAt: isExpirationEnabled ? expirationDate : nil
-        ))
+        )) else { return }
         dismiss()
     }
 

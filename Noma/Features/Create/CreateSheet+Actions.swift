@@ -7,16 +7,15 @@ extension CreateSheet {
             VStack {
                 Spacer(minLength: 0)
                 HintView(
-                    systemImage: emptyState.systemImage,
-                    title: emptyState.title,
-                    subtitle: emptyState.subtitle,
-                    cta: emptyState.cta
+                    systemImage: CreateProjectEmptyState.placeholder.systemImage,
+                    title: CreateProjectEmptyState.placeholder.title,
+                    subtitle: CreateProjectEmptyState.placeholder.subtitle
                 )
                 Spacer(minLength: 0)
             }
         } else {
             CreateProjectList(
-                projects: visibleProjects,
+                projects: projects,
                 projectCount: projects.count,
                 selectedProjectID: selectedProjectID,
                 allReminders: allReminders,
@@ -27,12 +26,8 @@ extension CreateSheet {
         }
     }
 
-    var visibleProjects: [TaskProject] {
-        projects
-    }
-
     func selectProject(_ projectID: TaskProject.ID?) {
-        onSelectProject(projectID)
+        guard onSelectProject(projectID) else { return }
         dismiss()
     }
 
@@ -44,7 +39,7 @@ extension CreateSheet {
 
     func confirmProjectDeletion() {
         guard let pendingDeleteProjectID else { return }
-        onDeleteProject(pendingDeleteProjectID)
+        guard onDeleteProject(pendingDeleteProjectID) else { return }
         self.pendingDeleteProjectID = nil
     }
 
@@ -62,16 +57,15 @@ extension CreateSheet {
         projectEditorPresentation = .add
     }
 
-    func saveProject(_ project: TaskProject) {
+    func saveProject(_ project: TaskProject) -> Bool {
+        let didSave: Bool
         if case .edit = projectEditorPresentation {
-            onUpdateProject(project)
+            didSave = onUpdateProject(project)
         } else {
-            onCreateProject(project)
+            didSave = onCreateProject(project)
         }
+        guard didSave else { return false }
         projectEditorPresentation = nil
-    }
-
-    var emptyState: CreateProjectEmptyState {
-        .placeholder
+        return true
     }
 }

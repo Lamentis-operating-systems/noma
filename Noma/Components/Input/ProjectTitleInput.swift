@@ -39,6 +39,7 @@ struct ProjectTitleInput: View {
             Capsule().fill(.secondaryBackground)
         }
         .accessibilityLabel(Text(LocalizedStringKey(ProjectTitleInputLayout.placeholderKey)))
+        .accessibilityIdentifier("project-title-input")
     }
 
     private var limitedTitle: Binding<String> {

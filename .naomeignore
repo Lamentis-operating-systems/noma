@@ -1,6 +1,0 @@
-# NAOME ignore paths.
-# Agents must not read, summarize, scan, import, or use these paths as context.
-
-.naome/archive/
-.naome/cache/
-.naome/tasks/

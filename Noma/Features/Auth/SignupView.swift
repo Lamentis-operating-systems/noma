@@ -42,26 +42,38 @@ enum SignupViewCopy {
 }
 
 enum SignupConsent {
-    static let acceptanceStorageKey = "noma.signup.privacy-policy-accepted"
-    static let acceptanceKey = "signup.consent.acceptance"
+    static let noticePrefixKey = "signup.consent.notice-prefix"
     static let privacyLinkKey = "signup.consent.privacy-link"
-    static let privacyPolicyURL = URL(string: "https://lamentis.de/naome/privacy")!
+    static var privacyPolicyURL: URL {
+        privacyPolicyURL(forLanguageCode: Locale.preferredLanguages.first)
+    }
+
+    static func privacyPolicyURL(forLanguageCode languageCode: String?) -> URL {
+        let languagePrefix = languageCode?
+            .split(separator: "-")
+            .first
+            .map(String.init)
+        let localizedPath = languagePrefix == "de" ? "de" : "en"
+
+        return URL(string: "https://lamentis.de/\(localizedPath)/noma/privacy")!
+    }
 }
 
 struct SignupView: View {
     let isLoading: Bool
     let errorMessage: String?
+    let isSignInAvailable: Bool
     let signInWithApple: () -> Void
-    @AppStorage(SignupConsent.acceptanceStorageKey)
-    private var hasAcceptedPrivacyPolicy = false
 
     init(
         isLoading: Bool = false,
         errorMessage: String? = nil,
+        isSignInAvailable: Bool = true,
         signInWithApple: @escaping () -> Void
     ) {
         self.isLoading = isLoading
         self.errorMessage = errorMessage
+        self.isSignInAvailable = isSignInAvailable
         self.signInWithApple = signInWithApple
     }
 
@@ -72,67 +84,67 @@ struct SignupView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: SignupViewLayout.contentSpacing) {
-                Spacer()
-
-                SignupMarketingContent()
-                    .frame(maxWidth: SignupViewLayout.contentMaxWidth)
-                    .padding(.horizontal, SignupViewLayout.edgePadding)
-
-                Spacer()
-                Spacer()
-            }
-
-            VStack {
-                Spacer()
-
-                if let errorMessage {
-                    Text(errorMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, SignupViewLayout.edgePadding)
-                        .transition(.blurReplace)
+                GeometryReader { proxy in
+                    ScrollView {
+                        SignupMarketingContent()
+                            .frame(maxWidth: SignupViewLayout.contentMaxWidth)
+                            .frame(maxWidth: .infinity)
+                            .frame(minHeight: proxy.size.height, alignment: .center)
+                    }
+                    .accessibilityIdentifier("signup-marketing-scroll")
+                    .scrollBounceBehavior(.basedOnSize)
                 }
 
-                VStack(spacing: SignupViewLayout.bottomControlSpacing) {
-                    consentControls
-
-                    SignInWithAppleGlassButton(
-                        isLoading: isLoading,
-                        hasAcceptedPrivacyPolicy: hasAcceptedPrivacyPolicy,
-                        action: signInWithApple
-                    )
-                }
-                .padding(.horizontal, SignupViewLayout.edgePadding)
-                .padding(.bottom, SignupViewLayout.bottomPadding)
+                signupFooter
             }
-            .ignoresSafeArea(.container, edges: .bottom)
+            .padding(.horizontal, SignupViewLayout.edgePadding)
+            .padding(.top, SignupViewLayout.edgePadding)
+            .padding(.bottom, SignupViewLayout.bottomPadding)
         }
     }
 
-    private var consentControls: some View {
-        SignupConsentControls(hasAcceptedPrivacyPolicy: $hasAcceptedPrivacyPolicy)
+    private var signupFooter: some View {
+        VStack(spacing: SignupViewLayout.bottomControlSpacing) {
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .transition(.blurReplace)
+            }
+
+            SignupConsentNotice()
+
+            SignInWithAppleGlassButton(
+                isLoading: isLoading,
+                isAvailable: isSignInAvailable,
+                action: signInWithApple
+            )
+        }
     }
 }
 
-struct SignupConsentControls: View {
-    @Binding var hasAcceptedPrivacyPolicy: Bool
-
+struct SignupConsentNotice: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: SignupViewLayout.consentSpacing) {
-            acceptanceToggle
-            privacyPolicyLink
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: NomaSpacing.xs) {
+                noticePrefix
+                privacyPolicyLink
+            }
+
+            VStack(alignment: .leading, spacing: SignupViewLayout.consentSpacing) {
+                noticePrefix
+                privacyPolicyLink
+            }
         }
+        .font(.subheadline)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    private var acceptanceToggle: some View {
-        Toggle(isOn: $hasAcceptedPrivacyPolicy) {
-            Text(LocalizedStringKey(SignupConsent.acceptanceKey))
-                .font(.subheadline)
-                .foregroundStyle(.textPrimary)
-        }
-        .tint(.controlActive)
+    private var noticePrefix: some View {
+        Text(LocalizedStringKey(SignupConsent.noticePrefixKey))
+            .foregroundStyle(.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var privacyPolicyLink: some View {
@@ -140,11 +152,20 @@ struct SignupConsentControls: View {
             LocalizedStringKey(SignupConsent.privacyLinkKey),
             destination: SignupConsent.privacyPolicyURL
         )
-        .font(.subheadline)
+        .underline()
         .foregroundStyle(.controlActive)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityIdentifier("signup-privacy-link")
     }
 }
 
 #Preview {
     SignupView {}
+}
+
+#Preview("Compact German AX5") {
+    SignupView(errorMessage: "Anmeldung derzeit nicht möglich") {}
+        .environment(\.locale, Locale(identifier: "de"))
+        .environment(\.dynamicTypeSize, .accessibility5)
+        .frame(width: 320, height: 568)
 }

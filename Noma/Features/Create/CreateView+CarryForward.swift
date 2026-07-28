@@ -1,17 +1,23 @@
 import SwiftUI
 
 extension CreateView {
-    func loadDailyGroup() {
-        reminders = dailyTaskGroups.reminders(forDayID: activeDayID)
-        projects = dailyTaskGroups.projects(forDayID: activeDayID)
+    var reminders: [CreateReminder] {
+        dailyTaskGroups.reminders(forDayID: activeDayID)
+    }
 
-        let storedSelectedProjectID = dailyTaskGroups.selectedProjectID(forDayID: activeDayID)
-        selectedProjectID = projects.contains { $0.id == storedSelectedProjectID } ? storedSelectedProjectID : nil
+    var projects: [TaskProject] {
+        dailyTaskGroups.projects
+    }
+
+    func availableProjectID(_ projectID: TaskProject.ID?) -> TaskProject.ID? {
+        projectID.flatMap { candidateID in
+            projects.contains { $0.id == candidateID } ? candidateID : nil
+        }
     }
 
     var suggestedProject: TaskProject? {
         guard let project = dailyTaskGroups.commonProjectSummaries(limit: 1).first?.project,
-              selectedProjectID != project.id
+              draftProjectID != project.id
         else { return nil }
 
         return projects.first { $0.id == project.id } ?? project
@@ -73,7 +79,9 @@ extension CreateView {
     }
 
     var carryForwardButton: some View {
-        Button(action: carryForwardOpenTasks) {
+        Button {
+            addCarryForwardReminders(carryForwardReminders)
+        } label: {
             HStack(spacing: NomaSpacing.sm) {
                 Image(systemName: "chevron.down.forward.2")
                     .font(.headline)
@@ -95,46 +103,39 @@ extension CreateView {
     }
 
     func selectSuggestedProject(_ project: TaskProject) {
-        selectedProjectID = project.id
+        guard dailyTaskGroups.selectProject(project.id) else { return }
+        draftProjectID = project.id
         hapticFeedback.play(.createTaskSubmit)
-        saveCurrentDailyGroup()
     }
 
     func addCarryForwardReminders(_ remindersToCarryForward: [CreateReminder]) {
-        let remindersToAdd = remindersToCarryForward.map { reminder in
-            CreateReminderCarryForwardTransfer.carriedReminder(from: reminder)
-        }
-        guard !remindersToAdd.isEmpty else { return }
-        let sourceDayID = previousDayID
-        let sourceReminders = previousDayReminders
+        guard let sourceDayID = previousDayID, !remindersToCarryForward.isEmpty else { return }
 
-        hapticFeedback.play(.createTaskSubmit)
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            reminders.append(contentsOf: remindersToAdd)
-        }
-        saveCurrentDailyGroup()
-        if let sourceDayID {
-            dailyTaskGroups.save(
-                reminders: CreateReminderCarryForwardTransfer.sourceRemindersAfterTransfer(
-                    sourceReminders: sourceReminders,
-                    transferredReminders: remindersToCarryForward
-                ),
-                forDayID: sourceDayID
+        let didCarryForward = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            dailyTaskGroups.carryForwardReminders(
+                remindersToCarryForward,
+                fromDayID: sourceDayID,
+                toDayID: activeDayID
             )
         }
+        guard didCarryForward else { return }
+
+        hapticFeedback.play(.createTaskSubmit)
         pendingScrollTargetID = CreateReminderListLayout.bottomAnchorID
     }
 
     func completeCarryForwardReminder(_ reminder: CreateReminder) {
         guard let previousDayID else { return }
 
-        hapticFeedback.play(.createTaskSubmit)
         let updatedPreviousReminders = CreateReminderCarryForwardCompletion.completing(
             reminder,
             in: previousDayReminders
         )
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            dailyTaskGroups.save(reminders: updatedPreviousReminders, forDayID: previousDayID)
+        let didComplete = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            dailyTaskGroups.setReminders(updatedPreviousReminders, forDayID: previousDayID)
         }
+        guard didComplete else { return }
+
+        hapticFeedback.play(.createTaskSubmit)
     }
 }

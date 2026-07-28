@@ -18,9 +18,18 @@ enum ProjectDetailProgressCopy {
     }
 }
 
+enum ProjectDetailAvailability {
+    static func isAvailable(projectID: TaskProject.ID, projects: [TaskProject]) -> Bool {
+        projects.contains { $0.id == projectID }
+    }
+}
+
 extension ProjectDetailView {
     var currentProject: TaskProject? {
-        project ?? dailyTaskGroups.projects(forDayID: dailyTaskGroups.todayID()).first { $0.id == projectID }
+        guard ProjectDetailAvailability.isAvailable(projectID: projectID, projects: dailyTaskGroups.projects) else {
+            return nil
+        }
+        return dailyTaskGroups.projects.first { $0.id == projectID }
     }
 
     var projectSummary: TaskProjectSummary {
@@ -65,10 +74,6 @@ extension ProjectDetailView {
 
     var visibleTodayReminders: [CreateReminder] {
         visibleReminders(in: todaySection.reminders)
-    }
-
-    var canSubmitReminder: Bool {
-        true
     }
 
     var canCompleteAllReminders: Bool {

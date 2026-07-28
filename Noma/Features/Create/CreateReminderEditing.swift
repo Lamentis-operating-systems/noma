@@ -9,6 +9,23 @@ enum CreateReminderEditingDraftReset {
     }
 }
 
+enum CreateReminderEditingReconciliation {
+    static func shouldResetEditingState(
+        editingReminderID: CreateReminder.ID?,
+        reminders: [CreateReminder]
+    ) -> Bool {
+        guard let editingReminderID else { return false }
+        return !reminders.contains { $0.id == editingReminderID }
+    }
+
+    static func editingReminderIDAfterPersistence(
+        didPersist: Bool,
+        currentEditingReminderID: CreateReminder.ID?
+    ) -> CreateReminder.ID? {
+        didPersist ? nil : currentEditingReminderID
+    }
+}
+
 extension CreateReminderSubmissionPersistence {
     static func updatedRemindersAfterEditing(
         sourceReminders: [CreateReminder],

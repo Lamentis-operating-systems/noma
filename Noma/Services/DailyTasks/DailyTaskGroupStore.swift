@@ -5,10 +5,13 @@ import Observation
 @Observable
 final class DailyTaskGroupStore {
     @ObservationIgnored
-    private let userDefaults: UserDefaults
+    private let persistenceFactory: (String?) -> any DailyTaskGroupPersisting
 
     @ObservationIgnored
-    private var storage: DailyTaskGroupStorage
+    private var persistence: any DailyTaskGroupPersisting
+
+    @ObservationIgnored
+    private var blocksPersistenceWrites = false
 
     @ObservationIgnored
     private let calendar: Calendar
@@ -17,19 +20,15 @@ final class DailyTaskGroupStore {
     private let now: () -> Date
 
     @ObservationIgnored
-    private let usesMockData: Bool
-
-    @ObservationIgnored
     private var userID: String?
     private(set) var groups: [DailyTaskGroup]
 
-    @ObservationIgnored
-    private(set) var storedProjects: [TaskProject]
+    private(set) var projects: [TaskProject]
 
     private(set) var recentlyDeletedProjects: [RecentlyDeletedProject]
 
-    @ObservationIgnored
-    private(set) var storedSelectedProjectID: TaskProject.ID?
+    private(set) var selectedProjectID: TaskProject.ID?
+    private(set) var persistenceError: DailyTaskGroupPersistenceError?
     private(set) var projectExpirationRevision = 0
 
     init(
@@ -38,22 +37,25 @@ final class DailyTaskGroupStore {
         now: @escaping () -> Date = Date.init,
         userID: String? = nil,
         storageKey: String? = nil,
-        usesMockData: Bool = false
+        persistenceFactory: ((String?) -> any DailyTaskGroupPersisting)? = nil
     ) {
-        self.userDefaults = userDefaults
         self.calendar = calendar
         self.now = now
-        self.usesMockData = usesMockData
         self.userID = userID
-        self.storage = DailyTaskGroupStorage(
-            userDefaults: userDefaults,
-            storageKey: storageKey ?? DailyTaskGroupStorage.storageKey(forUserID: userID)
-        )
-        let state = storage.loadState(usesMockData: usesMockData, calendar: calendar)
-        self.groups = state.groups
-        self.storedProjects = state.projects
-        self.recentlyDeletedProjects = state.recentlyDeletedProjects
-        self.storedSelectedProjectID = state.selectedProjectID
+        let resolvedFactory: (String?) -> any DailyTaskGroupPersisting = persistenceFactory ?? { scopedUserID in
+            DailyTaskGroupStorage(
+                userDefaults: userDefaults,
+                storageKey: storageKey ?? DailyTaskGroupStorage.storageKey(forUserID: scopedUserID)
+            )
+        }
+        self.persistenceFactory = resolvedFactory
+        self.persistence = resolvedFactory(userID)
+        self.groups = []
+        self.projects = []
+        self.recentlyDeletedProjects = []
+        self.selectedProjectID = nil
+        self.persistenceError = nil
+        reloadFromPersistence()
         expireProjects(asOf: now())
         purgeRecentlyDeletedProjects(asOf: now())
     }
@@ -89,7 +91,7 @@ final class DailyTaskGroupStore {
     func commonProjectSummaries(limit: Int = 3) -> [CommonProjectSummary] {
         let reminders = allReminders()
 
-        return storedProjects
+        return projects
             .map { project in
                 let projectReminders = reminders.filter { $0.projectID == project.id }
                 return CommonProjectSummary(
@@ -125,118 +127,194 @@ final class DailyTaskGroupStore {
         return reminders(forDayID: previousDayID).filter { !$0.isCompleted }
     }
 
-    func projects(forDayID _: String) -> [TaskProject] {
-        storedProjects
-    }
-
-    func selectedProjectID(forDayID _: String) -> TaskProject.ID? {
-        storedSelectedProjectID
-    }
-
     func switchUserID(_ userID: String?) {
         guard self.userID != userID else { return }
 
         self.userID = userID
-        storage = DailyTaskGroupStorage(
-            userDefaults: userDefaults,
-            storageKey: DailyTaskGroupStorage.storageKey(forUserID: userID)
-        )
-        let state = storage.loadState(usesMockData: usesMockData, calendar: calendar)
-        groups = state.groups
-        storedProjects = state.projects
-        recentlyDeletedProjects = state.recentlyDeletedProjects
-        storedSelectedProjectID = state.selectedProjectID
+        persistence = persistenceFactory(userID)
+        reloadFromPersistence()
         expireProjects(asOf: now())
         purgeRecentlyDeletedProjects(asOf: now())
     }
 
-    func deleteLocalData(forUserID userID: String?) {
-        DailyTaskGroupStorage.deleteState(forUserID: userID, userDefaults: userDefaults)
+    @discardableResult
+    func deleteLocalData(forUserID userID: String?) -> Result<Void, DailyTaskGroupPersistenceError> {
+        let result = persistenceFactory(userID).delete()
 
-        guard self.userID == userID else { return }
+        if case let .failure(error) = result {
+            if self.userID == userID {
+                persistenceError = error
+            }
+            return result
+        }
+
+        guard self.userID == userID else { return result }
         groups = []
-        storedProjects = []
+        projects = []
         recentlyDeletedProjects = []
-        storedSelectedProjectID = nil
+        selectedProjectID = nil
+        persistenceError = nil
+        blocksPersistenceWrites = false
+        return result
     }
 
-    func save(reminders: [CreateReminder], for date: Date) {
+    @discardableResult
+    func setReminders(_ reminders: [CreateReminder], for date: Date) -> Bool {
         let dayID = Self.dayID(for: date, calendar: calendar)
-        save(reminders: reminders, forDayID: dayID, date: date)
+        return replaceRemindersAtomically(reminders, forDayID: dayID, date: date)
     }
 
-    func save(reminders: [CreateReminder], forDayID dayID: String) {
-        let date = Self.date(forDayID: dayID, calendar: calendar) ?? Date()
-        save(reminders: reminders, forDayID: dayID, date: date)
+    @discardableResult
+    func setReminders(_ reminders: [CreateReminder], forDayID dayID: String) -> Bool {
+        let date = Self.date(forDayID: dayID, calendar: calendar) ?? now()
+        return replaceRemindersAtomically(reminders, forDayID: dayID, date: date)
     }
 
-    private func save(reminders: [CreateReminder], forDayID dayID: String, date: Date) {
-        save(
-            reminders: reminders,
-            projects: storedProjects,
-            selectedProjectID: storedSelectedProjectID,
+    @discardableResult
+    func replaceRemindersAtomically(_ reminders: [CreateReminder], forDayID dayID: String) -> Bool {
+        replaceRemindersAtomically(
+            reminders,
             forDayID: dayID,
-            date: date
+            date: Self.date(forDayID: dayID, calendar: calendar) ?? now()
         )
     }
 
-    func save(
-        reminders: [CreateReminder],
-        projects: [TaskProject],
-        selectedProjectID: TaskProject.ID?,
-        forDayID dayID: String
-    ) {
-        let date = Self.date(forDayID: dayID, calendar: calendar) ?? Date()
-        save(
-            reminders: reminders,
-            projects: projects,
-            selectedProjectID: selectedProjectID,
+    @discardableResult
+    private func replaceRemindersAtomically(
+        _ reminders: [CreateReminder],
+        forDayID dayID: String,
+        date: Date
+    ) -> Bool {
+        guard remindersHaveValidProjectReferences(reminders) else { return false }
+
+        var nextState = currentState
+        setReminders(
+            reminders,
             forDayID: dayID,
-            date: date
+            date: date,
+            in: &nextState.groups
         )
+        return commit(nextState)
     }
 
-    func deleteProject(withID projectID: TaskProject.ID) {
+    @discardableResult
+    func carryForwardReminders(
+        _ remindersToCarryForward: [CreateReminder],
+        fromDayID sourceDayID: String,
+        toDayID targetDayID: String
+    ) -> Bool {
+        guard sourceDayID != targetDayID, !remindersToCarryForward.isEmpty else { return false }
+
+        let sourceReminders = reminders(forDayID: sourceDayID)
+        var sourceReminderByID: [CreateReminder.ID: CreateReminder] = [:]
+        sourceReminders.forEach { sourceReminderByID[$0.id] = sourceReminderByID[$0.id] ?? $0 }
+
+        var seenReminderIDs = Set<CreateReminder.ID>()
+        var transferredReminders: [CreateReminder] = []
+        for requestedReminder in remindersToCarryForward where seenReminderIDs.insert(requestedReminder.id).inserted {
+            guard let sourceReminder = sourceReminderByID[requestedReminder.id], !sourceReminder.isCompleted else {
+                return false
+            }
+            transferredReminders.append(sourceReminder)
+        }
+        guard !transferredReminders.isEmpty else { return false }
+
+        let carriedReminders = transferredReminders.map(CreateReminderCarryForwardTransfer.carriedReminder(from:))
+        var nextState = currentState
+        setReminders(
+            reminders(forDayID: targetDayID) + carriedReminders,
+            forDayID: targetDayID,
+            date: Self.date(forDayID: targetDayID, calendar: calendar) ?? now(),
+            in: &nextState.groups
+        )
+        setReminders(
+            CreateReminderCarryForwardTransfer.sourceRemindersAfterTransfer(
+                sourceReminders: sourceReminders,
+                transferredReminders: transferredReminders
+            ),
+            forDayID: sourceDayID,
+            date: Self.date(forDayID: sourceDayID, calendar: calendar) ?? now(),
+            in: &nextState.groups
+        )
+        return commit(nextState)
+    }
+
+    @discardableResult
+    func completeAllReminders(forProjectID projectID: TaskProject.ID) -> Bool {
+        guard projects.contains(where: { $0.id == projectID }) else { return false }
+
+        var didChangeReminder = false
+        var nextState = currentState
+        nextState.groups = nextState.groups.map { group in
+            let reminders = group.reminders.map { reminder in
+                guard reminder.projectID == projectID, !reminder.isCompleted else { return reminder }
+                didChangeReminder = true
+                return reminder.togglingCompletion()
+            }
+            return DailyTaskGroup(id: group.id, date: group.date, reminders: reminders)
+        }
+        guard didChangeReminder else { return false }
+
+        return commit(nextState)
+    }
+
+    @discardableResult
+    func addProject(_ project: TaskProject, selecting: Bool) -> Bool {
+        guard !projects.contains(where: { $0.id == project.id }) else { return false }
+
+        var nextState = currentState
+        nextState.projects.append(project)
+        if selecting {
+            nextState.selectedProjectID = project.id
+        }
+        return commit(nextState)
+    }
+
+    @discardableResult
+    func selectProject(_ projectID: TaskProject.ID?) -> Bool {
+        let validProjectID = projectID.flatMap { candidateID in
+            projects.contains { $0.id == candidateID } ? candidateID : nil
+        }
+        guard selectedProjectID != validProjectID else { return true }
+
+        var nextState = currentState
+        nextState.selectedProjectID = validProjectID
+        return commit(nextState)
+    }
+
+    @discardableResult
+    func deleteProject(withID projectID: TaskProject.ID) -> Bool {
         deleteProject(withID: projectID, at: now())
     }
 
-    func deleteProject(withID projectID: TaskProject.ID, at deletedAt: Date) {
-        guard let project = storedProjects.first(where: { $0.id == projectID }) else { return }
-        let taskSnapshots = groups.flatMap { group in
-            group.reminders
-                .filter { $0.projectID == projectID }
-                .map {
-                    RecentlyDeletedProjectTaskSnapshot(
-                        dayID: group.id,
-                        dayDate: group.date,
-                        reminder: $0
-                    )
-                }
+    @discardableResult
+    func deleteProject(withID projectID: TaskProject.ID, at deletedAt: Date) -> Bool {
+        var nextState = currentState
+        guard moveProjectToRecentlyDeleted(withID: projectID, at: deletedAt, in: &nextState) else {
+            return false
         }
-        .sorted { $0.dayDate < $1.dayDate }
-
-        recentlyDeletedProjects.removeAll { $0.project.id == projectID }
-        recentlyDeletedProjects.append(RecentlyDeletedProject(
-            project: project,
-            deletedAt: deletedAt,
-            taskSnapshots: taskSnapshots
-        ))
-
-        removeActiveProject(withID: projectID)
-        persist()
+        return commit(nextState)
     }
 
-    func expireProjects(asOf date: Date) {
-        let expiredProjectIDs = storedProjects
+    @discardableResult
+    func expireProjects(asOf date: Date) -> Bool {
+        let expiredProjectIDs = projects
             .filter { project in
                 isExpired(project, asOf: date)
             }
             .map(\.id)
 
-        guard !expiredProjectIDs.isEmpty else { return }
+        guard !expiredProjectIDs.isEmpty else { return true }
 
-        expiredProjectIDs.forEach { deleteProject(withID: $0, at: date) }
+        var nextState = currentState
+        for projectID in expiredProjectIDs {
+            guard moveProjectToRecentlyDeleted(withID: projectID, at: date, in: &nextState) else {
+                return false
+            }
+        }
+        guard commit(nextState) else { return false }
         projectExpirationRevision += 1
+        return true
     }
 
     func isExpired(_ project: TaskProject, asOf date: Date) -> Bool {
@@ -244,26 +322,38 @@ final class DailyTaskGroupStore {
         return calendar.compare(date, to: expiresAt, toGranularity: .day) == .orderedDescending
     }
 
-    func restoreRecentlyDeletedProject(withID projectID: TaskProject.ID) {
-        guard let index = recentlyDeletedProjects.firstIndex(where: { $0.project.id == projectID }) else { return }
-        let deletedProject = recentlyDeletedProjects.remove(at: index)
-        storedProjects = uniqueProjects(in: storedProjects + [deletedProject.project])
+    @discardableResult
+    func restoreRecentlyDeletedProject(withID projectID: TaskProject.ID) -> Bool {
+        var nextState = currentState
+        guard let index = nextState.recentlyDeletedProjects.firstIndex(where: { $0.project.id == projectID }) else {
+            return false
+        }
+        let deletedProject = nextState.recentlyDeletedProjects.remove(at: index)
+        nextState.projects = DailyTaskGroupStateCanonicalizer.uniqueProjects(
+            nextState.projects + [deletedProject.project]
+        )
 
         deletedProject.taskSnapshots.forEach { snapshot in
-            restore(snapshot: snapshot)
+            restore(snapshot: snapshot, in: &nextState.groups)
         }
 
-        groups.sort { $0.date > $1.date }
-        persist()
+        nextState.groups.sort { $0.date > $1.date }
+        return commit(nextState)
     }
 
-    func permanentlyDeleteRecentlyDeletedProject(withID projectID: TaskProject.ID) {
-        recentlyDeletedProjects.removeAll { $0.project.id == projectID }
-        persist()
+    @discardableResult
+    func permanentlyDeleteRecentlyDeletedProject(withID projectID: TaskProject.ID) -> Bool {
+        var nextState = currentState
+        let originalCount = nextState.recentlyDeletedProjects.count
+        nextState.recentlyDeletedProjects.removeAll { $0.project.id == projectID }
+        guard nextState.recentlyDeletedProjects.count != originalCount else { return false }
+        return commit(nextState)
     }
 
-    func purgeRecentlyDeletedProjects(asOf date: Date) {
-        let retainedProjects = recentlyDeletedProjects.filter { deletedProject in
+    @discardableResult
+    func purgeRecentlyDeletedProjects(asOf date: Date) -> Bool {
+        var nextState = currentState
+        let retainedProjects = nextState.recentlyDeletedProjects.filter { deletedProject in
             guard let purgeDate = calendar.date(
                 byAdding: .day,
                 value: 7,
@@ -272,15 +362,15 @@ final class DailyTaskGroupStore {
             return date < purgeDate
         }
 
-        guard retainedProjects != recentlyDeletedProjects else { return }
-        recentlyDeletedProjects = retainedProjects
-        persist()
+        guard retainedProjects != nextState.recentlyDeletedProjects else { return true }
+        nextState.recentlyDeletedProjects = retainedProjects
+        return commit(nextState)
     }
 
-    private func removeActiveProject(withID projectID: TaskProject.ID) {
-        storedProjects.removeAll { $0.id == projectID }
+    private func removeActiveProject(withID projectID: TaskProject.ID, from state: inout DailyTaskGroupState) {
+        state.projects.removeAll { $0.id == projectID }
 
-        groups = groups.compactMap { group in
+        state.groups = state.groups.compactMap { group in
             var updatedGroup = group
             updatedGroup.reminders.removeAll { $0.projectID == projectID }
 
@@ -291,31 +381,30 @@ final class DailyTaskGroupStore {
             )
         }
 
-        if storedSelectedProjectID == projectID {
-            storedSelectedProjectID = nil
+        if state.selectedProjectID == projectID {
+            state.selectedProjectID = nil
         }
     }
 
-    func updateProject(_ project: TaskProject) {
-        storedProjects = storedProjects.map { storedProject in
+    @discardableResult
+    func updateProject(_ project: TaskProject) -> Bool {
+        guard projects.contains(where: { $0.id == project.id }) else { return false }
+        guard projects.first(where: { $0.id == project.id }) != project else { return true }
+
+        var nextState = currentState
+        nextState.projects = nextState.projects.map { storedProject in
             storedProject.id == project.id ? project : storedProject
         }
 
-        persist()
+        return commit(nextState)
     }
 
-    private func save(
-        reminders: [CreateReminder],
-        projects: [TaskProject],
-        selectedProjectID: TaskProject.ID?,
+    private func setReminders(
+        _ reminders: [CreateReminder],
         forDayID dayID: String,
-        date: Date
+        date: Date,
+        in groups: inout [DailyTaskGroup]
     ) {
-        storedProjects = uniqueProjects(in: projects)
-        storedSelectedProjectID = selectedProjectID.flatMap { projectID in
-            storedProjects.contains { $0.id == projectID } ? projectID : nil
-        }
-
         if reminders.isEmpty {
             groups.removeAll { $0.id == dayID }
         } else if let index = groups.firstIndex(where: { $0.id == dayID }) {
@@ -333,21 +422,69 @@ final class DailyTaskGroupStore {
         }
 
         groups.sort { $0.date > $1.date }
-        persist()
     }
 
-    private func persist() {
-        storage.save(
-            state: DailyTaskGroupState(
-                groups: groups,
-                projects: storedProjects,
-                selectedProjectID: storedSelectedProjectID,
-                recentlyDeletedProjects: recentlyDeletedProjects
-            )
+    private var currentState: DailyTaskGroupState {
+        DailyTaskGroupState(
+            groups: groups,
+            projects: projects,
+            selectedProjectID: selectedProjectID,
+            recentlyDeletedProjects: recentlyDeletedProjects
         )
     }
 
-    private func restore(snapshot: RecentlyDeletedProjectTaskSnapshot) {
+    private func remindersHaveValidProjectReferences(_ reminders: [CreateReminder]) -> Bool {
+        let validProjectIDs = Set(projects.map(\.id))
+        return reminders.allSatisfy { reminder in
+            reminder.projectID.map(validProjectIDs.contains) ?? true
+        }
+    }
+
+    private func commit(_ state: DailyTaskGroupState) -> Bool {
+        guard !blocksPersistenceWrites else { return false }
+        guard DailyTaskGroupStateCanonicalizer.canonicalState(state) == state else { return false }
+
+        switch persistence.save(state) {
+        case .success:
+            applyLoadedState(state)
+            persistenceError = nil
+            return true
+        case let .failure(error):
+            persistenceError = error
+            return false
+        }
+    }
+
+    private func moveProjectToRecentlyDeleted(
+        withID projectID: TaskProject.ID,
+        at deletedAt: Date,
+        in state: inout DailyTaskGroupState
+    ) -> Bool {
+        guard let project = state.projects.first(where: { $0.id == projectID }) else { return false }
+        let taskSnapshots = state.groups.flatMap { group in
+            group.reminders
+                .filter { $0.projectID == projectID }
+                .map {
+                    RecentlyDeletedProjectTaskSnapshot(
+                        dayID: group.id,
+                        dayDate: group.date,
+                        reminder: $0
+                    )
+                }
+        }
+        .sorted { $0.dayDate < $1.dayDate }
+
+        state.recentlyDeletedProjects.removeAll { $0.project.id == projectID }
+        state.recentlyDeletedProjects.append(RecentlyDeletedProject(
+            project: project,
+            deletedAt: deletedAt,
+            taskSnapshots: taskSnapshots
+        ))
+        removeActiveProject(withID: projectID, from: &state)
+        return true
+    }
+
+    private func restore(snapshot: RecentlyDeletedProjectTaskSnapshot, in groups: inout [DailyTaskGroup]) {
         if let index = groups.firstIndex(where: { $0.id == snapshot.dayID }) {
             guard !groups[index].reminders.contains(where: { $0.id == snapshot.reminder.id }) else { return }
             groups[index].reminders.append(snapshot.reminder)
@@ -361,10 +498,34 @@ final class DailyTaskGroupStore {
         ))
     }
 
-    private func uniqueProjects(in projects: [TaskProject]) -> [TaskProject] {
-        var seenIDs = Set<TaskProject.ID>()
-        return projects.filter { project in
-            seenIDs.insert(project.id).inserted
+    private func reloadFromPersistence() {
+        switch persistence.load() {
+        case .empty:
+            applyLoadedState(.empty)
+            persistenceError = nil
+            blocksPersistenceWrites = false
+        case let .loaded(state, source):
+            applyLoadedState(state)
+            persistenceError = nil
+            blocksPersistenceWrites = false
+
+            guard source != .current(version: DailyTaskGroupPersistenceEnvelope.currentSchemaVersion) else {
+                return
+            }
+            if case let .failure(error) = persistence.save(state) {
+                persistenceError = error
+            }
+        case let .failure(error):
+            applyLoadedState(.empty)
+            persistenceError = error
+            blocksPersistenceWrites = true
         }
+    }
+
+    private func applyLoadedState(_ state: DailyTaskGroupState) {
+        groups = state.groups
+        projects = state.projects
+        recentlyDeletedProjects = state.recentlyDeletedProjects
+        selectedProjectID = state.selectedProjectID
     }
 }

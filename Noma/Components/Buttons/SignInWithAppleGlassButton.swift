@@ -6,38 +6,39 @@ enum SignInWithAppleGlassButtonLayout {
 
 struct SignInWithAppleGlassButtonState: Equatable {
     let isLoading: Bool
-    let hasAcceptedPrivacyPolicy: Bool
+    let isAvailable: Bool
 
-    init(isLoading: Bool, hasAcceptedPrivacyPolicy: Bool = true) {
+    init(
+        isLoading: Bool,
+        isAvailable: Bool = true
+    ) {
         self.isLoading = isLoading
-        self.hasAcceptedPrivacyPolicy = hasAcceptedPrivacyPolicy
+        self.isAvailable = isAvailable
     }
 
     var showsProgressSpinner: Bool { isLoading }
-    var allowsInteraction: Bool { !isLoading && hasAcceptedPrivacyPolicy }
-    var usesBlurReplaceTransition: Bool { isLoading }
-    var preservesLabelLayout: Bool { true }
+    var allowsInteraction: Bool { !isLoading && isAvailable }
 }
 
 struct SignInWithAppleGlassButton: View {
     let isLoading: Bool
-    let hasAcceptedPrivacyPolicy: Bool
+    let isAvailable: Bool
     let action: () -> Void
 
     private var state: SignInWithAppleGlassButtonState {
         SignInWithAppleGlassButtonState(
             isLoading: isLoading,
-            hasAcceptedPrivacyPolicy: hasAcceptedPrivacyPolicy
+            isAvailable: isAvailable
         )
     }
 
     init(
         isLoading: Bool = false,
-        hasAcceptedPrivacyPolicy: Bool = true,
+        isAvailable: Bool = true,
         action: @escaping () -> Void
     ) {
         self.isLoading = isLoading
-        self.hasAcceptedPrivacyPolicy = hasAcceptedPrivacyPolicy
+        self.isAvailable = isAvailable
         self.action = action
     }
 
@@ -54,6 +55,13 @@ struct SignInWithAppleGlassButton: View {
         .tint(.controlActive)
         .buttonStyle(.glassProminent)
         .buttonBorderShape(.capsule)
+        .accessibilityRepresentation {
+            Button(action: action) {
+                Text("auth.apple.button.title")
+            }
+            .disabled(!state.allowsInteraction)
+            .accessibilityIdentifier("signup-apple-button")
+        }
     }
 
     @ViewBuilder
@@ -70,6 +78,7 @@ struct SignInWithAppleGlassButton: View {
                     .transition(.blurReplace)
             } else {
                 buttonLabel
+                    .accessibilityHidden(true)
                     .transition(.blurReplace)
             }
         }
@@ -81,6 +90,7 @@ struct SignInWithAppleGlassButton: View {
         } icon: {
             Image(systemName: "apple.logo")
                 .padding(.trailing, NomaSpacing.sm)
+                .accessibilityHidden(true)
         }
     }
 }

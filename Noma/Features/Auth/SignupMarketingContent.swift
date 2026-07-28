@@ -19,6 +19,7 @@ struct SignupMarketingContent: View {
                     .font(.title.weight(.black))
                     .foregroundStyle(.textPrimary)
                     .multilineTextAlignment(.center)
+                    .accessibilityIdentifier("signup-title")
 
                 Text(LocalizedStringKey(SignupViewCopy.subtitleKey))
                     .font(.body)

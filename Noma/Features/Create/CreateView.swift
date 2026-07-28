@@ -13,34 +13,11 @@ enum CreateViewScrollLayout {
     static let bottomSafeAreaPadding = NomaSpacing.xxl
 }
 
-enum BottomComposerBarLayout {
-    static func width(in proxy: GeometryProxy, edgePadding: CGFloat) -> CGFloat {
-        let width = max(0, proxy.size.width - (edgePadding * 2))
-        return width.isFinite ? width : 0
-    }
-
-    static func bottomPadding(
-        isKeyboardPresented: Bool,
-        focusedPadding: CGFloat,
-        collapsedPadding: CGFloat,
-        safeAreaBottom: CGFloat
-    ) -> CGFloat {
-        let padding = isKeyboardPresented ? focusedPadding : max(0, collapsedPadding - safeAreaBottom)
-        return padding.isFinite ? padding : 0
-    }
-}
-
 struct CreateView: View {
-    let collapsedEdgePadding = NomaSpacing.xxl
-    let focusedEdgePadding = NomaSpacing.md
-    let focusedKeyboardSpacing = NomaOffset.keyboardAccessoryOverlap
-
     @Environment(\.hapticFeedback) var hapticFeedback
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @State var message = ""
-    @State var reminders: [CreateReminder] = []
-    @State var projects: [TaskProject] = []
-    @State var selectedProjectID: TaskProject.ID?
+    @State var draftProjectID: TaskProject.ID?
     @State var editingReminderID: CreateReminder.ID?
     @State var isKeyboardPresented = false
     @State var isProjectSheetPresented = false
@@ -58,95 +35,33 @@ struct CreateView: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                Rectangle()
-                    .fill(.primaryBackground)
-                    .ignoresSafeArea(.container)
-
-                content(in: proxy)
-            }
-            .safeAreaBar(edge: .bottom, spacing: barSpacing) {
-                bottomComposerContent(in: proxy)
-            }
+        TaskWorkspaceShell(
+            isKeyboardPresented: $isKeyboardPresented,
+            isModalPresented: isProjectSheetPresented,
+            isInputFocused: $isInputFocused,
+            onKeyboardPresented: scrollToReminderListBottomAfterKeyboardFocus
+        ) {
+            content
+        } composer: {
+            bottomComposerContent
         }
-        .background { NavigationKeyboardDismissObserver(isInputFocused: $isInputFocused) }
-        .ignoresSafeArea(
-            .keyboard,
-            edges: isProjectSheetPresented ? .bottom : []
-        )
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-            guard !isProjectSheetPresented else { return }
-            isKeyboardPresented = true
-            scrollToReminderListBottomAfterKeyboardFocus()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            guard !isProjectSheetPresented else { return }
-            isKeyboardPresented = false
-        }
-        .task {
-            loadDailyGroup()
+        .onChange(of: dailyTaskGroups.selectedProjectID, initial: true) { _, selectedProjectID in
+            guard editingReminderID == nil else { return }
+            draftProjectID = availableProjectID(selectedProjectID)
         }
         .onChange(of: message) { _, draftText in
             resetEditingIfDraftWasCleared(draftText)
         }
+        .onChange(of: reminders, initial: true) { _, currentReminders in
+            reconcileEditingState(with: currentReminders)
+        }
         .onChange(of: dailyTaskGroups.projectExpirationRevision) { _, _ in
-            loadDailyGroup()
+            draftProjectID = availableProjectID(draftProjectID)
         }
         .toolbarTitleDisplayMode(.inline)
         .toolbar { createToolbar }
         .sheet(isPresented: $isProjectSheetPresented) { projectSheet }
         .sheet(isPresented: $isDatePickerSheetPresented) { datePickerSheet }
-    }
-
-}
-
-struct TaskNavigationTitleButton: View {
-    let title: String, subtitle: String
-    let accessibilityLabelKey: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.textPrimary)
-
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.textSecondary)
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(LocalizedStringKey(accessibilityLabelKey)))
-    }
-}
-
-struct TaskDoneToolbarButton: View {
-    let isDisabled: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text("create.toolbar.done.title")
-        }
-        .disabled(isDisabled)
-    }
-}
-
-struct TaskFilterToolbarButton: View {
-    let isActive: Bool
-    let isDisabled: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: CreateReminderFilterToolbarIcon.systemImage(isActive: isActive))
-        }
-        .foregroundStyle(CreateReminderFilterToolbarIcon.foregroundColor(isActive: isActive))
-        .accessibilityLabel(Text("create.toolbar.filter.unsolved.accessibility-label"))
-        .disabled(isDisabled)
     }
 }
 
@@ -178,8 +93,9 @@ struct CreateDatePickerSheet: View {
                     )
                 }
                 .safeAreaBar(edge: .bottom, spacing: 0) {
-                    CreateDatePickerSubmitButton(
-                        title: CreateDatePickerSheetCopy.setDateTitle(for: selectedDate),
+                    PrimaryGlassButton(
+                        verbatimTitle: CreateDatePickerSheetCopy.setDateTitle(for: selectedDate),
+                        width: .fullWidth,
                         action: { onSetDate(); dismiss() }
                     )
                     .padding(.horizontal, NomaSpacing.xxl)
@@ -197,25 +113,5 @@ enum CreateDatePickerSheetCopy {
         let format = String(localized: String.LocalizationValue(setDateTitleKey))
         let dateText = date.formatted(date: .abbreviated, time: .omitted)
         return String.localizedStringWithFormat(format, dateText)
-    }
-}
-
-struct CreateDatePickerSubmitButton: View {
-    let title: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: NomaSpacing.sm) {
-                Text(title)
-                    .font(.headline)
-            }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, NomaSpacing.md)
-        }
-        .tint(.primary)
-        .foregroundStyle(.primaryBackground)
-        .buttonStyle(.glassProminent)
-        .buttonBorderShape(.capsule)
     }
 }

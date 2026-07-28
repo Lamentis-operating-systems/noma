@@ -1,6 +1,18 @@
 import SwiftUI
 
 extension CreateView {
+    func reconcileEditingState(with reminders: [CreateReminder]) {
+        guard CreateReminderEditingReconciliation.shouldResetEditingState(
+            editingReminderID: editingReminderID,
+            reminders: reminders
+        ) else { return }
+
+        editingReminderID = nil
+        message = ""
+        draftProjectID = availableProjectID(dailyTaskGroups.selectedProjectID)
+        isInputFocused = false
+    }
+
     func resetEditingIfDraftWasCleared(_ draftText: String) {
         guard CreateReminderEditingDraftReset.shouldResetEditingDraft(
             text: draftText,
@@ -10,30 +22,32 @@ extension CreateView {
         editingReminderID = nil
     }
 
-    func submitEditedReminder(_ submittedText: String, editingReminderID: CreateReminder.ID) {
+    func submitEditedReminder(_ submittedText: String, editingReminderID: CreateReminder.ID) -> Bool {
         guard let updatedReminders = CreateReminderSubmissionPersistence.updatedRemindersAfterEditing(
             sourceReminders: reminders,
             editingReminderID: editingReminderID,
             submittedText: submittedText,
             projects: projects,
-            selectedProjectID: selectedProjectID
-        ) else { return }
+            selectedProjectID: draftProjectID
+        ) else { return false }
 
-        self.editingReminderID = nil
-        message = ""
-        hapticFeedback.play(.createTaskSubmit)
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            reminders = updatedReminders
+        let didPersist = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            dailyTaskGroups.replaceRemindersAtomically(updatedReminders, forDayID: activeDayID)
         }
-        saveCurrentDailyGroup()
+        self.editingReminderID = CreateReminderEditingReconciliation.editingReminderIDAfterPersistence(
+            didPersist: didPersist,
+            currentEditingReminderID: editingReminderID
+        )
+        guard didPersist else { return false }
+
+        hapticFeedback.play(.createTaskSubmit)
+        return true
     }
 
     func beginEditingReminder(_ reminder: CreateReminder) {
         editingReminderID = reminder.id
         message = reminder.text
-        selectedProjectID = reminder.projectID.flatMap { projectID in
-            projects.contains { $0.id == projectID } ? projectID : nil
-        }
+        draftProjectID = availableProjectID(reminder.projectID)
         isInputFocused = true
     }
 }

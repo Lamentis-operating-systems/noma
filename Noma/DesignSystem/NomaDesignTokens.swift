@@ -63,14 +63,6 @@ enum NomaScale {
         (NomaSpacing.xl + (NomaSpacing.xs / NomaSpacing.sm * NomaSpacing.xs)) / NomaSize.projectControl
 }
 
-enum NomaGradient {
-    static let proTierText = LinearGradient(
-        colors: [Color.orange, Color.pink],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
-}
-
 extension ShapeStyle where Self == Color {
     static var textPrimary: Color { Color.primary }
     static var textSecondary: Color { Color.secondary }

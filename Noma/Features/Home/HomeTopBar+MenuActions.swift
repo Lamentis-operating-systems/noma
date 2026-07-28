@@ -9,14 +9,15 @@ extension HomeMenu {
     }
 
     func deleteAccount() {
-        let userID = authState.storageUserID
         Task {
-            let didDelete = await authState.deleteAccountFlow()
-            guard didDelete else {
+            let result = await AccountDeletionCoordinator.deleteAccount(
+                authState: authState,
+                dailyTaskGroups: dailyTaskGroups
+            )
+            guard result.completedCleanly else {
                 deleteAccountErrorMessage = authState.errorMessage
                 return
             }
-            dailyTaskGroups.deleteLocalData(forUserID: userID)
         }
     }
 

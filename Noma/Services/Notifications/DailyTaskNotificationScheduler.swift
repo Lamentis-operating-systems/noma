@@ -79,50 +79,228 @@ enum DailyTaskNotificationRequestFactory {
 
 }
 
+enum DailyTaskNotificationAuthorizationStatus {
+    case authorized
+    case notDetermined
+    case denied
+}
+
 @MainActor
-@Observable
-final class DailyTaskNotificationScheduler {
-    @ObservationIgnored private let center: UNUserNotificationCenter
+protocol DailyTaskNotificationCenter: AnyObject {
+    func authorizationStatus() async -> DailyTaskNotificationAuthorizationStatus
+    func requestAuthorization() async throws -> Bool
+    func add(_ request: UNNotificationRequest) async throws
+    func removePendingRequests(withIdentifiers identifiers: [String])
+}
+
+@MainActor
+final class SystemDailyTaskNotificationCenter: DailyTaskNotificationCenter {
+    private let center: UNUserNotificationCenter
 
     init(center: UNUserNotificationCenter = .current()) {
         self.center = center
     }
 
-    func refreshDailyTaskReminders(
-        for reminders: [CreateReminder],
-        settings: DailyTaskNotificationSettings = .default
-    ) async {
-        guard await canScheduleNotifications() else {
-            center.removePendingNotificationRequests(withIdentifiers: DailyTaskNotificationIdentifier.all)
-            return
-        }
-
-        center.removePendingNotificationRequests(withIdentifiers: DailyTaskNotificationIdentifier.all)
-
-        for request in DailyTaskNotificationRequestFactory.requests(reminders: reminders, settings: settings) {
-            try? await center.add(request.userNotificationRequest())
-        }
-    }
-
-    private func canScheduleNotifications() async -> Bool {
+    func authorizationStatus() async -> DailyTaskNotificationAuthorizationStatus {
         let settings = await center.notificationSettings()
 
         switch settings.authorizationStatus {
         case .authorized, .provisional, .ephemeral:
-            return true
+            return .authorized
         case .notDetermined:
-            return await requestAuthorization()
+            return .notDetermined
         case .denied:
-            return false
+            return .denied
         @unknown default:
+            return .denied
+        }
+    }
+
+    func requestAuthorization() async throws -> Bool {
+        try await center.requestAuthorization(options: [.alert, .sound])
+    }
+
+    func add(_ request: UNNotificationRequest) async throws {
+        try await center.add(request)
+    }
+
+    func removePendingRequests(withIdentifiers identifiers: [String]) {
+        center.removePendingNotificationRequests(withIdentifiers: identifiers)
+    }
+}
+
+enum DailyTaskNotificationSchedulerError: Equatable {
+    case authorizationRequestFailed
+    case schedulingFailed(identifiers: [String])
+}
+
+@MainActor
+@Observable
+final class DailyTaskNotificationScheduler: AuthSessionLifecycle {
+    @ObservationIgnored private let center: any DailyTaskNotificationCenter
+    @ObservationIgnored private var isAuthenticationActive = false
+    @ObservationIgnored private var desiredRequests: [DailyTaskNotificationRequest] = []
+    @ObservationIgnored private var stateRevision: UInt = 0
+    @ObservationIgnored private var isReconciling = false
+    @ObservationIgnored private var reconciliationWaiters: [CheckedContinuation<Void, Never>] = []
+    private(set) var lastError: DailyTaskNotificationSchedulerError?
+
+    convenience init() {
+        self.init(center: SystemDailyTaskNotificationCenter())
+    }
+
+    init(center: any DailyTaskNotificationCenter) {
+        self.center = center
+    }
+
+    func refreshDailyTaskReminders(for reminders: [CreateReminder]) async {
+        await refreshDailyTaskReminders(
+            for: reminders,
+            settings: DailyTaskNotificationSettings.default
+        )
+    }
+
+    func refreshDailyTaskReminders(
+        for reminders: [CreateReminder],
+        settings: DailyTaskNotificationSettings
+    ) async {
+        guard isAuthenticationActive else { return }
+
+        lastError = nil
+        desiredRequests = DailyTaskNotificationRequestFactory.requests(
+            reminders: reminders,
+            settings: settings
+        )
+        stateRevision &+= 1
+
+        await reconcileDesiredRequests()
+    }
+
+    func activateAuthenticatedSession() {
+        guard !isAuthenticationActive else { return }
+        isAuthenticationActive = true
+        stateRevision &+= 1
+    }
+
+    func clearAfterAuthenticationEnds() {
+        isAuthenticationActive = false
+        desiredRequests = []
+        lastError = nil
+        stateRevision &+= 1
+        clearDailyTaskReminders()
+    }
+
+    func clearDailyTaskReminders() {
+        center.removePendingRequests(withIdentifiers: DailyTaskNotificationIdentifier.all)
+    }
+
+    private func reconcileDesiredRequests() async {
+        if isReconciling {
+            await withCheckedContinuation { continuation in
+                reconciliationWaiters.append(continuation)
+            }
+            return
+        }
+
+        isReconciling = true
+        defer {
+            isReconciling = false
+            let waiters = reconciliationWaiters
+            reconciliationWaiters.removeAll()
+            waiters.forEach { $0.resume() }
+        }
+
+        while true {
+            let revision = stateRevision
+
+            guard isAuthenticationActive else {
+                clearDailyTaskReminders()
+                return
+            }
+
+            let requests = desiredRequests
+            guard !requests.isEmpty else {
+                clearDailyTaskReminders()
+                guard isCurrent(revision) else { continue }
+                return
+            }
+
+            guard await canScheduleNotifications(revision: revision) else {
+                guard isCurrent(revision) else {
+                    if !isAuthenticationActive {
+                        clearDailyTaskReminders()
+                        return
+                    }
+                    continue
+                }
+                clearDailyTaskReminders()
+                return
+            }
+
+            guard isCurrent(revision) else { continue }
+            clearDailyTaskReminders()
+
+            var failedIdentifiers: [String] = []
+            var mustReconcileAgain = false
+
+            for request in requests {
+                guard isCurrent(revision) else {
+                    mustReconcileAgain = true
+                    break
+                }
+
+                do {
+                    try await center.add(request.userNotificationRequest())
+                } catch {
+                    if isCurrent(revision) {
+                        failedIdentifiers.append(request.identifier)
+                    }
+                }
+
+                guard isCurrent(revision) else {
+                    mustReconcileAgain = true
+                    break
+                }
+            }
+
+            if mustReconcileAgain {
+                if !isAuthenticationActive {
+                    clearDailyTaskReminders()
+                    return
+                }
+                continue
+            }
+
+            lastError = failedIdentifiers.isEmpty
+                ? nil
+                : .schedulingFailed(identifiers: failedIdentifiers)
+            return
+        }
+    }
+
+    private func isCurrent(_ revision: UInt) -> Bool {
+        isAuthenticationActive && stateRevision == revision
+    }
+
+    private func canScheduleNotifications(revision: UInt) async -> Bool {
+        switch await center.authorizationStatus() {
+        case .authorized:
+            return isCurrent(revision)
+        case .notDetermined:
+            return await requestAuthorization(revision: revision)
+        case .denied:
             return false
         }
     }
 
-    private func requestAuthorization() async -> Bool {
+    private func requestAuthorization(revision: UInt) async -> Bool {
         do {
-            return try await center.requestAuthorization(options: [.alert, .sound])
+            let isAuthorized = try await center.requestAuthorization()
+            return isAuthorized && isCurrent(revision)
         } catch {
+            if isCurrent(revision) {
+                lastError = .authorizationRequestFailed
+            }
             return false
         }
     }

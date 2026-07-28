@@ -1,11 +1,9 @@
 schemaVersion: 1
 sessionDefaults:
-  projectPath: /Users/elias/Documents/Development/noma/Noma.xcodeproj
+  projectPath: Noma.xcodeproj
   scheme: Noma
   configuration: Debug
   simulatorName: iPhone 17 Pro
-  simulatorId: 7FD47F31-CFBF-4BDB-A71B-C52DD35ECAEF
   useLatestOS: true
-  derivedDataPath: /private/tmp/noma-derived-data
   preferXcodebuild: true
   simulatorPlatform: iOS Simulator

@@ -7,6 +7,11 @@ enum HomeRoute: Hashable {
 
 enum HomeViewLayout {
     static let bottomScrollSafeAreaPadding = NomaSpacing.xxl + NomaSpacing.xxl + NomaSpacing.xxl + NomaSpacing.xs
+    static let createButtonScreenEdgePadding = NomaSpacing.xxl
+
+    static func createButtonVerticalOffset(bottomSafeAreaInset: CGFloat) -> CGFloat {
+        bottomSafeAreaInset - createButtonScreenEdgePadding
+    }
 }
 
 struct HomeView: View {
@@ -19,7 +24,7 @@ struct HomeView: View {
     @State var isHomeHeaderVisible = true
 
     var body: some View {
-        GeometryReader { _ in
+        GeometryReader { proxy in
             ZStack(alignment: .bottomTrailing) {
                 NavigationStack(path: $path) {
                     ZStack {
@@ -28,16 +33,19 @@ struct HomeView: View {
                             .ignoresSafeArea()
 
                         ScrollView {
-                            HomeScrollOffsetObserver { contentOffsetY in
-                                updateHomeHeaderVisibility(for: contentOffsetY)
-                            }
-                            .frame(height: NomaSize.scrollDismissSentinel)
-                            .accessibilityHidden(true)
-
                             dailyGroupsList
                         }
+                        .accessibilityIdentifier("home-scroll")
                         .scrollIndicators(.hidden)
                         .safeAreaPadding(.bottom, HomeViewLayout.bottomScrollSafeAreaPadding)
+                        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                            HomeScrollPosition.normalizedOffsetY(
+                                contentOffsetY: geometry.contentOffset.y,
+                                topContentInset: geometry.contentInsets.top
+                            )
+                        } action: { _, contentOffsetY in
+                            updateHomeHeaderVisibility(for: contentOffsetY)
+                        }
                     }
                     .navigationDestination(for: HomeRoute.self) { route in
                         switch route {
@@ -61,13 +69,26 @@ struct HomeView: View {
                             .padding(.leading, NomaSpacing.xl)
                             .opacity(HomeHeaderOpacity.value(isVisible: isHomeHeaderVisible))
                             .allowsHitTesting(false)
+                            .accessibilityHidden(!isHomeHeaderVisible)
+                            .accessibilityRepresentation {
+                                if isHomeHeaderVisible {
+                                    Text("Noma")
+                                        .accessibilityIdentifier("home-header")
+                                } else {
+                                    EmptyView()
+                                }
+                            }
                     }
                 }
 
                 if path.isEmpty {
                     createButton
-                        .padding(.trailing, NomaSpacing.xxl)
-                        .ignoresSafeArea(.container, edges: .bottom)
+                        .padding(.trailing, HomeViewLayout.createButtonScreenEdgePadding)
+                        .offset(
+                            y: HomeViewLayout.createButtonVerticalOffset(
+                                bottomSafeAreaInset: proxy.safeAreaInsets.bottom
+                            )
+                        )
                 }
             }
         }
@@ -77,6 +98,13 @@ struct HomeView: View {
 enum HomeHeaderVisibility {
     static func isVisible(contentOffsetY: CGFloat) -> Bool {
         contentOffsetY <= NomaSpacing.none
+    }
+}
+
+enum HomeScrollPosition {
+    static func normalizedOffsetY(contentOffsetY: CGFloat, topContentInset: CGFloat) -> CGFloat {
+        let offset = contentOffsetY + topContentInset
+        return offset.isFinite ? offset : NomaSpacing.none
     }
 }
 

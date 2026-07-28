@@ -4,7 +4,6 @@ struct CreateProjectEmptyState {
     let systemImage: String
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey
-    let cta: HintCTA?
 
     static let placeholder = CreateProjectEmptyState()
 
@@ -12,7 +11,6 @@ struct CreateProjectEmptyState {
         self.systemImage = "tray.full"
         self.title = "create.project.empty.title"
         self.subtitle = "create.project.empty.subtitle"
-        self.cta = nil
     }
 }
 
@@ -52,13 +50,13 @@ enum CreateProjectEditorPresentation: Identifiable {
 
 struct CreateSheet: View {
     @Environment(\.dismiss) var dismiss
-    @Binding var projects: [TaskProject]
-    @Binding var selectedProjectID: TaskProject.ID?
+    let projects: [TaskProject]
+    let selectedProjectID: TaskProject.ID?
     let allReminders: [CreateReminder]
-    let onCreateProject: (TaskProject) -> Void
-    let onSelectProject: (TaskProject.ID?) -> Void
-    let onUpdateProject: (TaskProject) -> Void
-    let onDeleteProject: (TaskProject.ID) -> Void
+    let onCreateProject: (TaskProject) -> Bool
+    let onSelectProject: (TaskProject.ID?) -> Bool
+    let onUpdateProject: (TaskProject) -> Bool
+    let onDeleteProject: (TaskProject.ID) -> Bool
     @State var projectEditorPresentation: CreateProjectEditorPresentation?
     @State var pendingDeleteProjectID: TaskProject.ID?
 
@@ -73,14 +71,14 @@ struct CreateSheet: View {
                         CloseToolbarButton(accessibilityLabelKey: "create.project.close.accessibility-label", action: { dismiss() })
                     }
                     .safeAreaBar(edge: .bottom, spacing: 0) {
-                        CreateDatePickerSubmitButton(
-                            title: String(
-                                localized: String.LocalizationValue(CreateProjectListSection.createNewProjectTitleKey)
-                            ),
+                        PrimaryGlassButton(
+                            title: LocalizedStringKey(CreateProjectListSection.createNewProjectTitleKey),
+                            width: .fullWidth,
                             action: openAddProjectSheet
                         )
                         .padding(.horizontal, NomaSpacing.xxl)
                         .padding(.bottom, max(0, NomaSpacing.xxl - proxy.safeAreaInsets.bottom))
+                        .accessibilityIdentifier("project-sheet-create-button")
                     }
             }
         }

@@ -7,7 +7,7 @@ struct SupabaseConfiguration: Equatable {
 
     var isConfigured: Bool {
         let trimmedKey = publishableKey.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmedKey.isEmpty && trimmedKey != SupabaseClientProvider.publishableKeyPlaceholder
+        return !trimmedKey.isEmpty
     }
 }
 
@@ -23,27 +23,13 @@ enum SupabaseConfigurationError: LocalizedError {
 }
 
 enum SupabaseClientProvider {
-    static let projectRef = "ejulpxdohfnojevqntks"
-    static let projectURL = URL(string: "https://ejulpxdohfnojevqntks.supabase.co")!
-    static let publishableKeyInfoKey = "SUPABASE_PUBLISHABLE_KEY"
-    static let publishableKeyPlaceholder = "YOUR_SUPABASE_PUBLISHABLE_KEY"
-    static let bundledPublishableKey = "sb_publishable_eLKZGPZ-dvFYXK5F8VlNaQ_9oC6fOYt"
+    static let projectURL = URL(string: "https://ogajkrmbznzpwjxhaxev.supabase.co")!
+    static let publishableKey = "sb_publishable_E3HMXc_UUrRSPW_foteV_w_oPMgzB5X"
 
-    static var currentConfiguration: SupabaseConfiguration {
-        SupabaseConfiguration(
-            projectURL: projectURL,
-            publishableKey: configuredPublishableKey
-        )
-    }
-
-    private static var configuredPublishableKey: String {
-        guard let infoValue = Bundle.main.object(forInfoDictionaryKey: publishableKeyInfoKey) as? String else {
-            return bundledPublishableKey
-        }
-
-        let trimmedInfoValue = infoValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmedInfoValue.isEmpty ? bundledPublishableKey : trimmedInfoValue
-    }
+    static let currentConfiguration = SupabaseConfiguration(
+        projectURL: projectURL,
+        publishableKey: publishableKey
+    )
 
     static var clientOptions: SupabaseClientOptions {
         SupabaseClientOptions(

@@ -6,7 +6,6 @@ extension CreateView {
             text: $message,
             focus: $isInputFocused,
             placeholder: "create.input.placeholder",
-            isSubmissionAvailable: canSubmitReminder,
             traySystemImage: selectedProject?.symbolName ?? "tray.full",
             trayColor: TaskProjectIconPresentation.appSurfaceColor,
             onTrayButtonTap: { isProjectSheetPresented = true },
@@ -14,7 +13,7 @@ extension CreateView {
         )
     }
 
-    func bottomComposerContent(in proxy: GeometryProxy) -> some View {
+    var bottomComposerContent: some View {
         VStack(alignment: .leading, spacing: NomaSpacing.xl) {
             if showsSuggestedProjectButton {
                 suggestedProjectButton
@@ -26,12 +25,10 @@ extension CreateView {
 
             composerBar
         }
-        .frame(width: barWidth(in: proxy), alignment: .leading)
-        .padding(.bottom, barBottomPadding(in: proxy))
     }
 
     var selectedProject: TaskProject? {
-        projects.first { $0.id == selectedProjectID }
+        projects.first { $0.id == draftProjectID }
     }
 
     var currentDaySummary: DailyTaskGroupSummary {
@@ -57,158 +54,122 @@ extension CreateView {
     }
 
     var visibleReminders: [CreateReminder] {
-        let filteredReminders = CreateReminderListFilter.visibleReminders(
+        CreateReminderListFilter.visibleReminders(
             reminders,
             showsOnlyUnsolved: showsOnlyUnsolvedTasks,
             temporarilyVisibleCompletedReminderIDs: temporarilyVisibleCompletedReminderIDs
         )
-        return CreateReminderListOrganization.sortedReminders(filteredReminders)
     }
 
     @ToolbarContentBuilder
     var createToolbar: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            TaskNavigationTitleButton(
-                title: createNavigationTitle,
-                subtitle: createNavigationSubtitle,
-                accessibilityLabelKey: "create.date-picker.open.accessibility-label",
-                action: openDatePickerSheet
-            )
-        }
-
-        ToolbarItem(placement: .topBarTrailing) {
-            TaskDoneToolbarButton(
-                isDisabled: !canCompleteAllReminders,
-                action: completeAllRemindersForCurrentDay
-            )
-        }
-
-        ToolbarSpacer(.fixed, placement: .topBarTrailing)
-
-        ToolbarItem(placement: .topBarTrailing) {
-            TaskFilterToolbarButton(
-                isActive: showsOnlyUnsolvedTasks,
-                isDisabled: reminders.isEmpty,
-                action: toggleUnsolvedFilter
-            )
-        }
+        TaskWorkspaceToolbar(
+            title: createNavigationTitle,
+            subtitle: createNavigationSubtitle,
+            titleAccessibilityLabelKey: "create.date-picker.open.accessibility-label",
+            isDoneDisabled: !canCompleteAllReminders,
+            isFilterActive: showsOnlyUnsolvedTasks,
+            isFilterDisabled: reminders.isEmpty,
+            onTitleTap: openDatePickerSheet,
+            onDone: completeAllRemindersForCurrentDay,
+            onFilter: toggleUnsolvedFilter
+        )
     }
 
-    func submitReminder(_ submittedText: String) {
-        guard canSubmitReminder else { return }
+    func submitReminder(_ submittedText: String) -> Bool {
         if let editingReminderID {
-            submitEditedReminder(submittedText, editingReminderID: editingReminderID)
-            return
+            return submitEditedReminder(submittedText, editingReminderID: editingReminderID)
         }
 
-        let originatingDayID = activeDayID
+        let route = CreateReminderSubmissionRoute(originatingDayID: activeDayID)
 
-        submitReminderImmediately(submittedText, originatingDayID: originatingDayID)
+        return submitReminderImmediately(submittedText, route: route)
     }
 
+    @discardableResult
     func appendSubmittedReminder(
         _ submission: CreateReminderSubmissionResult,
-        submittedText: String,
-        originatingDayID: String
-    ) {
-        guard activeDayID == originatingDayID else {
-            persistSubmittedReminderToOriginatingDay(
+        route: CreateReminderSubmissionRoute
+    ) -> Bool {
+        guard route.isOriginatingDayStillActive(activeDayID) else {
+            return persistSubmittedReminderToOriginatingDay(
                 submission,
-                originatingDayID: originatingDayID
+                originatingDayID: route.originatingDayID
             )
-            return
         }
 
-        guard let updatedReminders = CreateReminderSubmissionPersistence.updatedRemindersAfterAppending(
-            sourceReminders: reminders,
-            submission: submission,
+        var updatedReminders = reminders
+        let submittedReminder = CreateReminderSubmissionPersistence.append(
+            submission,
+            to: &updatedReminders,
             projects: projects,
-            selectedProjectID: selectedProjectID
-        ) else { return }
-        guard let submittedReminder = updatedReminders.last else { return }
-
-        message = CreateReminderDraftReconciliation.reconciledDraft(
-            currentDraft: message,
-            submittedText: submittedText,
-            remainingText: submission.remainingText
+            selectedProjectID: draftProjectID
         )
-        hapticFeedback.play(.createTaskSubmit)
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            reminders = updatedReminders
+
+        let didPersist = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            dailyTaskGroups.replaceRemindersAtomically(updatedReminders, forDayID: activeDayID)
         }
-        saveCurrentReminders()
+        guard didPersist else { return false }
+
+        hapticFeedback.play(.createTaskSubmit)
         pendingScrollTargetID = CreateReminderAutoScroll.targetAfterAppending(submittedReminder)
+        return true
     }
 
+    @discardableResult
     func persistSubmittedReminderToOriginatingDay(
         _ submission: CreateReminderSubmissionResult,
         originatingDayID: String
-    ) {
+    ) -> Bool {
         let sourceReminders = dailyTaskGroups.reminders(forDayID: originatingDayID)
-        let sourceProjects = dailyTaskGroups.projects(forDayID: originatingDayID)
-        let sourceSelectedProjectID = dailyTaskGroups.selectedProjectID(forDayID: originatingDayID)
+        let sourceProjects = dailyTaskGroups.projects
+        let sourceSelectedProjectID = dailyTaskGroups.selectedProjectID
 
-        guard let updatedReminders = CreateReminderSubmissionPersistence.updatedRemindersAfterAppending(
-            sourceReminders: sourceReminders,
-            submission: submission,
+        var updatedReminders = sourceReminders
+        CreateReminderSubmissionPersistence.append(
+            submission,
+            to: &updatedReminders,
             projects: sourceProjects,
             selectedProjectID: sourceSelectedProjectID
-        ) else { return }
-
-        dailyTaskGroups.save(
-            reminders: updatedReminders,
-            projects: sourceProjects,
-            selectedProjectID: sourceSelectedProjectID,
-            forDayID: originatingDayID
         )
+
+        return dailyTaskGroups.replaceRemindersAtomically(updatedReminders, forDayID: originatingDayID)
     }
 
-    var canAddSubmittedReminder: Bool {
-        true
-    }
-
-    func submitReminderImmediately(_ submittedText: String, originatingDayID: String) {
+    func submitReminderImmediately(_ submittedText: String, route: CreateReminderSubmissionRoute) -> Bool {
         guard let submission = CreateReminderSubmission.submit(
             text: submittedText,
             projects: projects,
-            selectedProjectID: selectedProjectID
-        ) else { return }
+            selectedProjectID: draftProjectID
+        ) else { return false }
 
-        appendSubmittedReminder(
+        return appendSubmittedReminder(
             submission,
-            submittedText: submittedText,
-            originatingDayID: originatingDayID
+            route: route
         )
     }
 
-    var canSubmitReminder: Bool {
-        editingReminderID != nil || canAddSubmittedReminder
+    func addProject(_ project: TaskProject) -> Bool {
+        guard dailyTaskGroups.addProject(project, selecting: true) else { return false }
+        draftProjectID = project.id
+        return true
     }
 
-    func addProject(_ project: TaskProject) {
-        projects.append(project)
-        selectedProjectID = project.id
-        saveCurrentDailyGroup()
-    }
-
-    func updateProject(_ project: TaskProject) {
+    func updateProject(_ project: TaskProject) -> Bool {
         dailyTaskGroups.updateProject(project)
-        projects = dailyTaskGroups.projects(forDayID: activeDayID)
     }
 
-    func deleteProject(_ projectID: TaskProject.ID) {
-        dailyTaskGroups.deleteProject(withID: projectID)
-
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            reminders = dailyTaskGroups.reminders(forDayID: activeDayID)
-        }
-        projects = dailyTaskGroups.projects(forDayID: activeDayID)
-        selectedProjectID = dailyTaskGroups.selectedProjectID(forDayID: activeDayID)
+    func deleteProject(_ projectID: TaskProject.ID) -> Bool {
+        guard dailyTaskGroups.deleteProject(withID: projectID) else { return false }
+        draftProjectID = availableProjectID(draftProjectID)
+        return true
     }
 
-    func selectProject(_ projectID: TaskProject.ID?) {
-        selectedProjectID = projectID
-        saveCurrentDailyGroup()
+    func selectProject(_ projectID: TaskProject.ID?) -> Bool {
+        let availableProjectID = availableProjectID(projectID)
+        guard dailyTaskGroups.selectProject(availableProjectID) else { return false }
+        draftProjectID = availableProjectID
+        return true
     }
 
     func scrollToReminderListBottomAfterKeyboardFocus() {
@@ -220,31 +181,36 @@ extension CreateView {
     }
 
     func toggleReminder(_ reminder: CreateReminder) {
+        var updatedReminders = reminders
         let didToggle = CreateReminderCompletionVisibility.toggleReminderWithCompletionFeedback(
             reminder,
-            in: &reminders,
+            in: &updatedReminders,
             showsOnlyUnsolved: showsOnlyUnsolvedTasks,
             visibleIDs: $temporarilyVisibleCompletedReminderIDs,
             hapticFeedback: hapticFeedback,
-            persist: { _ in }
+            persist: { dailyTaskGroups.setReminders($0, forDayID: activeDayID) }
         )
         guard didToggle else { return }
-
-        saveCurrentDailyGroup()
     }
 
     func deleteReminder(_ reminder: CreateReminder) {
-        guard let index = reminders.firstIndex(where: { $0.id == reminder.id }) else { return }
+        var updatedReminders = reminders
+        guard let index = updatedReminders.firstIndex(where: { $0.id == reminder.id }) else { return }
 
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+        let didDelete = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            _ = updatedReminders.remove(at: index)
+            guard dailyTaskGroups.setReminders(updatedReminders, forDayID: activeDayID) else {
+                return false
+            }
             temporarilyVisibleCompletedReminderIDs.remove(reminder.id)
-            _ = reminders.remove(at: index)
+            return true
         }
+        guard didDelete else { return }
+
         if editingReminderID == reminder.id {
             editingReminderID = nil
             message = ""
         }
-        saveCurrentDailyGroup()
     }
 
     var canCompleteAllReminders: Bool {
@@ -254,17 +220,22 @@ extension CreateView {
     func completeAllRemindersForCurrentDay() {
         guard canCompleteAllReminders else { return }
 
-        hapticFeedback.play(.createTaskSubmit)
         let completedReminderIDs = reminders.filter { !$0.isCompleted }.map(\.id)
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+        let completedReminders = CreateReminderBatchCompletion.completingAll(reminders)
+        let didComplete = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            guard dailyTaskGroups.setReminders(completedReminders, forDayID: activeDayID) else {
+                return false
+            }
             CreateReminderCompletionVisibility.retainCompletedReminderIDs(
                 completedReminderIDs,
                 isNeeded: showsOnlyUnsolvedTasks,
                 visibleIDs: &temporarilyVisibleCompletedReminderIDs
             )
-            reminders = CreateReminderBatchCompletion.completingAll(reminders)
+            return true
         }
-        saveCurrentDailyGroup()
+        guard didComplete else { return }
+
+        hapticFeedback.play(.createTaskSubmit)
         CreateReminderCompletionVisibility.scheduleRemoval(of: completedReminderIDs, isNeeded: showsOnlyUnsolvedTasks, visibleIDs: $temporarilyVisibleCompletedReminderIDs)
     }
 
@@ -276,44 +247,10 @@ extension CreateView {
         )
     }
 
-    func saveCurrentReminders() {
-        saveCurrentDailyGroup()
-    }
-
-    func saveCurrentDailyGroup() {
-        dailyTaskGroups.save(
-            reminders: reminders,
-            projects: projects,
-            selectedProjectID: selectedProjectID,
-            forDayID: activeDayID
-        )
-    }
-
-    func playSwipeDeleteThresholdFeedback() {
-        hapticFeedback.play(.createTaskSubmit)
-    }
-
-    var barSpacing: CGFloat { max(0, isKeyboardPresented ? focusedKeyboardSpacing : 0) }
-
-    func barWidth(in proxy: GeometryProxy) -> CGFloat {
-        BottomComposerBarLayout.width(in: proxy, edgePadding: barEdgePadding)
-    }
-
-    func barBottomPadding(in proxy: GeometryProxy) -> CGFloat {
-        BottomComposerBarLayout.bottomPadding(
-            isKeyboardPresented: isKeyboardPresented,
-            focusedPadding: focusedEdgePadding,
-            collapsedPadding: collapsedEdgePadding,
-            safeAreaBottom: proxy.safeAreaInsets.bottom
-        )
-    }
-
-    var barEdgePadding: CGFloat { isKeyboardPresented ? focusedEdgePadding : collapsedEdgePadding }
-
     var projectSheet: some View {
         CreateSheet(
-            projects: $projects,
-            selectedProjectID: $selectedProjectID,
+            projects: projects,
+            selectedProjectID: draftProjectID,
             allReminders: dailyTaskGroups.allReminders(),
             onCreateProject: addProject,
             onSelectProject: selectProject,
@@ -343,17 +280,16 @@ extension CreateView {
         let newDayID = DailyTaskGroupStore.dayID(for: date)
         guard newDayID != activeDayID else { return }
 
-        saveCurrentDailyGroup()
         activeDayID = newDayID
+        draftProjectID = availableProjectID(dailyTaskGroups.selectedProjectID)
         editingReminderID = nil
         message = ""
         temporarilyVisibleCompletedReminderIDs.removeAll()
         pendingScrollTargetID = nil
-        loadDailyGroup()
     }
 
     @ViewBuilder
-    func content(in proxy: GeometryProxy) -> some View {
+    var content: some View {
         if CreateViewContentMode.usesScrollView(
             reminderCount: reminders.count,
             carryForwardPreviewCount: carryForwardPreviewReminders.count
@@ -364,8 +300,7 @@ extension CreateView {
                     carryForwardPreviewReminders: carryForwardPreviewReminders,
                     sectionTitle: CreateReminderListSection.headerTitle(for: currentDayDate),
                     reminderCount: reminders.count,
-                projects: projects,
-                    onSwipeDeleteThreshold: playSwipeDeleteThresholdFeedback,
+                    projects: projects,
                     onToggleReminder: toggleReminder,
                     onEditReminder: beginEditingReminder,
                     onDeleteReminder: deleteReminder,
