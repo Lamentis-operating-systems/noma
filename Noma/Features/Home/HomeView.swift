@@ -1,8 +1,7 @@
 import SwiftUI
 
 enum HomeRoute: Hashable {
-    case create(dayID: String)
-    case project(TaskProject.ID)
+    case create
 }
 
 enum HomeViewLayout {
@@ -18,7 +17,6 @@ struct HomeView: View {
     @Environment(\.hapticFeedback) var hapticFeedback
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @Environment(DailyTaskNotificationScheduler.self) var dailyTaskNotifications
-    @Environment(AppSettingsStore.self) var appSettings
     @State var path: [HomeRoute] = []
     @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     @State var isHomeHeaderVisible = true
@@ -49,10 +47,8 @@ struct HomeView: View {
                     }
                     .navigationDestination(for: HomeRoute.self) { route in
                         switch route {
-                        case let .create(dayID):
-                            CreateView(dayID: dayID)
-                        case let .project(projectID):
-                            ProjectDetailView(projectID: projectID)
+                        case .create:
+                            CreateView()
                         }
                     }
                     .toolbar {
@@ -61,7 +57,6 @@ struct HomeView: View {
                         }
                     }
                     .onChange(of: dailyTaskGroups.groups, initial: true) { _, _ in refreshDailyTaskNotifications() }
-                    .onChange(of: appSettings.notificationSettings) { _, _ in refreshDailyTaskNotifications() }
                 }
                 .overlay(alignment: .topLeading) {
                     if path.isEmpty {

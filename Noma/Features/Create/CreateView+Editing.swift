@@ -9,7 +9,6 @@ extension CreateView {
 
         editingReminderID = nil
         message = ""
-        draftProjectID = availableProjectID(dailyTaskGroups.selectedProjectID)
         isInputFocused = false
     }
 
@@ -28,7 +27,7 @@ extension CreateView {
             editingReminderID: editingReminderID,
             submittedText: submittedText,
             projects: projects,
-            selectedProjectID: draftProjectID
+            selectedProjectID: nil
         ) else { return false }
 
         let didPersist = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
@@ -47,7 +46,6 @@ extension CreateView {
     func beginEditingReminder(_ reminder: CreateReminder) {
         editingReminderID = reminder.id
         message = reminder.text
-        draftProjectID = availableProjectID(reminder.projectID)
         isInputFocused = true
     }
 }

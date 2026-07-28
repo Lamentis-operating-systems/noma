@@ -10,26 +10,8 @@ extension DailyTaskGroupSummary {
     }
 }
 
-extension CommonProjectSummary {
-    var taskUnitKey: String {
-        taskCount == 1 ? "create.projects.stats.task.singular" : "create.projects.stats.task.plural"
-    }
-}
-
-enum CommonProjectsSection {
-    static let headerTitleKey = "home.common-projects.section-header"
-
-    static func taskCountText(for summary: CommonProjectSummary) -> String {
-        "\(summary.taskCount)"
-    }
-}
-
 enum HomeTodaySection {
     static let headerTitleKey = "home.today.section-header"
-}
-
-enum DailyTaskGroupsSection {
-    static let headerTitleKey = "home.daily-groups.section-header"
 }
 
 enum DailyTaskGroupsProgressCopy {

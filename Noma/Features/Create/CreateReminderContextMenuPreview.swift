@@ -15,13 +15,9 @@ enum CreateReminderContextMenuPreviewShape {
 
 struct CreateReminderContextMenuPreview: View {
     let reminder: CreateReminder
-    let project: TaskProject?
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            CreateReminderProjectIcon(project: project)
-                .padding(.trailing, CreateReminderMetadataIconLayout.spacingToText)
-
             Text(reminder.text)
                 .font(.headline.weight(.regular))
                 .foregroundStyle(.textPrimary)

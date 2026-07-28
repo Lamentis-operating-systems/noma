@@ -2,7 +2,7 @@
 import XCTest
 
 final class CreateReminderEditingTests: XCTestCase {
-    func testEditingReminderUpdatesExistingTaskTextAndProjectWithoutAppending() {
+    func testEditingReminderUpdatesTextWithoutRestoringLegacyProjectAssociation() {
         let reminderID = UUID(uuidString: "00000000-0000-0000-0000-000000000072")!
         let originalProjectID = UUID(uuidString: "00000000-0000-0000-0000-000000000073")!
         let updatedProject = TaskProject(
@@ -30,7 +30,7 @@ final class CreateReminderEditingTests: XCTestCase {
         XCTAssertEqual(updatedReminders?.first?.id, reminderID)
         XCTAssertEqual(updatedReminders?.first?.text, "New copy")
         XCTAssertEqual(updatedReminders?.first?.isCompleted, true)
-        XCTAssertEqual(updatedReminders?.first?.projectID, updatedProject.id)
+        XCTAssertNil(updatedReminders?.first?.projectID)
         XCTAssertEqual(updatedReminders?.first?.createdAt, existingReminder.createdAt)
         XCTAssertEqual(updatedReminders?.first?.carryForwardCount, 2)
         XCTAssertEqual(updatedReminders?.first?.wasCarriedForward, true)

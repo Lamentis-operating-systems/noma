@@ -58,7 +58,7 @@ private enum UserDefaultsDailyTaskGroupDataStoreError: Error {
 }
 
 struct DailyTaskGroupPersistenceEnvelope: Codable, Equatable {
-    static let currentSchemaVersion = 1
+    static let currentSchemaVersion = 2
 
     let schemaVersion: Int
     let state: DailyTaskGroupState
@@ -105,7 +105,7 @@ struct DailyTaskGroupStorage: DailyTaskGroupPersisting {
 
         let decoder = JSONDecoder()
         if let header = try? decoder.decode(DailyTaskGroupEnvelopeHeader.self, from: data) {
-            guard header.schemaVersion == DailyTaskGroupPersistenceEnvelope.currentSchemaVersion else {
+            guard [1, DailyTaskGroupPersistenceEnvelope.currentSchemaVersion].contains(header.schemaVersion) else {
                 return .failure(.unsupportedVersion(header.schemaVersion))
             }
 
@@ -250,19 +250,11 @@ private struct LegacyDailyTaskGroupStateDTO: Decodable {
     }
 
     func migratedState() -> DailyTaskGroupState {
-        let allProjects = DailyTaskGroupStateCanonicalizer.uniqueProjects(
-            projects + groups.flatMap(\.projects)
-        )
-        let validProjectIDs = Set(allProjects.map(\.id))
-        let migratedSelectedProjectID = selectedProjectID ?? groups
-            .compactMap(\.selectedProjectID)
-            .first { validProjectIDs.contains($0) }
-
         return DailyTaskGroupStateCanonicalizer.canonicalState(
             DailyTaskGroupState(
                 groups: groups.map(\.currentGroup),
-                projects: allProjects,
-                selectedProjectID: migratedSelectedProjectID,
+                projects: projects + groups.flatMap(\.projects),
+                selectedProjectID: selectedProjectID ?? groups.compactMap(\.selectedProjectID).first,
                 recentlyDeletedProjects: recentlyDeletedProjects
             )
         )

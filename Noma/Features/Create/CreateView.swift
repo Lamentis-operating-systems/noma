@@ -17,13 +17,9 @@ struct CreateView: View {
     @Environment(\.hapticFeedback) var hapticFeedback
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @State var message = ""
-    @State var draftProjectID: TaskProject.ID?
     @State var editingReminderID: CreateReminder.ID?
     @State var isKeyboardPresented = false
-    @State var isProjectSheetPresented = false
-    @State var isDatePickerSheetPresented = false
     @State var activeDayID: String
-    @State var datePickerSelection: Date
     @AppStorage(CreateReminderFilterPreference.storageKey) var showsOnlyUnsolvedTasks = false
     @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     @State var pendingScrollTargetID: String?
@@ -31,13 +27,12 @@ struct CreateView: View {
 
     init(dayID: String = DailyTaskGroupStore.todayID()) {
         _activeDayID = State(initialValue: dayID)
-        _datePickerSelection = State(initialValue: DailyTaskGroupStore.date(forDayID: dayID) ?? Date())
     }
 
     var body: some View {
         TaskWorkspaceShell(
             isKeyboardPresented: $isKeyboardPresented,
-            isModalPresented: isProjectSheetPresented,
+            isModalPresented: false,
             isInputFocused: $isInputFocused,
             onKeyboardPresented: scrollToReminderListBottomAfterKeyboardFocus
         ) {
@@ -45,23 +40,14 @@ struct CreateView: View {
         } composer: {
             bottomComposerContent
         }
-        .onChange(of: dailyTaskGroups.selectedProjectID, initial: true) { _, selectedProjectID in
-            guard editingReminderID == nil else { return }
-            draftProjectID = availableProjectID(selectedProjectID)
-        }
         .onChange(of: message) { _, draftText in
             resetEditingIfDraftWasCleared(draftText)
         }
         .onChange(of: reminders, initial: true) { _, currentReminders in
             reconcileEditingState(with: currentReminders)
         }
-        .onChange(of: dailyTaskGroups.projectExpirationRevision) { _, _ in
-            draftProjectID = availableProjectID(draftProjectID)
-        }
         .toolbarTitleDisplayMode(.inline)
         .toolbar { createToolbar }
-        .sheet(isPresented: $isProjectSheetPresented) { projectSheet }
-        .sheet(isPresented: $isDatePickerSheetPresented) { datePickerSheet }
     }
 }
 

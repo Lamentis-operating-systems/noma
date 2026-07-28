@@ -98,14 +98,14 @@ struct PrimaryGlassButton: View {
 #Preview("Glass actions") {
     VStack(spacing: NomaSpacing.xl) {
         PrimaryGlassButton(title: "create.button.title", systemImage: "square.and.pencil") {}
-        PrimaryGlassButton(title: "create.project.create-button", width: .fullWidth) {}
+        PrimaryGlassButton(title: "create.button.title", width: .fullWidth) {}
         PrimaryGlassButton(
-            title: "create.project.save-button",
+            title: "create.button.title",
             width: .fullWidth,
             isDisabled: true
         ) {}
         PrimaryGlassButton(
-            title: "create.project.save-button",
+            title: "create.button.title",
             width: .fullWidth,
             isLoading: true
         ) {}

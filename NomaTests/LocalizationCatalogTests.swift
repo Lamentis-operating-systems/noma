@@ -29,14 +29,27 @@ final class LocalizationCatalogTests: XCTestCase {
         }
     }
 
-    func testEveryProjectIconAccessibilityKeyExistsInBothLocales() throws {
-        let catalog = try loadCatalog()
+    func testHomeEmptySubtitleUsesTaskOnlyCopyInBothLocales() throws {
+        let entry = try XCTUnwrap(loadCatalog().strings["home.empty.subtitle"])
 
-        for option in ProjectIconPickerOption.icons {
-            let entry = try XCTUnwrap(catalog.strings[option.accessibilityLabelKey])
-            XCTAssertFalse(entry.localizations?["en"]?.stringUnit.value.isEmpty ?? true)
-            XCTAssertFalse(entry.localizations?["de"]?.stringUnit.value.isEmpty ?? true)
-        }
+        XCTAssertEqual(
+            entry.localizations?["en"]?.stringUnit.value,
+            "Create a task to start shaping your day here."
+        )
+        XCTAssertEqual(
+            entry.localizations?["de"]?.stringUnit.value,
+            "Erstelle eine Aufgabe, damit dein Tag hier Gestalt annimmt."
+        )
+    }
+
+    func testNotificationSettingsLocalizationKeysAreRemoved() throws {
+        let strings = try loadCatalog().strings
+
+        XCTAssertNil(strings["settings.notifications.close.accessibility-label"])
+        XCTAssertNil(strings["settings.notifications.daily-planning"])
+        XCTAssertNil(strings["settings.notifications.open-tasks"])
+        XCTAssertNil(strings["settings.notifications.section-title"])
+        XCTAssertNil(strings["settings.notifications.time"])
     }
 
     private func loadCatalog() throws -> Catalog {

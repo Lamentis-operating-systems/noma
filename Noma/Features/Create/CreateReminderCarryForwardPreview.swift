@@ -22,11 +22,9 @@ enum CreateReminderCarryForwardPreview {
 
 private struct CarryForwardReminderKey: Hashable {
     let text: String
-    let projectID: TaskProject.ID?
 
     nonisolated init(reminder: CreateReminder) {
         self.text = reminder.text
-        self.projectID = reminder.projectID
     }
 }
 
@@ -38,9 +36,6 @@ struct CreateReminderCarryForwardPreviewRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            CreateReminderProjectIcon(project: project, color: .textSecondary)
-                .padding(.trailing, CreateReminderMetadataIconLayout.spacingToText)
-
             Button(action: onCarryForward) {
                 Text(reminder.text)
                     .font(.headline.weight(reminder.wasCarriedForward ? .bold : .regular))

@@ -5,6 +5,7 @@ import UserNotifications
 
 enum NomaUITestScenario: String {
     case signup
+    case empty
     case workspace
 }
 
@@ -58,7 +59,7 @@ struct NomaUITestLaunchConfiguration: Equatable {
         let authState = AuthStateManager(
             authClient: UnconfiguredAuthClient(error: NomaUITestLaunchError.authenticationUnavailable)
         )
-        authState.phase = scenario == .workspace ? .signedIn : .signedOut
+        authState.phase = scenario == .signup ? .signedOut : .signedIn
 
         let persistence = NomaUITestDailyTaskGroupPersistence(initialState: seedState)
         let dailyTaskGroups = DailyTaskGroupStore(
@@ -78,12 +79,6 @@ struct NomaUITestLaunchConfiguration: Equatable {
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let project = TaskProject(
-            id: Self.workspaceProjectID,
-            title: "UITest Project",
-            symbolName: "folder",
-            colorIndex: 0
-        )
         let todayGroup = DailyTaskGroup(
             id: DailyTaskGroupStore.dayID(for: today, calendar: calendar),
             date: today,
@@ -91,12 +86,11 @@ struct NomaUITestLaunchConfiguration: Equatable {
                 CreateReminder(
                     id: Self.workspaceTodayReminderID,
                     text: "UITest Task",
-                    projectID: project.id,
                     createdAt: today
                 )
             ]
         )
-        let historicalGroups = (1...14).compactMap { dayOffset -> DailyTaskGroup? in
+        let historicalGroups = (1...1).compactMap { dayOffset -> DailyTaskGroup? in
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today),
                   let reminderID = UUID(
                     uuidString: String(
@@ -113,7 +107,6 @@ struct NomaUITestLaunchConfiguration: Equatable {
                     CreateReminder(
                         id: reminderID,
                         text: "UITest History \(dayOffset)",
-                        projectID: project.id,
                         createdAt: date
                     )
                 ]
@@ -122,8 +115,8 @@ struct NomaUITestLaunchConfiguration: Equatable {
 
         return DailyTaskGroupState(
             groups: [todayGroup] + historicalGroups,
-            projects: [project],
-            selectedProjectID: project.id
+            projects: [],
+            selectedProjectID: nil
         )
     }
 
@@ -134,7 +127,6 @@ struct NomaUITestLaunchConfiguration: Equatable {
         return arguments[valueIndex]
     }
 
-    static let workspaceProjectID = UUID(uuidString: "00000000-0000-0000-0000-00000000A001")!
     static let workspaceTodayReminderID = UUID(uuidString: "00000000-0000-0000-0000-00000000A002")!
 }
 
@@ -196,7 +188,7 @@ struct NomaUITestRootView: View {
             switch configuration.scenario {
             case .signup:
                 SignupView {}
-            case .workspace:
+            case .empty, .workspace:
                 HomeView()
             }
         }

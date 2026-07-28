@@ -17,8 +17,6 @@ final class EmptyAccountDataTests: XCTestCase {
         )
 
         XCTAssertTrue(store.groups.isEmpty)
-        XCTAssertTrue(store.projects.isEmpty)
-        XCTAssertTrue(store.recentlyDeletedProjects.isEmpty)
-        XCTAssertNil(store.selectedProjectID)
+        XCTAssertNil(store.persistenceError)
     }
 }

@@ -31,6 +31,29 @@ struct DailyTaskGroupState: Codable, Equatable {
         projects: [],
         selectedProjectID: nil
     )
+
+    enum CodingKeys: String, CodingKey {
+        case groups
+        case projects
+        case selectedProjectID
+        case recentlyDeletedProjects
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        groups = try container.decode([DailyTaskGroup].self, forKey: .groups)
+        projects = try container.decodeIfPresent([TaskProject].self, forKey: .projects) ?? []
+        selectedProjectID = try container.decodeIfPresent(TaskProject.ID.self, forKey: .selectedProjectID)
+        recentlyDeletedProjects = try container.decodeIfPresent(
+            [RecentlyDeletedProject].self,
+            forKey: .recentlyDeletedProjects
+        ) ?? []
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(groups, forKey: .groups)
+    }
 }
 
 struct RecentlyDeletedProject: Codable, Equatable, Identifiable {
@@ -58,49 +81,45 @@ struct DailyTaskGroupSummary: Equatable, Identifiable {
     var isCompleted: Bool { taskCount > 0 && completedTaskCount == taskCount }
 }
 
-struct CommonProjectSummary: Equatable, Identifiable {
-    let project: TaskProject
-    let taskCount: Int
-    let unsolvedTaskCount: Int
-
-    var id: TaskProject.ID { project.id }
-}
-
 enum DailyTaskGroupStateCanonicalizer {
     static func canonicalState(_ state: DailyTaskGroupState) -> DailyTaskGroupState {
-        let projects = uniqueProjects(state.projects)
-        let validProjectIDs = Set(projects.map(\.id))
-        let groups = state.groups
-            .compactMap { group -> DailyTaskGroup? in
-                let reminders = group.reminders.filter { reminder in
-                    guard let projectID = reminder.projectID else { return true }
-                    return validProjectIDs.contains(projectID)
+        var groupsByID = Dictionary(uniqueKeysWithValues: state.groups.map { ($0.id, $0) })
+
+        for deletedProject in state.recentlyDeletedProjects {
+            for snapshot in deletedProject.taskSnapshots {
+                if var group = groupsByID[snapshot.dayID] {
+                    if !group.reminders.contains(where: { $0.id == snapshot.reminder.id }) {
+                        group.reminders.append(snapshot.reminder)
+                        groupsByID[snapshot.dayID] = group
+                    }
+                } else {
+                    groupsByID[snapshot.dayID] = DailyTaskGroup(
+                        id: snapshot.dayID,
+                        date: snapshot.dayDate,
+                        reminders: [snapshot.reminder]
+                    )
                 }
-                guard !reminders.isEmpty else { return nil }
-                return DailyTaskGroup(id: group.id, date: group.date, reminders: reminders)
             }
-            .sorted { $0.date > $1.date }
-        let selectedProjectID = state.selectedProjectID.flatMap { projectID in
-            validProjectIDs.contains(projectID) ? projectID : nil
         }
 
         return DailyTaskGroupState(
-            groups: groups,
-            projects: projects,
-            selectedProjectID: selectedProjectID,
-            recentlyDeletedProjects: uniqueRecentlyDeletedProjects(state.recentlyDeletedProjects)
+            groups: groupsByID.values
+                .compactMap { group in
+                    let reminders = uniqueReminders(group.reminders)
+                        .map { $0.removingProjectAssociation() }
+                    guard !reminders.isEmpty else { return nil }
+                    return DailyTaskGroup(id: group.id, date: group.date, reminders: reminders)
+                }
+                .sorted { $0.date > $1.date },
+            projects: [],
+            selectedProjectID: nil,
+            recentlyDeletedProjects: []
         )
     }
 
-    static func uniqueProjects(_ projects: [TaskProject]) -> [TaskProject] {
-        var seenIDs = Set<TaskProject.ID>()
-        return projects.filter { seenIDs.insert($0.id).inserted }
+    private static func uniqueReminders(_ reminders: [CreateReminder]) -> [CreateReminder] {
+        var seenIDs = Set<CreateReminder.ID>()
+        return reminders.filter { seenIDs.insert($0.id).inserted }
     }
 
-    private static func uniqueRecentlyDeletedProjects(
-        _ projects: [RecentlyDeletedProject]
-    ) -> [RecentlyDeletedProject] {
-        var seenIDs = Set<TaskProject.ID>()
-        return projects.filter { seenIDs.insert($0.project.id).inserted }
-    }
 }

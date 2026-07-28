@@ -3,22 +3,18 @@ import SwiftUI
 struct TaskWorkspaceToolbar: ToolbarContent {
     let title: String
     let subtitle: String
-    let titleAccessibilityLabelKey: String
     let isDoneDisabled: Bool
     let isFilterActive: Bool
     let isFilterDisabled: Bool
-    let onTitleTap: () -> Void
     let onDone: () -> Void
     let onFilter: () -> Void
 
     @ToolbarContentBuilder
     var body: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            TaskNavigationTitleButton(
+            TaskNavigationTitle(
                 title: title,
-                subtitle: subtitle,
-                accessibilityLabelKey: titleAccessibilityLabelKey,
-                action: onTitleTap
+                subtitle: subtitle
             )
         }
 
@@ -38,27 +34,22 @@ struct TaskWorkspaceToolbar: ToolbarContent {
     }
 }
 
-private struct TaskNavigationTitleButton: View {
+private struct TaskNavigationTitle: View {
     let title: String
     let subtitle: String
-    let accessibilityLabelKey: String
-    let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.textPrimary)
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.textPrimary)
 
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.textSecondary)
-            }
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundStyle(.textSecondary)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text(LocalizedStringKey(accessibilityLabelKey)))
-        .accessibilityIdentifier("task-workspace-title-button")
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("task-workspace-title")
     }
 }
 
