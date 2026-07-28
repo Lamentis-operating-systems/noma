@@ -1,68 +1,17 @@
 import Foundation
 import SwiftUI
 
-struct CreateReminder: Codable, Equatable, Identifiable {
-    let id: UUID
-    let text: String
-    let isCompleted: Bool
-    let projectID: TaskProject.ID?
-    let createdAt: Date
-    let carryForwardCount: Int
-
-    init(
-        id: UUID = UUID(),
-        text: String,
-        isCompleted: Bool = false,
-        projectID: TaskProject.ID? = nil,
-        createdAt: Date = Date(),
-        carryForwardCount: Int = 0
-    ) {
-        self.id = id
-        self.text = text
-        self.isCompleted = isCompleted
-        self.projectID = projectID
-        self.createdAt = createdAt
-        self.carryForwardCount = carryForwardCount
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case text
-        case isCompleted
-        case projectID
-        case createdAt
-        case carryForwardCount
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        text = try container.decode(String.self, forKey: .text)
-        isCompleted = try container.decode(Bool.self, forKey: .isCompleted)
-        projectID = try container.decodeIfPresent(TaskProject.ID.self, forKey: .projectID)
-        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? .distantPast
-        carryForwardCount = try container.decodeIfPresent(Int.self, forKey: .carryForwardCount) ?? 0
-    }
-
-    var wasCarriedForward: Bool {
-        carryForwardCount > 0
-    }
-
-    func togglingCompletion() -> CreateReminder {
-        CreateReminder(
-            id: id,
-            text: text,
-            isCompleted: !isCompleted,
-            projectID: projectID,
-            createdAt: createdAt,
-            carryForwardCount: carryForwardCount
-        )
-    }
-}
-
 struct CreateReminderSubmissionResult: Equatable {
     let reminder: CreateReminder
     let remainingText: String
+}
+
+struct CreateReminderSubmissionRoute: Equatable {
+    let originatingDayID: String
+
+    func isOriginatingDayStillActive(_ activeDayID: String) -> Bool {
+        activeDayID == originatingDayID
+    }
 }
 
 enum CreateReminderSubmission {
@@ -109,20 +58,6 @@ enum CreateReminderSubmission {
     }
 }
 
-enum CreateReminderDraftReconciliation {
-    static func reconciledDraft(
-        currentDraft: String,
-        submittedText: String,
-        remainingText: String
-    ) -> String {
-        guard currentDraft.isEmpty || currentDraft == submittedText else {
-            return currentDraft
-        }
-
-        return remainingText
-    }
-}
-
 enum CreateReminderSubmittedProjectResolution {
     static func projectID(
         submittedProjectID: TaskProject.ID?,
@@ -163,19 +98,20 @@ enum CreateReminderSubmissionPersistence {
         )
     }
 
-    static func updatedRemindersAfterAppending(
-        sourceReminders: [CreateReminder],
-        submission: CreateReminderSubmissionResult,
+    @discardableResult
+    static func append(
+        _ submission: CreateReminderSubmissionResult,
+        to reminders: inout [CreateReminder],
         projects: [TaskProject],
         selectedProjectID: TaskProject.ID?
-    ) -> [CreateReminder]? {
-        return sourceReminders + [
-            submittedReminder(
-                from: submission,
-                projects: projects,
-                selectedProjectID: selectedProjectID
-            )
-        ]
+    ) -> CreateReminder {
+        let reminder = submittedReminder(
+            from: submission,
+            projects: projects,
+            selectedProjectID: selectedProjectID
+        )
+        reminders.append(reminder)
+        return reminder
     }
 }
 
@@ -246,28 +182,40 @@ enum CreateReminderCompletionVisibility {
         showsOnlyUnsolved: Bool,
         visibleIDs: Binding<Set<CreateReminder.ID>>,
         hapticFeedback: HapticFeedbackService,
-        persist: ([CreateReminder]) -> Void
+        persist: ([CreateReminder]) -> Bool
     ) -> Bool {
-        var keepsVisible = false
-        var updatedReminder: CreateReminder?
-        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
-            let visibility = toggleReminder(
-                reminder,
-                in: &reminders,
-                showsOnlyUnsolved: showsOnlyUnsolved,
-                visibleIDs: &visibleIDs.wrappedValue
-            )
-            updatedReminder = visibility?.updatedReminder
-            keepsVisible = visibility?.keepsVisible ?? false
+        let originalReminders = reminders
+        var nextVisibleIDs = visibleIDs.wrappedValue
+        guard let visibility = toggleReminder(
+            reminder,
+            in: &reminders,
+            showsOnlyUnsolved: showsOnlyUnsolved,
+            visibleIDs: &nextVisibleIDs
+        ) else { return false }
+
+        let didPersist = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
             persist(reminders)
         }
-        guard let updatedReminder else { return false }
+        guard didPersist else {
+            reminders = originalReminders
+            return false
+        }
 
-        if let feedback = CreateReminderCompletionFeedback.feedback(isCompleted: updatedReminder.isCompleted) {
+        withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
+            visibleIDs.wrappedValue = nextVisibleIDs
+        }
+
+        if let feedback = CreateReminderCompletionFeedback.feedback(
+            isCompleted: visibility.updatedReminder.isCompleted
+        ) {
             hapticFeedback.play(feedback)
         }
 
-        scheduleRemoval(of: [updatedReminder.id], isNeeded: keepsVisible, visibleIDs: visibleIDs)
+        scheduleRemoval(
+            of: [visibility.updatedReminder.id],
+            isNeeded: visibility.keepsVisible,
+            visibleIDs: visibleIDs
+        )
         return true
     }
 
@@ -301,30 +249,10 @@ enum CreateReminderCompletionVisibility {
 
 }
 
-enum CreateReminderListOrganization {
-    static func sortedReminders(_ reminders: [CreateReminder]) -> [CreateReminder] {
-        reminders
-    }
-}
-
 enum CreateReminderBatchCompletion {
     static func completingAll(_ reminders: [CreateReminder]) -> [CreateReminder] {
         reminders.map { reminder in
             reminder.isCompleted ? reminder : reminder.togglingCompletion()
         }
-    }
-}
-
-enum CreateReminderFilterToolbarIcon {
-    static func systemImage(isActive _: Bool) -> String {
-        "line.3.horizontal.decrease"
-    }
-
-    static func usesActiveTint(isActive: Bool) -> Bool {
-        isActive
-    }
-
-    static func foregroundColor(isActive: Bool) -> Color {
-        usesActiveTint(isActive: isActive) ? .accentColor : .textPrimary
     }
 }

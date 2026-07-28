@@ -5,7 +5,6 @@ struct HomeTodaySectionView: View {
     let projects: [TaskProject]
     let onToggleReminder: (CreateReminder) -> Void
     let onDeleteReminder: (CreateReminder) -> Void
-    let onSwipeDeleteThreshold: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -15,8 +14,7 @@ struct HomeTodaySectionView: View {
                 reminders: reminders,
                 projects: projects,
                 onToggleReminder: onToggleReminder,
-                onDeleteReminder: onDeleteReminder,
-                onSwipeDeleteThreshold: onSwipeDeleteThreshold
+                onDeleteReminder: onDeleteReminder
             )
         }
     }

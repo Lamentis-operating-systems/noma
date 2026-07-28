@@ -65,35 +65,6 @@ struct CreateReminderCarryForwardPreviewRow: View {
     }
 }
 
-enum CreateReminderCarryForwardCompletion {
-    static func completing(_ reminder: CreateReminder, in reminders: [CreateReminder]) -> [CreateReminder] {
-        reminders.map { storedReminder in
-            storedReminder.id == reminder.id && !storedReminder.isCompleted
-                ? storedReminder.togglingCompletion()
-                : storedReminder
-        }
-    }
-}
-
-enum CreateReminderCarryForwardTransfer {
-    static func carriedReminder(from reminder: CreateReminder) -> CreateReminder {
-        CreateReminder(
-            text: reminder.text,
-            projectID: reminder.projectID,
-            createdAt: reminder.createdAt,
-            carryForwardCount: reminder.carryForwardCount + 1
-        )
-    }
-
-    static func sourceRemindersAfterTransfer(
-        sourceReminders: [CreateReminder],
-        transferredReminders: [CreateReminder]
-    ) -> [CreateReminder] {
-        let transferredIDs = Set(transferredReminders.map(\.id))
-        return sourceReminders.filter { !transferredIDs.contains($0.id) }
-    }
-}
-
 struct CreateReminderRowGestureOverlay: UIViewRepresentable {
     var onTap: () -> Void
     var onSwipeChanged: (CGSize) -> Void

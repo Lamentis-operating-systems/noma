@@ -149,7 +149,22 @@ enum CreateReminderSwipeAction {
     static func shouldDelete(offset: CGFloat) -> Bool { abs(offset) >= deleteThreshold }
 
     static func feedback(previousOffset: CGFloat, currentOffset: CGFloat) -> HapticFeedbackClass? {
-        !shouldDelete(offset: previousOffset) && shouldDelete(offset: currentOffset) ? .createTaskSubmit : nil
+        !shouldDelete(offset: previousOffset) && shouldDelete(offset: currentOffset)
+            ? .taskSwipeDeleteThreshold
+            : nil
+    }
+
+    static func playFeedbackIfNeeded(
+        previousOffset: CGFloat,
+        currentOffset: CGFloat,
+        using hapticFeedback: HapticFeedbackService
+    ) {
+        guard let feedback = feedback(
+            previousOffset: previousOffset,
+            currentOffset: currentOffset
+        ) else { return }
+
+        hapticFeedback.play(feedback)
     }
 }
 
@@ -180,7 +195,6 @@ struct CreateReminderList: View {
     let sectionTitle: String
     let reminderCount: Int
     let projects: [TaskProject]
-    let onSwipeDeleteThreshold: () -> Void
     let onToggleReminder: (CreateReminder) -> Void, onEditReminder: (CreateReminder) -> Void, onDeleteReminder: (CreateReminder) -> Void
     let onCarryForwardReminder: (CreateReminder) -> Void
     let onCompleteCarryForwardReminder: (CreateReminder) -> Void
@@ -207,8 +221,7 @@ struct CreateReminderList: View {
                     projects: projects,
                     onToggleReminder: onToggleReminder,
                     onEditReminder: onEditReminder,
-                    onDeleteReminder: onDeleteReminder,
-                    onSwipeDeleteThreshold: onSwipeDeleteThreshold
+                    onDeleteReminder: onDeleteReminder
                 )
 
                 if !carryForwardPreviewReminders.isEmpty {

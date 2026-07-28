@@ -13,12 +13,16 @@ enum ProjectIconPickerSheetCopy {
 }
 
 enum ProjectIconPickerSheetLayout {
-    static let usesLargeDetent = true
-    static let colorPickerUsesSafeAreaPadding = true
-    static let iconGridUsesTopSafeAreaPadding = true
     static let colorOptionSize = NomaSize.projectColorOption
     static let selectedColorBorderWidth = NomaSize.projectColorSelectionBorder
     static let doneSystemImage = "checkmark"
+}
+
+struct ProjectIconOption: Identifiable, Equatable {
+    let symbolName: String
+    let accessibilityLabelKey: String
+
+    var id: String { symbolName }
 }
 
 enum ProjectIconPickerOption {
@@ -35,36 +39,36 @@ enum ProjectIconPickerOption {
         .purple
     ]
 
-    static let symbols = [
-        "folder",
-        "dollarsign.circle",
-        "book.closed",
-        "graduationcap",
-        "pencil",
-        "pencil.tip",
-        "curlybraces",
-        "terminal",
-        "music.note",
-        "popcorn",
-        "paintbrush",
-        "paintpalette",
-        "stethoscope",
-        "asterisk",
-        "leaf",
-        "briefcase",
-        "chart.bar",
-        "dumbbell",
-        "calendar",
-        "scalemass",
-        "globe.europe.africa",
-        "airplane",
-        "globe",
-        "wrench",
-        "pawprint",
-        "flask",
-        "brain",
-        "heart",
-        "gift"
+    static let icons = [
+        ProjectIconOption(symbolName: "folder", accessibilityLabelKey: "create.project.icon.accessibility.folder"),
+        ProjectIconOption(symbolName: "dollarsign.circle", accessibilityLabelKey: "create.project.icon.accessibility.finances"),
+        ProjectIconOption(symbolName: "book.closed", accessibilityLabelKey: "create.project.icon.accessibility.book"),
+        ProjectIconOption(symbolName: "graduationcap", accessibilityLabelKey: "create.project.icon.accessibility.education"),
+        ProjectIconOption(symbolName: "pencil", accessibilityLabelKey: "create.project.icon.accessibility.pencil"),
+        ProjectIconOption(symbolName: "pencil.tip", accessibilityLabelKey: "create.project.icon.accessibility.pen-tip"),
+        ProjectIconOption(symbolName: "curlybraces", accessibilityLabelKey: "create.project.icon.accessibility.code"),
+        ProjectIconOption(symbolName: "terminal", accessibilityLabelKey: "create.project.icon.accessibility.terminal"),
+        ProjectIconOption(symbolName: "music.note", accessibilityLabelKey: "create.project.icon.accessibility.music"),
+        ProjectIconOption(symbolName: "popcorn", accessibilityLabelKey: "create.project.icon.accessibility.movie"),
+        ProjectIconOption(symbolName: "paintbrush", accessibilityLabelKey: "create.project.icon.accessibility.paintbrush"),
+        ProjectIconOption(symbolName: "paintpalette", accessibilityLabelKey: "create.project.icon.accessibility.palette"),
+        ProjectIconOption(symbolName: "stethoscope", accessibilityLabelKey: "create.project.icon.accessibility.health"),
+        ProjectIconOption(symbolName: "asterisk", accessibilityLabelKey: "create.project.icon.accessibility.general"),
+        ProjectIconOption(symbolName: "leaf", accessibilityLabelKey: "create.project.icon.accessibility.nature"),
+        ProjectIconOption(symbolName: "briefcase", accessibilityLabelKey: "create.project.icon.accessibility.work"),
+        ProjectIconOption(symbolName: "chart.bar", accessibilityLabelKey: "create.project.icon.accessibility.chart"),
+        ProjectIconOption(symbolName: "dumbbell", accessibilityLabelKey: "create.project.icon.accessibility.fitness"),
+        ProjectIconOption(symbolName: "calendar", accessibilityLabelKey: "create.project.icon.accessibility.calendar"),
+        ProjectIconOption(symbolName: "scalemass", accessibilityLabelKey: "create.project.icon.accessibility.weight"),
+        ProjectIconOption(symbolName: "globe.europe.africa", accessibilityLabelKey: "create.project.icon.accessibility.europe"),
+        ProjectIconOption(symbolName: "airplane", accessibilityLabelKey: "create.project.icon.accessibility.travel"),
+        ProjectIconOption(symbolName: "globe", accessibilityLabelKey: "create.project.icon.accessibility.world"),
+        ProjectIconOption(symbolName: "wrench", accessibilityLabelKey: "create.project.icon.accessibility.tools"),
+        ProjectIconOption(symbolName: "pawprint", accessibilityLabelKey: "create.project.icon.accessibility.pets"),
+        ProjectIconOption(symbolName: "flask", accessibilityLabelKey: "create.project.icon.accessibility.science"),
+        ProjectIconOption(symbolName: "brain", accessibilityLabelKey: "create.project.icon.accessibility.mind"),
+        ProjectIconOption(symbolName: "heart", accessibilityLabelKey: "create.project.icon.accessibility.heart"),
+        ProjectIconOption(symbolName: "gift", accessibilityLabelKey: "create.project.icon.accessibility.gift")
     ]
 
     static func normalizedColorIndex(_ index: Int) -> Int {
@@ -123,6 +127,7 @@ struct ProjectIconPickerSheet: View {
             .foregroundStyle(.primaryBackground)
             .buttonStyle(.glassProminent)
             .accessibilityLabel(Text(LocalizedStringKey(ProjectIconPickerSheetCopy.doneAccessibilityLabelKey)))
+            .accessibilityIdentifier("project-icon-picker-done")
         }
     }
 }

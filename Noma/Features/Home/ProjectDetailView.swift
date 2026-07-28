@@ -1,18 +1,12 @@
 import SwiftUI
 
-enum ProjectDetailLayout {
-    static let collapsedEdgePadding = NomaSpacing.xxl
-    static let focusedEdgePadding = NomaSpacing.md
-    static let focusedKeyboardSpacing = NomaOffset.keyboardAccessoryOverlap
-}
-
 struct ProjectDetailView: View {
     let projectID: TaskProject.ID
 
+    @Environment(\.dismiss) var dismiss
     @Environment(\.hapticFeedback) var hapticFeedback
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @State var message = ""
-    @State var project: TaskProject?
     @State var isKeyboardPresented = false
     @State var isEditProjectSheetPresented = false
     @AppStorage(CreateReminderFilterPreference.storageKey) var showsOnlyUnsolvedTasks = false
@@ -21,33 +15,22 @@ struct ProjectDetailView: View {
     @FocusState var isInputFocused: Bool
 
     var body: some View {
-        GeometryReader { proxy in
-            ZStack {
-                Rectangle()
-                    .fill(.primaryBackground)
-                    .ignoresSafeArea(.container)
-
-                content
-            }
-            .safeAreaBar(edge: .bottom, spacing: barSpacing) {
-                composerBar
-                    .frame(width: barWidth(in: proxy), alignment: .leading)
-                    .padding(.bottom, barBottomPadding(in: proxy))
-            }
+        TaskWorkspaceShell(
+            isKeyboardPresented: $isKeyboardPresented,
+            isModalPresented: isEditProjectSheetPresented,
+            isInputFocused: $isInputFocused,
+            onKeyboardPresented: scrollToLastTodayReminderAfterKeyboardFocus
+        ) {
+            content
+        } composer: {
+            composerBar
         }
-        .background { NavigationKeyboardDismissObserver(isInputFocused: $isInputFocused) }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-            guard !isEditProjectSheetPresented else { return }
-            isKeyboardPresented = true
-            scrollToLastTodayReminderAfterKeyboardFocus()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
-            guard !isEditProjectSheetPresented else { return }
-            isKeyboardPresented = false
-        }
-        .task { loadProject() }
         .toolbarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .sheet(isPresented: $isEditProjectSheetPresented) { editProjectSheet }
+        .onChange(of: currentProject?.id, initial: true) { _, currentProjectID in
+            guard currentProjectID == nil else { return }
+            leaveUnavailableProject()
+        }
     }
 }

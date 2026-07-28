@@ -22,9 +22,11 @@ struct CreateReminderProjectIcon: View {
 }
 
 struct CreateReminderRow: View {
+    @Environment(\.hapticFeedback) private var hapticFeedback
+
     let reminder: CreateReminder
     let project: TaskProject?
-    let onToggle: () -> Void, onEdit: (() -> Void)?, onDelete: () -> Void, onSwipeDeleteThreshold: () -> Void
+    let onToggle: () -> Void, onEdit: (() -> Void)?, onDelete: () -> Void
 
     @State private var swipeOffset: CGFloat = 0
     @State private var isSwipeActive = false
@@ -101,9 +103,11 @@ private extension CreateReminderRow {
         isSwipeActive = true
 
         let nextOffset = CreateReminderSwipeAction.offset(for: translation.width)
-        if CreateReminderSwipeAction.feedback(previousOffset: swipeOffset, currentOffset: nextOffset) != nil {
-            onSwipeDeleteThreshold()
-        }
+        CreateReminderSwipeAction.playFeedbackIfNeeded(
+            previousOffset: swipeOffset,
+            currentOffset: nextOffset,
+            using: hapticFeedback
+        )
         swipeOffset = nextOffset
     }
 
@@ -127,7 +131,6 @@ struct CreateReminderRows: View {
     let onToggleReminder: (CreateReminder) -> Void
     var onEditReminder: ((CreateReminder) -> Void)?
     let onDeleteReminder: (CreateReminder) -> Void
-    let onSwipeDeleteThreshold: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: CreateReminderRowsLayout.spacingBetweenTasks) {
@@ -137,8 +140,7 @@ struct CreateReminderRows: View {
                     project: project(for: reminder),
                     onToggle: { onToggleReminder(reminder) },
                     onEdit: onEditAction(for: reminder),
-                    onDelete: { onDeleteReminder(reminder) },
-                    onSwipeDeleteThreshold: onSwipeDeleteThreshold
+                    onDelete: { onDeleteReminder(reminder) }
                 )
                 .id(CreateReminderAutoScroll.targetID(for: reminder))
                 .transition(

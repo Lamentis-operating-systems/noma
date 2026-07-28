@@ -2,19 +2,22 @@
 import XCTest
 
 final class SignupConsentTests: XCTestCase {
-    func testSignInWithAppleRequiresPrivacyAcceptanceBeforeInteraction() {
-        XCTAssertFalse(
-            SignInWithAppleGlassButtonState(isLoading: false, hasAcceptedPrivacyPolicy: false).allowsInteraction
-        )
-        XCTAssertTrue(
-            SignInWithAppleGlassButtonState(isLoading: false, hasAcceptedPrivacyPolicy: true).allowsInteraction
-        )
+    func testAppleSignInIsAvailableWithoutASeparateConsentToggle() {
+        XCTAssertTrue(SignInWithAppleGlassButtonState(isLoading: false).allowsInteraction)
     }
 
     func testSignupConsentLinksExternalPrivacyPolicy() {
         XCTAssertEqual(
-            SignupConsent.privacyPolicyURL.absoluteString,
-            "https://lamentis.de/naome/privacy"
+            SignupConsent.privacyPolicyURL(forLanguageCode: "en").absoluteString,
+            "https://lamentis.de/en/noma/privacy"
+        )
+        XCTAssertEqual(
+            SignupConsent.privacyPolicyURL(forLanguageCode: "de").absoluteString,
+            "https://lamentis.de/de/noma/privacy"
+        )
+        XCTAssertEqual(
+            SignupConsent.privacyPolicyURL(forLanguageCode: "fr").absoluteString,
+            "https://lamentis.de/en/noma/privacy"
         )
     }
 }

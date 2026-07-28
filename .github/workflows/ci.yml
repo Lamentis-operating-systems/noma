@@ -16,74 +16,6 @@ permissions:
   contents: read
 
 jobs:
-  naome:
-    name: NAOME checks
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: npm
-          registry-url: https://registry.npmjs.org
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Sync NAOME harness
-        run: npx naome sync
-
-      - name: Check harness health
-        run: node .naome/bin/check-harness-health.js
-
-      - name: Check changed-file gates
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            base_ref="${{ github.event.pull_request.base.sha }}"
-          else
-            base_ref="${{ github.event.before }}"
-            if [[ "$base_ref" =~ ^0+$ ]]; then
-              base_ref="$(git rev-list --max-parents=0 HEAD)"
-            fi
-          fi
-
-          mapfile -t changed_paths < <(git diff --name-only --diff-filter=ACMRT "$base_ref...HEAD")
-          if [[ "${#changed_paths[@]}" -eq 0 ]]; then
-            echo "No changed paths to check."
-            exit 0
-          fi
-
-          node .naome/bin/naome.js quality check --changed
-          node .naome/bin/naome.js semantic check --changed
-
-      - name: Check architecture fitness
-        run: node .naome/bin/naome.js arch validate
-
-      - name: Check diff whitespace
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            base_ref="${{ github.event.pull_request.base.sha }}"
-          else
-            base_ref="${{ github.event.before }}"
-            if [[ "$base_ref" =~ ^0+$ ]]; then
-              base_ref="$(git rev-list --max-parents=0 HEAD)"
-            fi
-          fi
-
-          git diff --check "$base_ref...HEAD"
-
   ios:
     name: iOS build, unit tests, and scheduled UI tests
     runs-on: macos-26
@@ -91,18 +23,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build app
-        if: github.event_name == 'pull_request'
-        timeout-minutes: 20
-        run: >
-          xcodebuild build
-          -project Noma.xcodeproj
-          -scheme Noma
-          -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
-          -derivedDataPath "$RUNNER_TEMP/noma-derived-data"
-
       - name: Run unit tests
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'schedule'
         timeout-minutes: 20
         run: >
           xcodebuild test

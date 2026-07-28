@@ -1,7 +1,0 @@
-{
-  "name": "noma",
-  "private": true,
-  "dependencies": {
-    "@lamentis/naome": "1.4.12"
-  }
-}

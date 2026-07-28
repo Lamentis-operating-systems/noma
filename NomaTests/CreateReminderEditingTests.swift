@@ -74,6 +74,43 @@ final class CreateReminderEditingTests: XCTestCase {
         )
     }
 
+    func testEditingReconciliationResetsOnlyWhenEditedReminderDisappears() {
+        let reminder = CreateReminder(text: "Still here")
+
+        XCTAssertFalse(
+            CreateReminderEditingReconciliation.shouldResetEditingState(
+                editingReminderID: reminder.id,
+                reminders: [reminder]
+            )
+        )
+        XCTAssertTrue(
+            CreateReminderEditingReconciliation.shouldResetEditingState(
+                editingReminderID: reminder.id,
+                reminders: []
+            )
+        )
+        XCTAssertFalse(
+            CreateReminderEditingReconciliation.shouldResetEditingState(
+                editingReminderID: nil,
+                reminders: []
+            )
+        )
+
+        XCTAssertEqual(
+            CreateReminderEditingReconciliation.editingReminderIDAfterPersistence(
+                didPersist: false,
+                currentEditingReminderID: reminder.id
+            ),
+            reminder.id
+        )
+        XCTAssertNil(
+            CreateReminderEditingReconciliation.editingReminderIDAfterPersistence(
+                didPersist: true,
+                currentEditingReminderID: reminder.id
+            )
+        )
+    }
+
     func testTaskContextMenuPreviewUsesRoundedPrimaryBackgroundCardTokens() {
         XCTAssertEqual(CreateReminderContextMenuPreviewLayout.cornerRadius, NomaRadius.taskPreview)
         XCTAssertEqual(CreateReminderContextMenuPreviewLayout.contentPadding, NomaSpacing.md)

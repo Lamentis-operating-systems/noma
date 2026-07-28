@@ -1,9 +1,5 @@
 import SwiftUI
 
-enum DailyTaskGroupRowInteraction {
-    static let usesScaleButtonStyle = true
-}
-
 enum DailyTaskGroupRowLayout {
     static let statusIconWidth = NomaSize.taskMetadataIconColumn
     static let statusIconHeight = NomaSize.radioCheckboxOuter

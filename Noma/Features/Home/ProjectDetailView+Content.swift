@@ -1,6 +1,19 @@
 import SwiftUI
 
 extension ProjectDetailView {
+    var composerBar: some View {
+        ReminderInputBar(
+            text: $message,
+            focus: $isInputFocused,
+            placeholder: "create.input.placeholder",
+            isSubmissionAvailable: currentProject != nil,
+            traySystemImage: currentProject?.symbolName ?? "tray.full",
+            trayColor: TaskProjectIconPresentation.appSurfaceColor,
+            onSubmit: submitReminder
+        )
+        .disabled(currentProject == nil)
+    }
+
     var content: some View {
         CreateReminderScrollContainer(pendingScrollTargetID: $pendingScrollTargetID) {
             VStack(alignment: .leading, spacing: 0) {
@@ -40,8 +53,7 @@ extension ProjectDetailView {
             reminders: visibleTodayReminders,
             projects: currentProject.map { [$0] } ?? [],
             onToggleReminder: { reminder in toggleReminder(reminder, inDayID: todayID) },
-            onDeleteReminder: { reminder in deleteReminder(reminder, inDayID: todayID) },
-            onSwipeDeleteThreshold: playSwipeDeleteThresholdFeedback
+            onDeleteReminder: { reminder in deleteReminder(reminder, inDayID: todayID) }
         )
     }
 
@@ -62,8 +74,7 @@ extension ProjectDetailView {
                 reminders: section.reminders,
                 projects: currentProject.map { [$0] } ?? [],
                 onToggleReminder: { reminder in toggleReminder(reminder, inDayID: section.id) },
-                onDeleteReminder: { reminder in deleteReminder(reminder, inDayID: section.id) },
-                onSwipeDeleteThreshold: playSwipeDeleteThresholdFeedback
+                onDeleteReminder: { reminder in deleteReminder(reminder, inDayID: section.id) }
             )
         }
     }
@@ -83,24 +94,4 @@ extension ProjectDetailView {
             .accessibilityHidden(true)
     }
 
-    var barSpacing: CGFloat {
-        max(0, isKeyboardPresented ? ProjectDetailLayout.focusedKeyboardSpacing : 0)
-    }
-
-    func barWidth(in proxy: GeometryProxy) -> CGFloat {
-        BottomComposerBarLayout.width(in: proxy, edgePadding: barEdgePadding)
-    }
-
-    func barBottomPadding(in proxy: GeometryProxy) -> CGFloat {
-        BottomComposerBarLayout.bottomPadding(
-            isKeyboardPresented: isKeyboardPresented,
-            focusedPadding: ProjectDetailLayout.focusedEdgePadding,
-            collapsedPadding: ProjectDetailLayout.collapsedEdgePadding,
-            safeAreaBottom: proxy.safeAreaInsets.bottom
-        )
-    }
-
-    var barEdgePadding: CGFloat {
-        isKeyboardPresented ? ProjectDetailLayout.focusedEdgePadding : ProjectDetailLayout.collapsedEdgePadding
-    }
 }

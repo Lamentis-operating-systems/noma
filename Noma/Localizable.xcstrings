@@ -58,6 +58,23 @@
         }
       }
     },
+    "auth.delete-account.additional-local-data-cleanup-error" : {
+      "comment" : "Additional error detail shown when account deletion was not completed cleanly and local task data also could not be removed.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zusätzlich konnten die lokalen Aufgaben und Projekte nicht von diesem Gerät entfernt werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In addition, local tasks and projects could not be removed from this device."
+          }
+        }
+      }
+    },
     "auth.delete-account.confirm" : {
       "comment" : "Destructive confirmation button for account deletion.",
       "localizations" : {
@@ -88,6 +105,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not delete account"
+          }
+        }
+      }
+    },
+    "auth.delete-account.local-data-cleanup-error" : {
+      "comment" : "Error shown when the remote account was deleted but its local task data could not be removed from the device.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Account wurde gelöscht, aber die lokalen Aufgaben und Projekte konnten nicht von diesem Gerät entfernt werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The account was deleted, but its local tasks and projects could not be removed from this device."
+          }
+        }
+      }
+    },
+    "auth.delete-account.missing-local-data-scope-error" : {
+      "comment" : "Error shown when account deletion cannot safely identify the signed-in user's local data scope.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der lokale Datenbereich dieses Accounts konnte nicht sicher ermittelt werden. Bitte melde dich ab und erneut an, bevor du den Account löschst."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The local data scope for this account could not be identified safely. Sign out and back in before deleting the account."
+          }
+        }
+      }
+    },
+    "auth.delete-account.pending-local-data-cleanup-error" : {
+      "comment" : "Error shown after launch recovery could not remove local data left by an interrupted account-deletion flow.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die ausstehende lokale Bereinigung nach der Accountlöschung konnte noch nicht abgeschlossen werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The pending local cleanup after account deletion could not be completed yet."
           }
         }
       }
@@ -230,7 +298,7 @@
     },
     "create.date-picker.open.accessibility-label" : {
       "comment" : "Accessibility label for opening the create view date picker sheet from the navigation title.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -248,7 +316,7 @@
     },
     "create.date-picker.set-date" : {
       "comment" : "Primary button title in the create date picker sheet. The placeholder is the selected date.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -300,7 +368,7 @@
     },
     "create.project.add.description" : {
       "comment" : "Description text in the Add Project sheet explaining what projects are for.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -318,7 +386,7 @@
     },
     "create.project.add.title" : {
       "comment" : "Navigation title for the Add Project sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -353,7 +421,7 @@
     },
     "create.project.create-button" : {
       "comment" : "Primary button title in the Add Project sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -371,7 +439,7 @@
     },
     "create.project.edit.title" : {
       "comment" : "Navigation title for editing a project.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -383,24 +451,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Edit Project"
-          }
-        }
-      }
-    },
-    "create.project.empty.add-button" : {
-      "comment" : "Primary call-to-action title in the empty project sheet.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projekt hinzufügen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add Project"
           }
         }
       }
@@ -441,7 +491,7 @@
     },
     "create.project.expiration.date-picker" : {
       "comment" : "Date picker label for choosing when a project should expire.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -459,7 +509,7 @@
     },
     "create.project.expiration.title" : {
       "comment" : "Section label for the project expiration date picker.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -494,7 +544,7 @@
     },
     "create.project.icon-picker.color.accessibility-label" : {
       "comment" : "Accessibility label for a selectable project color swatch. The placeholder is the swatch position.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -512,7 +562,7 @@
     },
     "create.project.icon-picker.color.selected" : {
       "comment" : "Accessibility value for the selected project color swatch.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -530,7 +580,7 @@
     },
     "create.project.icon-picker.done" : {
       "comment" : "Done button title in the project icon picker sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -548,7 +598,7 @@
     },
     "create.project.icon-picker.title" : {
       "comment" : "Navigation title for the project icon picker sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -564,9 +614,531 @@
         }
       }
     },
+    "create.project.icon.accessibility.book" : {
+      "comment" : "Localized accessibility label for the book project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buch"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Book"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.calendar" : {
+      "comment" : "Localized accessibility label for the calendar project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalender"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.chart" : {
+      "comment" : "Localized accessibility label for the chart project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagramm"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chart"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.code" : {
+      "comment" : "Localized accessibility label for the code project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.education" : {
+      "comment" : "Localized accessibility label for the education project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildung"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Education"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.europe" : {
+      "comment" : "Localized accessibility label for the europe project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Europa"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Europe"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.finances" : {
+      "comment" : "Localized accessibility label for the finances project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finanzen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finances"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.fitness" : {
+      "comment" : "Localized accessibility label for the fitness project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fitness"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fitness"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.folder" : {
+      "comment" : "Localized accessibility label for the folder project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.general" : {
+      "comment" : "Localized accessibility label for the general project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allgemein"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.gift" : {
+      "comment" : "Localized accessibility label for the gift project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geschenk"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gift"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.health" : {
+      "comment" : "Localized accessibility label for the health project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesundheit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.heart" : {
+      "comment" : "Localized accessibility label for the heart project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herz"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heart"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.mind" : {
+      "comment" : "Localized accessibility label for the mind project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geist"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mind"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.movie" : {
+      "comment" : "Localized accessibility label for the movie project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Film"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Movie"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.music" : {
+      "comment" : "Localized accessibility label for the music project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Musik"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.nature" : {
+      "comment" : "Localized accessibility label for the nature project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Natur"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nature"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.paintbrush" : {
+      "comment" : "Localized accessibility label for the paintbrush project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinsel"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paintbrush"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.palette" : {
+      "comment" : "Localized accessibility label for the palette project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbpalette"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palette"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.pen-tip" : {
+      "comment" : "Localized accessibility label for the pen tip project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stiftspitze"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pen tip"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.pencil" : {
+      "comment" : "Localized accessibility label for the pencil project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stift"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pencil"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.pets" : {
+      "comment" : "Localized accessibility label for the pets project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haustiere"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pets"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.science" : {
+      "comment" : "Localized accessibility label for the science project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wissenschaft"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Science"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.terminal" : {
+      "comment" : "Localized accessibility label for the terminal project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.tools" : {
+      "comment" : "Localized accessibility label for the tools project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Werkzeuge"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tools"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.travel" : {
+      "comment" : "Localized accessibility label for the travel project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reisen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Travel"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.weight" : {
+      "comment" : "Localized accessibility label for the weight project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gewicht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.work" : {
+      "comment" : "Localized accessibility label for the work project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arbeit"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Work"
+          }
+        }
+      }
+    },
+    "create.project.icon.accessibility.world" : {
+      "comment" : "Localized accessibility label for the world project icon.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "World"
+          }
+        }
+      }
+    },
     "create.project.save-button" : {
       "comment" : "Primary button title in the Edit Project sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -584,7 +1156,7 @@
     },
     "create.project.title.placeholder" : {
       "comment" : "Placeholder for the project title input in the Add Project sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -602,7 +1174,7 @@
     },
     "create.projects.create-new.title" : {
       "comment" : "Bottom call-to-action title in the Projects sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -620,7 +1192,7 @@
     },
     "create.projects.delete.message" : {
       "comment" : "Confirmation dialog message explaining that deleting a project also removes its assigned tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -638,7 +1210,7 @@
     },
     "create.projects.delete.title" : {
       "comment" : "Context menu item title for deleting a project.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -656,7 +1228,7 @@
     },
     "create.projects.edit.title" : {
       "comment" : "Context menu item title for editing a project.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -674,7 +1246,7 @@
     },
     "create.projects.no-project.subtitle" : {
       "comment" : "Subtitle for clearing the selected project in the Projects sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -692,7 +1264,7 @@
     },
     "create.projects.no-project.title" : {
       "comment" : "Title for clearing the selected project in the Projects sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -710,7 +1282,7 @@
     },
     "create.projects.selection.info" : {
       "comment" : "Informational text at the top of the Projects sheet explaining that the selected project will be used for new tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -728,7 +1300,7 @@
     },
     "create.projects.sheet.title" : {
       "comment" : "Navigation title for the Projects sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -746,7 +1318,7 @@
     },
     "create.projects.stats.task.plural" : {
       "comment" : "Plural task unit shown below a project in the Projects sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -764,7 +1336,7 @@
     },
     "create.projects.stats.task.singular" : {
       "comment" : "Singular task unit shown below a project in the Projects sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -776,24 +1348,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "task"
-          }
-        }
-      }
-    },
-    "create.projects.stats.unsolved" : {
-      "comment" : "Unsolved task count suffix shown below a project in the Projects sheet.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "offen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "unsolved"
           }
         }
       }
@@ -834,7 +1388,7 @@
     },
     "create.tasks.context-menu.edit" : {
       "comment" : "Context menu action title for editing an existing task.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -852,7 +1406,7 @@
     },
     "create.tasks.date.section-header" : {
       "comment" : "Section header format shown above reminders entered in the create task view. The placeholder is the selected day.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -870,7 +1424,7 @@
     },
     "create.tasks.empty.filtered.subtitle" : {
       "comment" : "Subtitle for the filtered empty task list hint when all tasks are completed.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -888,7 +1442,7 @@
     },
     "create.tasks.empty.filtered.title" : {
       "comment" : "Title for the filtered empty task list hint when all tasks are completed.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -906,7 +1460,7 @@
     },
     "create.tasks.empty.today.subtitle" : {
       "comment" : "Subtitle for the empty task list hint in the create task view.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -924,7 +1478,7 @@
     },
     "create.tasks.empty.today.title" : {
       "comment" : "Title for the empty task list hint in the create task view.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -942,7 +1496,7 @@
     },
     "create.tasks.yesterday.section-header" : {
       "comment" : "Section header shown above open tasks from the previous day in the create task view.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1011,7 +1565,7 @@
     },
     "home.common-projects.section-header" : {
       "comment" : "Section header above the most used projects on the Home screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1029,7 +1583,7 @@
     },
     "home.daily-groups.progress.completed" : {
       "comment" : "Completion status suffix shown below a daily group on the Home screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1047,7 +1601,7 @@
     },
     "home.daily-groups.progress.of" : {
       "comment" : "Completion status connector shown below a daily group on the Home screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1065,7 +1619,7 @@
     },
     "home.daily-groups.section-header" : {
       "comment" : "Section header above locally saved daily task groups on the Home screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1083,7 +1637,7 @@
     },
     "home.daily-groups.task-count.plural" : {
       "comment" : "Plural task count unit shown below a daily group on the Home screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1101,7 +1655,7 @@
     },
     "home.daily-groups.task-count.singular" : {
       "comment" : "Singular task count unit shown below a daily group on the Home screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1117,9 +1671,45 @@
         }
       }
     },
+    "home.empty.subtitle" : {
+      "comment" : "Home empty state subtitle inviting users to create their first tasks and projects.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erstelle Aufgaben und Projekte, damit dein Tag hier Gestalt annimmt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create tasks and projects to start shaping your day here."
+          }
+        }
+      }
+    },
+    "home.empty.title" : {
+      "comment" : "Home empty state title shown when no tasks, projects, or daily groups exist.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nichts geplant"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing planned yet"
+          }
+        }
+      }
+    },
     "home.today.section-header" : {
       "comment" : "Section header above open tasks due today on the Home screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1140,7 +1730,7 @@
     },
     "notifications.daily-planning.body" : {
       "comment" : "Morning local notification body reminding the user to plan today's tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1158,7 +1748,7 @@
     },
     "notifications.daily-planning.title" : {
       "comment" : "Morning local notification title reminding the user to plan today's tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1176,7 +1766,7 @@
     },
     "notifications.open-tasks.body" : {
       "comment" : "Evening local notification body reminding the user about open tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1194,7 +1784,7 @@
     },
     "notifications.open-tasks.title" : {
       "comment" : "Evening local notification title reminding the user about open tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1212,7 +1802,7 @@
     },
     "Project" : {
       "comment" : "Navigation title for the project picker sheet.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1230,7 +1820,7 @@
     },
     "project.detail.progress.incomplete" : {
       "comment" : "Project detail navigation subtitle suffix for incomplete tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1293,24 +1883,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Light"
-          }
-        }
-      }
-    },
-    "settings.appearance.mode" : {
-      "comment" : "Picker label for selecting the app appearance mode.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Darstellung"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Appearance"
           }
         }
       }
@@ -1434,45 +2006,45 @@
         }
       }
     },
-    "signup.consent.acceptance" : {
-      "comment" : "Signup consent toggle label shown before Apple sign-in is enabled.",
-      "extractionState" : "stale",
+    "signup.consent.notice-prefix" : {
+      "comment" : "Signup disclosure explaining that pressing the Apple sign-in button accepts the inline privacy policy link.",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ich akzeptiere die Datenschutzbestimmungen."
+            "value" : "Indem du auf „Mit Apple anmelden“ tippst, akzeptierst du die"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I accept the privacy policy."
+            "value" : "By pressing “Sign in with Apple”, you agree to the"
           }
         }
       }
     },
     "signup.consent.privacy-link" : {
-      "comment" : "External privacy policy link on the signup screen.",
-      "extractionState" : "stale",
+      "comment" : "Inline external privacy policy link on the signup screen.",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Datenschutzbestimmungen öffnen"
+            "value" : "Datenschutzbestimmungen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open privacy policy"
+            "value" : "Privacy Policy"
           }
         }
       }
     },
     "signup.subtitle" : {
       "comment" : "Short invitation copy below the authentication headline.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1490,7 +2062,7 @@
     },
     "signup.title" : {
       "comment" : "Centered headline on the authentication signup screen.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1508,7 +2080,7 @@
     },
     "signup.workflow.carry-forward" : {
       "comment" : "Signup workflow step explaining that unfinished tasks move to the next day.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1526,7 +2098,7 @@
     },
     "signup.workflow.complete" : {
       "comment" : "Signup workflow step for completing tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1544,7 +2116,7 @@
     },
     "signup.workflow.create" : {
       "comment" : "Signup workflow step for creating tasks.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1562,7 +2134,7 @@
     },
     "signup.workflow.decide" : {
       "comment" : "Signup workflow step for deciding whether carried tasks still matter today.",
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {

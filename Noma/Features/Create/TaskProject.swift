@@ -1,26 +1,6 @@
 import SwiftUI
 
-struct TaskProject: Codable, Identifiable, Equatable {
-    let id: UUID
-    let title: String
-    let symbolName: String
-    let colorIndex: Int
-    let expiresAt: Date?
-
-    init(
-        id: UUID = UUID(),
-        title: String,
-        symbolName: String = ProjectIconPickerOption.defaultSymbol,
-        colorIndex: Int = ProjectIconPickerOption.defaultColorIndex,
-        expiresAt: Date? = nil
-    ) {
-        self.id = id
-        self.title = title
-        self.symbolName = symbolName
-        self.colorIndex = colorIndex
-        self.expiresAt = expiresAt
-    }
-
+extension TaskProject {
     var color: Color {
         guard ProjectIconPickerOption.colors.indices.contains(colorIndex) else {
             return ProjectIconPickerOption.colors[ProjectIconPickerOption.defaultColorIndex]
@@ -30,8 +10,6 @@ struct TaskProject: Codable, Identifiable, Equatable {
 }
 
 enum TaskProjectIconPresentation {
-    static let usesNeutralTintInAppSurfaces = true
-
     static var appSurfaceColor: Color { .textPrimary }
 }
 
@@ -63,16 +41,4 @@ struct TaskProjectSummary: Equatable {
             unsolvedTaskCount: projectReminders.filter { !$0.isCompleted }.count
         )
     }
-
-    static func withoutProject(reminders: [CreateReminder]) -> TaskProjectSummary {
-        let unassignedReminders = reminders.filter { $0.projectID == nil }
-        return TaskProjectSummary(
-            taskCount: unassignedReminders.count,
-            unsolvedTaskCount: unassignedReminders.filter { !$0.isCompleted }.count
-        )
-    }
-}
-
-enum TaskProjectStatsCopy {
-    static let unsolvedKey = "create.projects.stats.unsolved"
 }

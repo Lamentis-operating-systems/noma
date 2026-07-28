@@ -48,7 +48,10 @@ struct ReminderInputStaleTextGuard: Equatable {
 
     mutating func acceptsIncomingText(_ incomingText: String) -> Bool {
         guard let submittedTextToIgnore else { return true }
-        if incomingText == submittedTextToIgnore { return false }
+        if incomingText == submittedTextToIgnore {
+            self.submittedTextToIgnore = nil
+            return false
+        }
         self.submittedTextToIgnore = nil
         return true
     }
@@ -63,6 +66,22 @@ struct ReminderInputDraftState: Equatable {
 
     mutating func acceptsIncomingText(_ incomingText: String) -> Bool {
         staleTextGuard.acceptsIncomingText(incomingText)
+    }
+
+    mutating func textAfterAttemptingSubmission(
+        currentText: String,
+        isSubmissionAvailable: Bool,
+        submit: (String) -> Bool
+    ) -> String {
+        let inputState = ReminderInputState(
+            text: currentText,
+            isSubmissionAvailable: isSubmissionAvailable
+        )
+        guard inputState.canSubmit else { return currentText }
+        guard submit(currentText) else { return currentText }
+
+        prepareForSubmit(text: currentText)
+        return ""
     }
 }
 
@@ -99,25 +118,35 @@ private struct ReminderSendButton: View {
     }
 }
 
-private struct ReminderTrayButton: View {
+private struct ReminderTrayAccessory: View {
     let height: CGFloat
     let systemImage: String
     let color: Color
-    let action: () -> Void
+    let action: (() -> Void)?
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.headline)
-                .foregroundStyle(color)
-                .frame(width: height, height: height)
+        if let action {
+            Button(action: action) {
+                icon
+            }
+            .buttonStyle(.plain)
+            .frame(width: height, height: height)
+            .contentShape(Circle())
+            .glassEffect(.regular.interactive(), in: .circle)
+            .accessibilityLabel(Text("create.tray.accessibility-label"))
+            .accessibilityIdentifier("create-reminder-tray-button")
+        } else {
+            icon
+                .glassEffect(.regular, in: .circle)
+                .accessibilityHidden(true)
         }
-        .buttonStyle(.plain)
-        .frame(width: height, height: height)
-        .contentShape(Circle())
-        .glassEffect(.regular.interactive(), in: .circle)
-        .accessibilityLabel(Text("create.tray.accessibility-label"))
-        .accessibilityIdentifier("create-reminder-tray-button")
+    }
+
+    private var icon: some View {
+        Image(systemName: systemImage)
+            .font(.headline)
+            .foregroundStyle(color)
+            .frame(width: height, height: height)
     }
 }
 
@@ -149,7 +178,6 @@ struct ReminderInputBar: View {
     private let sendButtonSize = NomaSize.sendButton
 
     @Namespace private var glassNamespace
-    @State private var inputHeight: CGFloat = 0
     @State private var draftState = ReminderInputDraftState()
     @Binding var text: String
 
@@ -158,8 +186,8 @@ struct ReminderInputBar: View {
     let isSubmissionAvailable: Bool
     let traySystemImage: String
     let trayColor: Color
-    let onTrayButtonTap: () -> Void
-    let onSubmit: (String) -> Void
+    let onTrayButtonTap: (() -> Void)?
+    let onSubmit: (String) -> Bool
 
     init(
         text: Binding<String>,
@@ -168,8 +196,8 @@ struct ReminderInputBar: View {
         isSubmissionAvailable: Bool = true,
         traySystemImage: String = "tray.full",
         trayColor: Color = .primary,
-        onTrayButtonTap: @escaping () -> Void,
-        onSubmit: @escaping (String) -> Void
+        onTrayButtonTap: (() -> Void)? = nil,
+        onSubmit: @escaping (String) -> Bool
     ) {
         self._text = text
         self.focus = focus
@@ -184,7 +212,7 @@ struct ReminderInputBar: View {
     var body: some View {
         GlassEffectContainer(spacing: NomaSpacing.sm) {
             HStack(alignment: .bottom, spacing: NomaSpacing.sm) {
-                ReminderTrayButton(
+                ReminderTrayAccessory(
                     height: trayButtonHeight,
                     systemImage: traySystemImage,
                     color: trayColor,
@@ -204,7 +232,6 @@ struct ReminderInputBar: View {
                         .padding(.bottom, NomaSpacing.sm)
                 }
                 .frame(maxWidth: .infinity)
-                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { inputHeight = $0 }
                 .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
                 .onTapGesture {
                     focus.wrappedValue = true
@@ -236,10 +263,10 @@ private extension ReminderInputBar {
     }
 
     private func submitCurrentText() {
-        guard inputState.canSubmit else { return }
-        let submittedText = text
-        draftState.prepareForSubmit(text: submittedText)
-        text = ""
-        onSubmit(submittedText)
+        text = draftState.textAfterAttemptingSubmission(
+            currentText: text,
+            isSubmissionAvailable: isSubmissionAvailable,
+            submit: onSubmit
+        )
     }
 }

@@ -11,6 +11,9 @@ struct ProjectIconPreview: View {
             .foregroundStyle(color)
             .frame(height: NomaSize.projectIconPreview)
             .padding(.horizontal, NomaSpacing.xl)
+            .accessibilityIdentifier("project-icon-preview")
+            .accessibilityHidden(true)
+            .accessibilityRepresentation { EmptyView() }
     }
 }
 
@@ -83,13 +86,13 @@ struct ProjectIconGrid: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: NomaSpacing.xl) {
-                ForEach(ProjectIconPickerOption.symbols, id: \.self) { symbol in
+                ForEach(ProjectIconPickerOption.icons) { option in
                     ProjectIconOptionButton(
-                        symbol: symbol,
-                        isSelected: symbol == selectedSymbol,
+                        option: option,
+                        isSelected: option.symbolName == selectedSymbol,
                         selectedColor: selectedColor
                     ) {
-                        selectedSymbol = symbol
+                        selectedSymbol = option.symbolName
                     }
                 }
             }
@@ -102,7 +105,7 @@ struct ProjectIconGrid: View {
 }
 
 private struct ProjectIconOptionButton: View {
-    let symbol: String
+    let option: ProjectIconOption
     let isSelected: Bool
     let selectedColor: Color
     let action: () -> Void
@@ -111,12 +114,18 @@ private struct ProjectIconOptionButton: View {
         Button {
             action()
         } label: {
-            Image(systemName: symbol)
+            Image(systemName: option.symbolName)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(isSelected ? selectedColor : .textPrimary)
                 .frame(width: NomaSize.projectControl, height: NomaSize.projectControl)
+                .accessibilityHidden(true)
         }
         .buttonStyle(ScaleButtonStyle())
-        .accessibilityLabel(Text(symbol))
+        .accessibilityRepresentation {
+            Button(action: action) {
+                Text(LocalizedStringKey(option.accessibilityLabelKey))
+            }
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+        }
     }
 }

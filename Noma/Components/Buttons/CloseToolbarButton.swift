@@ -10,6 +10,7 @@ struct CloseToolbarButton: ToolbarContent {
                 Image(systemName: "xmark")
             }
             .accessibilityLabel(Text(accessibilityLabelKey))
+            .accessibilityIdentifier("close-toolbar-button")
         }
     }
 }

@@ -87,25 +87,6 @@ private struct AddProjectIconButtonView: View {
         }
         .buttonStyle(ScaleButtonStyle())
         .accessibilityLabel(Text("create.project.icon-button.accessibility-label"))
-    }
-}
-
-struct CreateProjectSubmitButton: View {
-    let titleKey: String
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            action()
-        } label: {
-            Text(LocalizedStringKey(titleKey))
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, NomaSpacing.md)
-        }
-        .tint(.primary)
-        .foregroundStyle(.primaryBackground)
-        .buttonStyle(.glassProminent)
-        .buttonBorderShape(.capsule)
+        .accessibilityIdentifier("project-icon-button")
     }
 }

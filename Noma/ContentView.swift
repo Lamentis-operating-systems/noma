@@ -8,8 +8,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @ViewBuilder
     var body: some View {
+#if DEBUG
+        if let uiTestConfiguration = NomaUITestLaunchConfiguration.current {
+            NomaUITestRootView(configuration: uiTestConfiguration)
+        } else {
+            RootView()
+        }
+#else
         RootView()
+#endif
     }
 }
 

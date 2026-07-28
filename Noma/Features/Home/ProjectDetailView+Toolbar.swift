@@ -3,31 +3,17 @@ import SwiftUI
 extension ProjectDetailView {
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            TaskNavigationTitleButton(
-                title: navigationTitle,
-                subtitle: navigationSubtitle,
-                accessibilityLabelKey: "create.project.edit.title",
-                action: { isEditProjectSheetPresented = currentProject != nil }
-            )
-        }
-
-        ToolbarItem(placement: .topBarTrailing) {
-            TaskDoneToolbarButton(
-                isDisabled: !canCompleteAllReminders,
-                action: completeAllRemindersForProject
-            )
-        }
-
-        ToolbarSpacer(.fixed, placement: .topBarTrailing)
-
-        ToolbarItem(placement: .topBarTrailing) {
-            TaskFilterToolbarButton(
-                isActive: showsOnlyUnsolvedTasks,
-                isDisabled: projectSummary.taskCount == 0,
-                action: toggleUnsolvedFilter
-            )
-        }
+        TaskWorkspaceToolbar(
+            title: navigationTitle,
+            subtitle: navigationSubtitle,
+            titleAccessibilityLabelKey: "create.project.edit.title",
+            isDoneDisabled: !canCompleteAllReminders,
+            isFilterActive: showsOnlyUnsolvedTasks,
+            isFilterDisabled: projectSummary.taskCount == 0,
+            onTitleTap: { isEditProjectSheetPresented = currentProject != nil },
+            onDone: completeAllRemindersForProject,
+            onFilter: toggleUnsolvedFilter
+        )
     }
 
     @ViewBuilder
@@ -35,7 +21,6 @@ extension ProjectDetailView {
         if let currentProject {
             AddProjectSheet(project: currentProject) { updatedProject in
                 dailyTaskGroups.updateProject(updatedProject)
-                project = updatedProject
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)

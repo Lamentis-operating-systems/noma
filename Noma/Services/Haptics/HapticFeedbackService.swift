@@ -3,6 +3,7 @@ import UIKit
 
 enum HapticFeedbackClass: Equatable {
     case createTaskSubmit
+    case taskSwipeDeleteThreshold
 }
 
 struct HapticFeedbackService {
@@ -18,7 +19,7 @@ struct HapticFeedbackService {
 
     static let live = HapticFeedbackService { feedback in
         switch feedback {
-        case .createTaskSubmit:
+        case .createTaskSubmit, .taskSwipeDeleteThreshold:
             UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         }
     }
