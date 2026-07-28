@@ -20,6 +20,7 @@ struct HomeView: View {
     @State var path: [HomeRoute] = []
     @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     @State var isHomeHeaderVisible = true
+    @State var recurrenceSheetReminder: CreateReminder?
 
     var body: some View {
         GeometryReader { proxy in
@@ -57,6 +58,9 @@ struct HomeView: View {
                         }
                     }
                     .onChange(of: dailyTaskGroups.groups, initial: true) { _, _ in refreshDailyTaskNotifications() }
+                    .task {
+                        dailyTaskGroups.materializeRecurrences()
+                    }
                 }
                 .overlay(alignment: .topLeading) {
                     if path.isEmpty {
@@ -85,6 +89,9 @@ struct HomeView: View {
                             )
                         )
                 }
+            }
+            .sheet(item: $recurrenceSheetReminder) { reminder in
+                TaskRecurrenceSheet(reminder: reminder, dayID: dailyTaskGroups.todayID())
             }
         }
     }

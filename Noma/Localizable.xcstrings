@@ -2047,6 +2047,78 @@
         }
       }
     },
+    "recurrence.close" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schließen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Close" } }
+      }
+    },
+    "recurrence.context-menu" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Repeat" } }
+      }
+    },
+    "recurrence.daily" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Täglich" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily" } }
+      }
+    },
+    "recurrence.foreground-only" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Noma erstellt die Aufgabe beim Öffnen der App am jeweiligen Tag. Verpasste Tage werden nicht nachträglich erstellt." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Noma creates the task when you open the app on that day. Missed days are not created later." } }
+      }
+    },
+    "recurrence.frequency" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Häufigkeit" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Frequency" } }
+      }
+    },
+    "recurrence.manage" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholungen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Repeating Tasks" } }
+      }
+    },
+    "recurrence.save" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholung starten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Repeat" } }
+      }
+    },
+    "recurrence.stop" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholung beenden" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop Repeat" } }
+      }
+    },
+    "recurrence.stop.explanation" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die heutige Aufgabe bleibt erhalten. Nur zukünftige Wiederholungen werden beendet." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today's task stays. Only future repeats stop." } }
+      }
+    },
+    "recurrence.task" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufgabe" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Task" } }
+      }
+    },
+    "recurrence.title" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Repeat" } }
+      }
+    },
+    "recurrence.weekdays" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wochentage" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Weekdays" } }
+      }
+    },
     "signup.workflow.decide" : {
       "comment" : "Signup workflow step for deciding whether carried tasks still matter today.",
       "extractionState" : "manual",

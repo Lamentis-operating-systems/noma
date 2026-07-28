@@ -7,6 +7,7 @@ enum NomaUITestScenario: String {
     case signup
     case empty
     case workspace
+    case recurrence
 }
 
 struct NomaUITestLaunchConfiguration: Equatable {
@@ -75,7 +76,7 @@ struct NomaUITestLaunchConfiguration: Equatable {
     }
 
     private var seedState: DailyTaskGroupState {
-        guard scenario == .workspace else { return .empty }
+        guard scenario == .workspace || scenario == .recurrence else { return .empty }
 
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -116,7 +117,18 @@ struct NomaUITestLaunchConfiguration: Equatable {
         return DailyTaskGroupState(
             groups: [todayGroup] + historicalGroups,
             projects: [],
-            selectedProjectID: nil
+            selectedProjectID: nil,
+            recurrences: scenario == .recurrence
+                ? [
+                    TaskRecurrence(
+                        id: Self.workspaceRecurrenceID,
+                        sourceText: "Generated Repeat",
+                        activeWeekdays: Set(1...7),
+                        startDate: calendar.date(byAdding: .day, value: -1, to: today)!,
+                        materializedDays: [:]
+                    )
+                ]
+                : []
         )
     }
 
@@ -128,6 +140,7 @@ struct NomaUITestLaunchConfiguration: Equatable {
     }
 
     static let workspaceTodayReminderID = UUID(uuidString: "00000000-0000-0000-0000-00000000A002")!
+    static let workspaceRecurrenceID = UUID(uuidString: "00000000-0000-0000-0000-00000000A099")!
 }
 
 @MainActor
@@ -188,7 +201,7 @@ struct NomaUITestRootView: View {
             switch configuration.scenario {
             case .signup:
                 SignupView {}
-            case .empty, .workspace:
+            case .empty, .workspace, .recurrence:
                 HomeView()
             }
         }

@@ -7,22 +7,24 @@ final class DailyTaskGroupStore {
     @ObservationIgnored private let persistenceFactory: (String?) -> any DailyTaskGroupPersisting
     @ObservationIgnored private var persistence: any DailyTaskGroupPersisting
     @ObservationIgnored private var blocksPersistenceWrites = false
-    @ObservationIgnored private let calendar: Calendar
+    @ObservationIgnored private let fixedCalendar: Calendar?
+    @ObservationIgnored private var calendar: Calendar { fixedCalendar ?? .current }
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private var userID: String?
 
     private(set) var groups: [DailyTaskGroup] = []
+    private(set) var recurrences: [TaskRecurrence] = []
     private(set) var persistenceError: DailyTaskGroupPersistenceError?
 
     init(
         userDefaults: UserDefaults = .standard,
-        calendar: Calendar = .current,
+        calendar: Calendar? = nil,
         now: @escaping () -> Date = Date.init,
         userID: String? = nil,
         storageKey: String? = nil,
         persistenceFactory: ((String?) -> any DailyTaskGroupPersisting)? = nil
     ) {
-        self.calendar = calendar
+        self.fixedCalendar = calendar
         self.now = now
         self.userID = userID
         let factory = persistenceFactory ?? { scopedUserID in
@@ -34,6 +36,7 @@ final class DailyTaskGroupStore {
         self.persistenceFactory = factory
         self.persistence = factory(userID)
         reloadFromPersistence()
+        materializeRecurrences(asOf: now())
     }
 
     nonisolated static func todayID(calendar: Calendar = .current) -> String {
@@ -81,6 +84,7 @@ final class DailyTaskGroupStore {
         self.userID = userID
         persistence = persistenceFactory(userID)
         reloadFromPersistence()
+        materializeRecurrences(asOf: now())
     }
 
     @discardableResult
@@ -92,6 +96,7 @@ final class DailyTaskGroupStore {
         }
         guard self.userID == userID else { return result }
         groups = []
+        recurrences = []
         persistenceError = nil
         blocksPersistenceWrites = false
         return result
@@ -115,6 +120,66 @@ final class DailyTaskGroupStore {
         )
     }
 
+    func recurrence(for reminderID: CreateReminder.ID, onDayID dayID: String) -> TaskRecurrence? {
+        recurrences.first { $0.materializedDays[dayID] == reminderID }
+    }
+
+    @discardableResult
+    func createRecurrence(
+        from reminder: CreateReminder,
+        onDayID dayID: String,
+        schedule: TaskRecurrenceSchedule
+    ) -> Bool {
+        guard reminders(forDayID: dayID).contains(where: { $0.id == reminder.id }),
+              recurrence(for: reminder.id, onDayID: dayID) == nil,
+              let startDate = Self.date(forDayID: dayID, calendar: calendar)
+        else { return false }
+
+        let recurrence = TaskRecurrence(
+            sourceText: reminder.text,
+            activeWeekdays: schedule.activeWeekdays,
+            startDate: startDate,
+            materializedDays: [dayID: reminder.id]
+        )
+        guard recurrence.isValid else { return false }
+
+        var nextRecurrences = recurrences
+        nextRecurrences.append(recurrence)
+        return commit(groups: groups, recurrences: nextRecurrences)
+    }
+
+    @discardableResult
+    func stopRecurrence(withID recurrenceID: TaskRecurrence.ID) -> Bool {
+        let nextRecurrences = recurrences.filter { $0.id != recurrenceID }
+        guard nextRecurrences.count != recurrences.count else { return false }
+        return commit(groups: groups, recurrences: nextRecurrences)
+    }
+
+    @discardableResult
+    func materializeRecurrences(asOf date: Date? = nil) -> Bool {
+        let materializationDate = date ?? now()
+        let dayID = Self.dayID(for: materializationDate, calendar: calendar)
+        let dueIndices = recurrences.indices.filter {
+            recurrences[$0].isActive(on: materializationDate, calendar: calendar)
+                && recurrences[$0].materializedDays[dayID] == nil
+        }
+        guard !dueIndices.isEmpty else { return true }
+
+        var nextGroups = groups
+        var nextRecurrences = recurrences
+        var reminders = reminders(forDayID: dayID)
+        for index in dueIndices {
+            let reminder = CreateReminder(
+                text: nextRecurrences[index].sourceText,
+                createdAt: materializationDate
+            )
+            reminders.append(reminder)
+            nextRecurrences[index].materializedDays[dayID] = reminder.id
+        }
+        setReminders(reminders, forDayID: dayID, date: materializationDate, in: &nextGroups)
+        return commit(groups: nextGroups, recurrences: nextRecurrences)
+    }
+
     @discardableResult
     func replaceRemindersAtomically(_ reminders: [CreateReminder], forDayID dayID: String) -> Bool {
         replaceRemindersAtomically(
@@ -132,7 +197,7 @@ final class DailyTaskGroupStore {
     ) -> Bool {
         var nextGroups = groups
         setReminders(reminders, forDayID: dayID, date: date, in: &nextGroups)
-        return commit(groups: nextGroups)
+        return commit(groups: nextGroups, recurrences: recurrences)
     }
 
     @discardableResult
@@ -171,7 +236,7 @@ final class DailyTaskGroupStore {
             date: Self.date(forDayID: sourceDayID, calendar: calendar) ?? now(),
             in: &nextGroups
         )
-        return commit(groups: nextGroups)
+        return commit(groups: nextGroups, recurrences: recurrences)
     }
 
     private func setReminders(
@@ -191,14 +256,20 @@ final class DailyTaskGroupStore {
         groups.sort { $0.date > $1.date }
     }
 
-    private func commit(groups: [DailyTaskGroup]) -> Bool {
+    private func commit(groups: [DailyTaskGroup], recurrences: [TaskRecurrence]) -> Bool {
         guard !blocksPersistenceWrites else { return false }
         let state = DailyTaskGroupStateCanonicalizer.canonicalState(
-            DailyTaskGroupState(groups: groups, projects: [], selectedProjectID: nil)
+            DailyTaskGroupState(
+                groups: groups,
+                projects: [],
+                selectedProjectID: nil,
+                recurrences: recurrences
+            )
         )
         switch persistence.save(state) {
         case .success:
             self.groups = state.groups
+            self.recurrences = state.recurrences
             persistenceError = nil
             return true
         case let .failure(error):
@@ -211,11 +282,13 @@ final class DailyTaskGroupStore {
         switch persistence.load() {
         case .empty:
             groups = []
+            recurrences = []
             persistenceError = nil
             blocksPersistenceWrites = false
         case let .loaded(state, source):
             let migratedState = DailyTaskGroupStateCanonicalizer.canonicalState(state)
             groups = migratedState.groups
+            recurrences = migratedState.recurrences
             persistenceError = nil
             blocksPersistenceWrites = false
             guard source != .current(version: DailyTaskGroupPersistenceEnvelope.currentSchemaVersion) else {
@@ -226,6 +299,7 @@ final class DailyTaskGroupStore {
             }
         case let .failure(error):
             groups = []
+            recurrences = []
             persistenceError = error
             blocksPersistenceWrites = true
         }

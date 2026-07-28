@@ -58,7 +58,7 @@ private enum UserDefaultsDailyTaskGroupDataStoreError: Error {
 }
 
 struct DailyTaskGroupPersistenceEnvelope: Codable, Equatable {
-    static let currentSchemaVersion = 2
+    static let currentSchemaVersion = 3
 
     let schemaVersion: Int
     let state: DailyTaskGroupState
@@ -105,7 +105,7 @@ struct DailyTaskGroupStorage: DailyTaskGroupPersisting {
 
         let decoder = JSONDecoder()
         if let header = try? decoder.decode(DailyTaskGroupEnvelopeHeader.self, from: data) {
-            guard [1, DailyTaskGroupPersistenceEnvelope.currentSchemaVersion].contains(header.schemaVersion) else {
+            guard (1...DailyTaskGroupPersistenceEnvelope.currentSchemaVersion).contains(header.schemaVersion) else {
                 return .failure(.unsupportedVersion(header.schemaVersion))
             }
 

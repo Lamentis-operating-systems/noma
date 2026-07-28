@@ -196,6 +196,7 @@ struct CreateReminderList: View {
     let reminderCount: Int
     let projects: [TaskProject]
     let onToggleReminder: (CreateReminder) -> Void, onEditReminder: (CreateReminder) -> Void, onDeleteReminder: (CreateReminder) -> Void
+    var onRepeatReminder: ((CreateReminder) -> Void)?
     let onCarryForwardReminder: (CreateReminder) -> Void
     let onCompleteCarryForwardReminder: (CreateReminder) -> Void
 
@@ -221,6 +222,7 @@ struct CreateReminderList: View {
                     projects: projects,
                     onToggleReminder: onToggleReminder,
                     onEditReminder: onEditReminder,
+                    onRepeatReminder: onRepeatReminder,
                     onDeleteReminder: onDeleteReminder
                 )
 

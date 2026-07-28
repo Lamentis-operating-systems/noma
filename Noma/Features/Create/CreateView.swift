@@ -23,6 +23,7 @@ struct CreateView: View {
     @AppStorage(CreateReminderFilterPreference.storageKey) var showsOnlyUnsolvedTasks = false
     @State var temporarilyVisibleCompletedReminderIDs: Set<CreateReminder.ID> = []
     @State var pendingScrollTargetID: String?
+    @State var recurrenceSheetReminder: CreateReminder?
     @FocusState var isInputFocused: Bool
 
     init(dayID: String = DailyTaskGroupStore.todayID()) {
@@ -48,6 +49,9 @@ struct CreateView: View {
         }
         .toolbarTitleDisplayMode(.inline)
         .toolbar { createToolbar }
+        .sheet(item: $recurrenceSheetReminder) { reminder in
+            TaskRecurrenceSheet(reminder: reminder, dayID: activeDayID)
+        }
     }
 }
 

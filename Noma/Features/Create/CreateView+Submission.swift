@@ -222,6 +222,7 @@ extension CreateView {
                     onToggleReminder: toggleReminder,
                     onEditReminder: beginEditingReminder,
                     onDeleteReminder: deleteReminder,
+                    onRepeatReminder: { recurrenceSheetReminder = $0 },
                     onCarryForwardReminder: { reminder in addCarryForwardReminders([reminder]) },
                     onCompleteCarryForwardReminder: completeCarryForwardReminder
                 )

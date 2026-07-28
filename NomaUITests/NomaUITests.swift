@@ -78,10 +78,38 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Dark"].exists)
     }
 
+    func testRecurringTaskSetupStopAndTodayInstanceRetention() {
+        let app = launch(.workspace, language: "en")
+        let task = app.staticTexts["UITest Task"]
+        XCTAssertTrue(task.waitForExistence(timeout: 8))
+        task.press(forDuration: 1)
+        XCTAssertTrue(app.buttons["Repeat"].waitForExistence(timeout: 3))
+        app.buttons["Repeat"].tap()
+
+        let saveButton = app.buttons["recurrence-save-button"]
+        XCTAssertTrue(saveButton.waitForExistence(timeout: 3))
+        saveButton.tap()
+        task.press(forDuration: 1)
+        app.buttons["Repeat"].tap()
+        let stopButton = app.buttons["recurrence-stop-button"]
+        XCTAssertTrue(stopButton.waitForExistence(timeout: 3))
+        stopButton.tap()
+
+        XCTAssertTrue(task.waitForExistence(timeout: 3))
+        task.tap()
+        XCTAssertTrue(task.waitForNonExistence(timeout: 5))
+    }
+
+    func testRecurringTaskMaterializesVisibleTaskOnForegroundLaunch() {
+        let app = launch(.recurrence, language: "en")
+        XCTAssertTrue(app.staticTexts["Generated Repeat"].waitForExistence(timeout: 8))
+    }
+
     private enum Scenario: String {
         case signup
         case empty
         case workspace
+        case recurrence
     }
 
     private func launch(_ scenario: Scenario, language: String) -> XCUIApplication {

@@ -4,6 +4,7 @@ struct HomeTodaySectionView: View {
     let reminders: [CreateReminder]
     let projects: [TaskProject]
     let onToggleReminder: (CreateReminder) -> Void
+    let onRepeatReminder: (CreateReminder) -> Void
     let onDeleteReminder: (CreateReminder) -> Void
 
     var body: some View {
@@ -14,6 +15,7 @@ struct HomeTodaySectionView: View {
                 reminders: reminders,
                 projects: projects,
                 onToggleReminder: onToggleReminder,
+                onRepeatReminder: onRepeatReminder,
                 onDeleteReminder: onDeleteReminder
             )
         }

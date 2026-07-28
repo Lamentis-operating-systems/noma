@@ -5,7 +5,7 @@ struct CreateReminderRow: View {
 
     let reminder: CreateReminder
     let project: TaskProject?
-    let onToggle: () -> Void, onEdit: (() -> Void)?, onDelete: () -> Void
+    let onToggle: () -> Void, onEdit: (() -> Void)?, onRepeat: (() -> Void)?, onDelete: () -> Void
 
     @State private var swipeOffset: CGFloat = 0
     @State private var isSwipeActive = false
@@ -33,6 +33,11 @@ struct CreateReminderRow: View {
             if let onEdit {
                 Button(action: onEdit) {
                     Label(LocalizedStringKey(CreateReminderContextMenuCopy.editTitleKey), systemImage: "pencil")
+                }
+            }
+            if let onRepeat {
+                Button(action: onRepeat) {
+                    Label("recurrence.context-menu", systemImage: "repeat")
                 }
             }
         } preview: { CreateReminderContextMenuPreview(reminder: reminder) }
@@ -106,6 +111,7 @@ struct CreateReminderRows: View {
     let projects: [TaskProject]
     let onToggleReminder: (CreateReminder) -> Void
     var onEditReminder: ((CreateReminder) -> Void)?
+    var onRepeatReminder: ((CreateReminder) -> Void)?
     let onDeleteReminder: (CreateReminder) -> Void
 
     var body: some View {
@@ -116,6 +122,7 @@ struct CreateReminderRows: View {
                     project: project(for: reminder),
                     onToggle: { onToggleReminder(reminder) },
                     onEdit: onEditAction(for: reminder),
+                    onRepeat: onRepeatReminder.map { action in { action(reminder) } },
                     onDelete: { onDeleteReminder(reminder) }
                 )
                 .id(CreateReminderAutoScroll.targetID(for: reminder))

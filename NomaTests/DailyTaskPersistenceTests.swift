@@ -80,6 +80,37 @@ final class DailyTaskPersistenceTests: XCTestCase {
         XCTAssertNil(state.selectedProjectID)
     }
 
+    func testSchemaV1EnvelopePreservesTasksAndMigratesToEmptyRecurrences() async {
+        let dataStore = InMemoryDailyTaskDataStore(data: GoldenPersistenceFixtures.schemaV1Envelope)
+        let storage = DailyTaskGroupStorage(dataStore: dataStore)
+        let store = DailyTaskGroupStore(persistenceFactory: { _ in storage })
+
+        XCTAssertEqual(store.groups.first?.reminders.map(\.text), ["Plan launch"])
+        XCTAssertTrue(store.recurrences.isEmpty)
+        XCTAssertNil(store.persistenceError)
+        guard let rewrittenData = dataStore.data,
+              let json = try? JSONSerialization.jsonObject(with: rewrittenData) as? [String: Any]
+        else {
+            return XCTFail("Expected schema v1 to be rewritten")
+        }
+        XCTAssertEqual(json["schemaVersion"] as? Int, 3)
+    }
+
+    func testSchemaV2EnvelopePreservesTasksAndMigratesToEmptyRecurrences() async {
+        let dataStore = InMemoryDailyTaskDataStore(data: GoldenPersistenceFixtures.schemaV2Envelope)
+        let storage = DailyTaskGroupStorage(dataStore: dataStore)
+        let store = DailyTaskGroupStore(persistenceFactory: { _ in storage })
+
+        XCTAssertEqual(store.groups.first?.reminders.map(\.text), ["Plan launch"])
+        XCTAssertTrue(store.recurrences.isEmpty)
+        guard let rewrittenData = dataStore.data,
+              let json = try? JSONSerialization.jsonObject(with: rewrittenData) as? [String: Any]
+        else {
+            return XCTFail("Expected schema v2 to be rewritten")
+        }
+        XCTAssertEqual(json["schemaVersion"] as? Int, 3)
+    }
+
     func testCorruptPayloadIsReportedAndStoreDoesNotOverwriteIt() async {
         let corruptData = Data("{ definitely-not-json".utf8)
         let dataStore = InMemoryDailyTaskDataStore(data: corruptData)
@@ -313,6 +344,46 @@ private enum GoldenPersistenceFixtures {
             "colorIndex": 0
           }],
           "selectedProjectID": "00000000-0000-0000-0000-000000000012"
+        }
+        """.utf8
+    )
+
+    static let schemaV1Envelope = Data(
+        """
+        {
+          "schemaVersion": 1,
+          "state": {
+            "groups": [{
+              "id": "2026-05-16",
+              "date": 0,
+              "reminders": [{
+                "id": "00000000-0000-0000-0000-000000000011",
+                "text": "Plan launch",
+                "isCompleted": false
+              }]
+            }],
+            "projects": [],
+            "recentlyDeletedProjects": []
+          }
+        }
+        """.utf8
+    )
+
+    static let schemaV2Envelope = Data(
+        """
+        {
+          "schemaVersion": 2,
+          "state": {
+            "groups": [{
+              "id": "2026-05-16",
+              "date": 0,
+              "reminders": [{
+                "id": "00000000-0000-0000-0000-000000000011",
+                "text": "Plan launch",
+                "isCompleted": false
+              }]
+            }]
+          }
         }
         """.utf8
     )

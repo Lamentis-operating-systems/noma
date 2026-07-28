@@ -14,6 +14,7 @@ struct HomeMenu: View {
     @Environment(DailyTaskGroupStore.self) var dailyTaskGroups
     @Environment(AppSettingsStore.self) var appSettings
     @State var isDeleteAccountAlertPresented = false
+    @State var isRecurrencesPresented = false
     @State var deleteAccountErrorMessage: String?
 
     var body: some View {
@@ -28,6 +29,14 @@ struct HomeMenu: View {
             } label: {
                 Text("settings.appearance.section-title")
             }
+
+            Button {
+                isRecurrencesPresented = true
+            } label: {
+                Text("recurrence.manage")
+            }
+            .disabled(dailyTaskGroups.recurrences.isEmpty)
+            .accessibilityIdentifier("recurrence-manage-button")
 
             Divider()
 
@@ -54,6 +63,9 @@ struct HomeMenu: View {
             Image(systemName: "gearshape")
         }
         .accessibilityIdentifier("home-settings-menu")
+        .sheet(isPresented: $isRecurrencesPresented) {
+            RecurrenceManagementView()
+        }
         .alert("auth.delete-account.alert.title", isPresented: $isDeleteAccountAlertPresented) {
             Button("common.cancel", role: .cancel) {}
             Button("auth.delete-account.confirm", role: .destructive) {

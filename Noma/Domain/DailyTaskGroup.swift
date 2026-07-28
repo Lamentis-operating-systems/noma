@@ -13,17 +13,20 @@ struct DailyTaskGroupState: Codable, Equatable {
     var projects: [TaskProject]
     var selectedProjectID: TaskProject.ID?
     var recentlyDeletedProjects: [RecentlyDeletedProject]
+    var recurrences: [TaskRecurrence]
 
     init(
         groups: [DailyTaskGroup],
         projects: [TaskProject],
         selectedProjectID: TaskProject.ID?,
-        recentlyDeletedProjects: [RecentlyDeletedProject] = []
+        recentlyDeletedProjects: [RecentlyDeletedProject] = [],
+        recurrences: [TaskRecurrence] = []
     ) {
         self.groups = groups
         self.projects = projects
         self.selectedProjectID = selectedProjectID
         self.recentlyDeletedProjects = recentlyDeletedProjects
+        self.recurrences = recurrences
     }
 
     static let empty = DailyTaskGroupState(
@@ -37,6 +40,7 @@ struct DailyTaskGroupState: Codable, Equatable {
         case projects
         case selectedProjectID
         case recentlyDeletedProjects
+        case recurrences
     }
 
     init(from decoder: Decoder) throws {
@@ -48,11 +52,13 @@ struct DailyTaskGroupState: Codable, Equatable {
             [RecentlyDeletedProject].self,
             forKey: .recentlyDeletedProjects
         ) ?? []
+        recurrences = try container.decodeIfPresent([TaskRecurrence].self, forKey: .recurrences) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(groups, forKey: .groups)
+        try container.encode(recurrences, forKey: .recurrences)
     }
 }
 
@@ -113,7 +119,8 @@ enum DailyTaskGroupStateCanonicalizer {
                 .sorted { $0.date > $1.date },
             projects: [],
             selectedProjectID: nil,
-            recentlyDeletedProjects: []
+            recentlyDeletedProjects: [],
+            recurrences: uniqueValidRecurrences(state.recurrences)
         )
     }
 
@@ -122,4 +129,8 @@ enum DailyTaskGroupStateCanonicalizer {
         return reminders.filter { seenIDs.insert($0.id).inserted }
     }
 
+    private static func uniqueValidRecurrences(_ recurrences: [TaskRecurrence]) -> [TaskRecurrence] {
+        var seenIDs = Set<TaskRecurrence.ID>()
+        return recurrences.filter { $0.isValid && seenIDs.insert($0.id).inserted }
+    }
 }
