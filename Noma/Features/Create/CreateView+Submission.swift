@@ -6,29 +6,14 @@ extension CreateView {
             text: $message,
             focus: $isInputFocused,
             placeholder: "create.input.placeholder",
-            traySystemImage: selectedProject?.symbolName ?? "tray.full",
-            trayColor: TaskProjectIconPresentation.appSurfaceColor,
-            onTrayButtonTap: { isProjectSheetPresented = true },
             onSubmit: submitReminder
         )
     }
 
     var bottomComposerContent: some View {
         VStack(alignment: .leading, spacing: NomaSpacing.xl) {
-            if showsSuggestedProjectButton {
-                suggestedProjectButton
-            }
-
-            if showsCarryForwardButton {
-                carryForwardButton
-            }
-
             composerBar
         }
-    }
-
-    var selectedProject: TaskProject? {
-        projects.first { $0.id == draftProjectID }
     }
 
     var currentDaySummary: DailyTaskGroupSummary {
@@ -66,11 +51,9 @@ extension CreateView {
         TaskWorkspaceToolbar(
             title: createNavigationTitle,
             subtitle: createNavigationSubtitle,
-            titleAccessibilityLabelKey: "create.date-picker.open.accessibility-label",
             isDoneDisabled: !canCompleteAllReminders,
             isFilterActive: showsOnlyUnsolvedTasks,
             isFilterDisabled: reminders.isEmpty,
-            onTitleTap: openDatePickerSheet,
             onDone: completeAllRemindersForCurrentDay,
             onFilter: toggleUnsolvedFilter
         )
@@ -103,7 +86,7 @@ extension CreateView {
             submission,
             to: &updatedReminders,
             projects: projects,
-            selectedProjectID: draftProjectID
+            selectedProjectID: nil
         )
 
         let didPersist = withAnimation(.smooth(duration: NomaTiming.controlFeedback)) {
@@ -122,15 +105,12 @@ extension CreateView {
         originatingDayID: String
     ) -> Bool {
         let sourceReminders = dailyTaskGroups.reminders(forDayID: originatingDayID)
-        let sourceProjects = dailyTaskGroups.projects
-        let sourceSelectedProjectID = dailyTaskGroups.selectedProjectID
-
         var updatedReminders = sourceReminders
         CreateReminderSubmissionPersistence.append(
             submission,
             to: &updatedReminders,
-            projects: sourceProjects,
-            selectedProjectID: sourceSelectedProjectID
+            projects: [],
+            selectedProjectID: nil
         )
 
         return dailyTaskGroups.replaceRemindersAtomically(updatedReminders, forDayID: originatingDayID)
@@ -140,7 +120,7 @@ extension CreateView {
         guard let submission = CreateReminderSubmission.submit(
             text: submittedText,
             projects: projects,
-            selectedProjectID: draftProjectID
+            selectedProjectID: nil
         ) else { return false }
 
         return appendSubmittedReminder(
@@ -149,28 +129,6 @@ extension CreateView {
         )
     }
 
-    func addProject(_ project: TaskProject) -> Bool {
-        guard dailyTaskGroups.addProject(project, selecting: true) else { return false }
-        draftProjectID = project.id
-        return true
-    }
-
-    func updateProject(_ project: TaskProject) -> Bool {
-        dailyTaskGroups.updateProject(project)
-    }
-
-    func deleteProject(_ projectID: TaskProject.ID) -> Bool {
-        guard dailyTaskGroups.deleteProject(withID: projectID) else { return false }
-        draftProjectID = availableProjectID(draftProjectID)
-        return true
-    }
-
-    func selectProject(_ projectID: TaskProject.ID?) -> Bool {
-        let availableProjectID = availableProjectID(projectID)
-        guard dailyTaskGroups.selectProject(availableProjectID) else { return false }
-        draftProjectID = availableProjectID
-        return true
-    }
 
     func scrollToReminderListBottomAfterKeyboardFocus() {
         guard let targetID = CreateReminderAutoScroll.targetAfterKeyboardFocus(visibleReminders: visibleReminders) else {
@@ -247,46 +205,6 @@ extension CreateView {
         )
     }
 
-    var projectSheet: some View {
-        CreateSheet(
-            projects: projects,
-            selectedProjectID: draftProjectID,
-            allReminders: dailyTaskGroups.allReminders(),
-            onCreateProject: addProject,
-            onSelectProject: selectProject,
-            onUpdateProject: updateProject,
-            onDeleteProject: deleteProject
-        )
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .presentationContentInteraction(.resizes)
-    }
-
-    var datePickerSheet: some View {
-        CreateDatePickerSheet(
-            selectedDate: $datePickerSelection,
-            onSetDate: { selectDay(datePickerSelection) }
-        )
-            .presentationDetents([.fraction(NomaScale.datePickerSheetFraction)])
-            .presentationDragIndicator(.visible)
-    }
-
-    func openDatePickerSheet() {
-        datePickerSelection = currentDayDate
-        isDatePickerSheetPresented = true
-    }
-
-    func selectDay(_ date: Date) {
-        let newDayID = DailyTaskGroupStore.dayID(for: date)
-        guard newDayID != activeDayID else { return }
-
-        activeDayID = newDayID
-        draftProjectID = availableProjectID(dailyTaskGroups.selectedProjectID)
-        editingReminderID = nil
-        message = ""
-        temporarilyVisibleCompletedReminderIDs.removeAll()
-        pendingScrollTargetID = nil
-    }
 
     @ViewBuilder
     var content: some View {
@@ -300,7 +218,7 @@ extension CreateView {
                     carryForwardPreviewReminders: carryForwardPreviewReminders,
                     sectionTitle: CreateReminderListSection.headerTitle(for: currentDayDate),
                     reminderCount: reminders.count,
-                    projects: projects,
+                    projects: [],
                     onToggleReminder: toggleReminder,
                     onEditReminder: beginEditingReminder,
                     onDeleteReminder: deleteReminder,

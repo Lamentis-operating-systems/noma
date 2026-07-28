@@ -118,38 +118,6 @@ private struct ReminderSendButton: View {
     }
 }
 
-private struct ReminderTrayAccessory: View {
-    let height: CGFloat
-    let systemImage: String
-    let color: Color
-    let action: (() -> Void)?
-
-    var body: some View {
-        if let action {
-            Button(action: action) {
-                icon
-            }
-            .buttonStyle(.plain)
-            .frame(width: height, height: height)
-            .contentShape(Circle())
-            .glassEffect(.regular.interactive(), in: .circle)
-            .accessibilityLabel(Text("create.tray.accessibility-label"))
-            .accessibilityIdentifier("create-reminder-tray-button")
-        } else {
-            icon
-                .glassEffect(.regular, in: .circle)
-                .accessibilityHidden(true)
-        }
-    }
-
-    private var icon: some View {
-        Image(systemName: systemImage)
-            .font(.headline)
-            .foregroundStyle(color)
-            .frame(width: height, height: height)
-    }
-}
-
 private struct ReminderTextInput: View {
     let placeholder: LocalizedStringKey
     @Binding var text: String
@@ -184,9 +152,6 @@ struct ReminderInputBar: View {
     let focus: FocusState<Bool>.Binding
     let placeholder: LocalizedStringKey
     let isSubmissionAvailable: Bool
-    let traySystemImage: String
-    let trayColor: Color
-    let onTrayButtonTap: (() -> Void)?
     let onSubmit: (String) -> Bool
 
     init(
@@ -194,31 +159,18 @@ struct ReminderInputBar: View {
         focus: FocusState<Bool>.Binding,
         placeholder: LocalizedStringKey,
         isSubmissionAvailable: Bool = true,
-        traySystemImage: String = "tray.full",
-        trayColor: Color = .primary,
-        onTrayButtonTap: (() -> Void)? = nil,
         onSubmit: @escaping (String) -> Bool
     ) {
         self._text = text
         self.focus = focus
         self.placeholder = placeholder
         self.isSubmissionAvailable = isSubmissionAvailable
-        self.traySystemImage = traySystemImage
-        self.trayColor = trayColor
-        self.onTrayButtonTap = onTrayButtonTap
         self.onSubmit = onSubmit
     }
 
     var body: some View {
         GlassEffectContainer(spacing: NomaSpacing.sm) {
             HStack(alignment: .bottom, spacing: NomaSpacing.sm) {
-                ReminderTrayAccessory(
-                    height: trayButtonHeight,
-                    systemImage: traySystemImage,
-                    color: trayColor,
-                    action: onTrayButtonTap
-                )
-
                 ZStack(alignment: .bottomTrailing) {
                     ReminderTextInput(
                         placeholder: placeholder,
@@ -247,7 +199,6 @@ struct ReminderInputBar: View {
 
 private extension ReminderInputBar {
     private var minimumInputHeight: CGFloat { ReminderInputBarLayout.minimumHeight }
-    private var trayButtonHeight: CGFloat { minimumInputHeight }
     private var inputState: ReminderInputState {
         ReminderInputState(text: text, isSubmissionAvailable: isSubmissionAvailable)
     }

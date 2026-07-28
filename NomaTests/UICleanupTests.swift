@@ -39,15 +39,6 @@ final class UICleanupTests: XCTestCase {
         XCTAssertTrue(loadingState.showsProgress)
     }
 
-    func testProjectIconOptionsHaveUniqueSymbolsAndLocalizedLabelKeys() {
-        let icons = ProjectIconPickerOption.icons
-
-        XCTAssertFalse(icons.isEmpty)
-        XCTAssertEqual(Set(icons.map(\.symbolName)).count, icons.count)
-        XCTAssertEqual(Set(icons.map(\.accessibilityLabelKey)).count, icons.count)
-        XCTAssertTrue(icons.allSatisfy { !$0.accessibilityLabelKey.isEmpty })
-    }
-
     func testHomeScrollPositionNormalizesTheTopInset() {
         XCTAssertEqual(
             HomeScrollPosition.normalizedOffsetY(contentOffsetY: -59, topContentInset: 59),

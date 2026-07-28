@@ -5,28 +5,7 @@ extension CreateView {
         dailyTaskGroups.reminders(forDayID: activeDayID)
     }
 
-    var projects: [TaskProject] {
-        dailyTaskGroups.projects
-    }
-
-    func availableProjectID(_ projectID: TaskProject.ID?) -> TaskProject.ID? {
-        projectID.flatMap { candidateID in
-            projects.contains { $0.id == candidateID } ? candidateID : nil
-        }
-    }
-
-    var suggestedProject: TaskProject? {
-        guard let project = dailyTaskGroups.commonProjectSummaries(limit: 1).first?.project,
-              draftProjectID != project.id
-        else { return nil }
-
-        return projects.first { $0.id == project.id } ?? project
-    }
-
-    var showsSuggestedProjectButton: Bool {
-        CreateReminderSubmission.normalizedText(from: message).isEmpty
-            && suggestedProject != nil
-    }
+    var projects: [TaskProject] { [] }
 
     var carryForwardReminders: [CreateReminder] {
         CreateReminderCarryForwardPreview.visibleReminders(
@@ -55,57 +34,6 @@ extension CreateView {
 
     var carryForwardPreviewReminders: [CreateReminder] {
         showsCarryForwardButton ? carryForwardReminders : []
-    }
-
-    @ViewBuilder
-    var suggestedProjectButton: some View {
-        if let suggestedProject {
-            Button {
-                selectSuggestedProject(suggestedProject)
-            } label: {
-                HStack(spacing: NomaSpacing.sm) {
-                    Image(systemName: suggestedProject.symbolName)
-                        .font(.headline)
-                        .foregroundStyle(TaskProjectIconPresentation.appSurfaceColor)
-                        .frame(width: ReminderInputBarLayout.minimumHeight)
-
-                    Text(suggestedProjectTitle(for: suggestedProject))
-                        .font(.headline)
-                        .foregroundStyle(.textPrimary)
-                }
-            }
-            .buttonStyle(ScaleButtonStyle())
-        }
-    }
-
-    var carryForwardButton: some View {
-        Button {
-            addCarryForwardReminders(carryForwardReminders)
-        } label: {
-            HStack(spacing: NomaSpacing.sm) {
-                Image(systemName: "chevron.down.forward.2")
-                    .font(.headline)
-                    .frame(width: ReminderInputBarLayout.minimumHeight)
-
-                Text("create.carry-forward-yesterday.title")
-                    .font(.headline)
-            }
-            .foregroundStyle(.textPrimary)
-        }
-        .buttonStyle(ScaleButtonStyle())
-    }
-
-    func suggestedProjectTitle(for project: TaskProject) -> String {
-        String.localizedStringWithFormat(
-            String(localized: "create.suggested-project.title"),
-            project.title
-        )
-    }
-
-    func selectSuggestedProject(_ project: TaskProject) {
-        guard dailyTaskGroups.selectProject(project.id) else { return }
-        draftProjectID = project.id
-        hapticFeedback.play(.createTaskSubmit)
     }
 
     func addCarryForwardReminders(_ remindersToCarryForward: [CreateReminder]) {

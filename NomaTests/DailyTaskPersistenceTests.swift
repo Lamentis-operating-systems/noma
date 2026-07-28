@@ -41,15 +41,15 @@ final class DailyTaskPersistenceTests: XCTestCase {
         )
     }
 
-    func testLegacyGlobalStateGoldenFixtureMigratesAndRewritesCurrentEnvelope() async {
+    func testLegacyGlobalStateMigratesTasksAndStripsProjectMetadata() async {
         let dataStore = InMemoryDailyTaskDataStore(data: GoldenPersistenceFixtures.legacyGlobalState)
         let storage = DailyTaskGroupStorage(dataStore: dataStore)
 
         let store = DailyTaskGroupStore(persistenceFactory: { _ in storage })
 
         XCTAssertEqual(store.groups.map(\.id), ["2026-05-16"])
-        XCTAssertEqual(store.projects.map(\.title), ["Work"])
-        XCTAssertEqual(store.selectedProjectID, GoldenPersistenceFixtures.projectID)
+        XCTAssertEqual(store.allReminders().map(\.text), ["Plan launch"])
+        XCTAssertTrue(store.allReminders().allSatisfy { $0.projectID == nil })
         XCTAssertNil(store.persistenceError)
         guard let rewrittenData = dataStore.data,
               let json = try? JSONSerialization.jsonObject(with: rewrittenData) as? [String: Any]
@@ -57,9 +57,13 @@ final class DailyTaskPersistenceTests: XCTestCase {
             return XCTFail("Expected migrated data to be rewritten as an envelope")
         }
         XCTAssertEqual(json["schemaVersion"] as? Int, DailyTaskGroupPersistenceEnvelope.currentSchemaVersion)
+        let state = json["state"] as? [String: Any]
+        XCTAssertNil(state?["projects"])
+        XCTAssertNil(state?["selectedProjectID"])
+        XCTAssertNil(state?["recentlyDeletedProjects"])
     }
 
-    func testLegacyDayScopedGoldenFixtureMigratesProjectsToGlobalState() {
+    func testLegacyDayScopedFixtureKeepsTasksWithoutProjects() {
         let storage = DailyTaskGroupStorage(
             dataStore: InMemoryDailyTaskDataStore(data: GoldenPersistenceFixtures.legacyDayGroups)
         )
@@ -70,8 +74,10 @@ final class DailyTaskPersistenceTests: XCTestCase {
 
         XCTAssertEqual(source, .legacyDayGroups)
         XCTAssertEqual(state.groups.map(\.id), ["2026-05-16"])
-        XCTAssertEqual(state.projects.map(\.id), [GoldenPersistenceFixtures.projectID])
-        XCTAssertEqual(state.selectedProjectID, GoldenPersistenceFixtures.projectID)
+        XCTAssertEqual(state.groups.flatMap(\.reminders).map(\.text), ["Plan launch"])
+        XCTAssertTrue(state.groups.flatMap(\.reminders).allSatisfy { $0.projectID == nil })
+        XCTAssertTrue(state.projects.isEmpty)
+        XCTAssertNil(state.selectedProjectID)
     }
 
     func testCorruptPayloadIsReportedAndStoreDoesNotOverwriteIt() async {
@@ -98,20 +104,33 @@ final class DailyTaskPersistenceTests: XCTestCase {
         XCTAssertEqual(storage.load(), .failure(.unsupportedVersion(99)))
     }
 
-    func testProjectUniquingHasOneDeterministicFirstWinsAuthority() {
-        let projectID = UUID(uuidString: "00000000-0000-0000-0000-000000000099")!
-        let first = TaskProject(id: projectID, title: "First")
-        let duplicate = TaskProject(id: projectID, title: "Duplicate")
+    func testMigrationRestoresTasksFromObsoleteRecentlyDeletedProjectSnapshots() {
+        let project = TaskProject(title: "Legacy")
+        let reminder = CreateReminder(text: "Still accessible", projectID: project.id)
         let canonical = DailyTaskGroupStateCanonicalizer.canonicalState(
             DailyTaskGroupState(
                 groups: [],
-                projects: [first, duplicate],
-                selectedProjectID: projectID
+                projects: [],
+                selectedProjectID: nil,
+                recentlyDeletedProjects: [
+                    RecentlyDeletedProject(
+                        project: project,
+                        deletedAt: Date(),
+                        taskSnapshots: [
+                            RecentlyDeletedProjectTaskSnapshot(
+                                dayID: "2026-05-16",
+                                dayDate: Date(),
+                                reminder: reminder
+                            )
+                        ]
+                    )
+                ]
             )
         )
 
-        XCTAssertEqual(canonical.projects, [first])
-        XCTAssertEqual(canonical.selectedProjectID, projectID)
+        XCTAssertEqual(canonical.groups.flatMap(\.reminders).map(\.text), ["Still accessible"])
+        XCTAssertNil(canonical.groups.first?.reminders.first?.projectID)
+        XCTAssertTrue(canonical.recentlyDeletedProjects.isEmpty)
     }
 
     func testWriteFailureIsObservableThroughStorageAndStore() async {

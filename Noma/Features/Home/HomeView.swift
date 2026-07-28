@@ -1,8 +1,7 @@
 import SwiftUI
 
 enum HomeRoute: Hashable {
-    case create(dayID: String)
-    case project(TaskProject.ID)
+    case create
 }
 
 enum HomeViewLayout {
@@ -49,10 +48,8 @@ struct HomeView: View {
                     }
                     .navigationDestination(for: HomeRoute.self) { route in
                         switch route {
-                        case let .create(dayID):
-                            CreateView(dayID: dayID)
-                        case let .project(projectID):
-                            ProjectDetailView(projectID: projectID)
+                        case .create:
+                            CreateView()
                         }
                     }
                     .toolbar {

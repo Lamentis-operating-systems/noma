@@ -29,16 +29,6 @@ final class LocalizationCatalogTests: XCTestCase {
         }
     }
 
-    func testEveryProjectIconAccessibilityKeyExistsInBothLocales() throws {
-        let catalog = try loadCatalog()
-
-        for option in ProjectIconPickerOption.icons {
-            let entry = try XCTUnwrap(catalog.strings[option.accessibilityLabelKey])
-            XCTAssertFalse(entry.localizations?["en"]?.stringUnit.value.isEmpty ?? true)
-            XCTAssertFalse(entry.localizations?["de"]?.stringUnit.value.isEmpty ?? true)
-        }
-    }
-
     private func loadCatalog() throws -> Catalog {
         let repositoryURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

@@ -1,26 +1,5 @@
 import SwiftUI
 
-struct CreateReminderProjectIcon: View {
-    let project: TaskProject?
-    var color: Color = TaskProjectIconPresentation.appSurfaceColor
-
-    var body: some View {
-        ZStack(alignment: .center) {
-            if let project {
-                Image(systemName: project.symbolName)
-                    .font(.headline)
-                    .foregroundStyle(color)
-            }
-        }
-        .frame(
-            width: CreateReminderMetadataIconLayout.columnWidth,
-            height: NomaSize.radioCheckboxOuter,
-            alignment: .leading
-        )
-        .padding(.top, CreateReminderMetadataIconLayout.firstLineCenterOffset)
-    }
-}
-
 struct CreateReminderRow: View {
     @Environment(\.hapticFeedback) private var hapticFeedback
 
@@ -33,9 +12,6 @@ struct CreateReminderRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            CreateReminderProjectIcon(project: project)
-                .padding(.trailing, CreateReminderMetadataIconLayout.spacingToText)
-
             ZStack(alignment: .leading) {
                 reminderText(.textPrimary).opacity(remainingSwipeProgress)
                 reminderText(.textSecondary).opacity(swipeProgress)
@@ -59,7 +35,7 @@ struct CreateReminderRow: View {
                     Label(LocalizedStringKey(CreateReminderContextMenuCopy.editTitleKey), systemImage: "pencil")
                 }
             }
-        } preview: { CreateReminderContextMenuPreview(reminder: reminder, project: project) }
+        } preview: { CreateReminderContextMenuPreview(reminder: reminder) }
         .contentShape(.contextMenuPreview, CreateReminderContextMenuPreviewShape.shape)
     }
 }

@@ -50,29 +50,7 @@ enum CreateReminderSubmission {
         projects: [TaskProject],
         selectedProjectID: TaskProject.ID? = nil
     ) -> CreateReminderSubmissionResult? {
-        let intent = CreateReminderCaptureIntelligence.intent(from: text, projects: projects)
-        let projectID = intent.projectID ?? selectedProjectID
-        guard let reminder = reminder(from: intent.normalizedText, id: id, projectID: projectID) else { return nil }
-
-        return CreateReminderSubmissionResult(reminder: reminder, remainingText: "")
-    }
-}
-
-enum CreateReminderSubmittedProjectResolution {
-    static func projectID(
-        submittedProjectID: TaskProject.ID?,
-        currentProjects: [TaskProject],
-        selectedProjectID: TaskProject.ID?
-    ) -> TaskProject.ID? {
-        if let submittedProjectID, currentProjects.contains(where: { $0.id == submittedProjectID }) {
-            return submittedProjectID
-        }
-
-        if let selectedProjectID, currentProjects.contains(where: { $0.id == selectedProjectID }) {
-            return selectedProjectID
-        }
-
-        return nil
+        submit(text: text, id: id)
     }
 }
 
@@ -82,17 +60,10 @@ enum CreateReminderSubmissionPersistence {
         projects: [TaskProject],
         selectedProjectID: TaskProject.ID?
     ) -> CreateReminder {
-        let submittedProjectID = CreateReminderSubmittedProjectResolution.projectID(
-            submittedProjectID: submission.reminder.projectID,
-            currentProjects: projects,
-            selectedProjectID: selectedProjectID
-        )
-
         return CreateReminder(
             id: submission.reminder.id,
             text: submission.reminder.text,
             isCompleted: submission.reminder.isCompleted,
-            projectID: submittedProjectID,
             createdAt: submission.reminder.createdAt,
             carryForwardCount: submission.reminder.carryForwardCount
         )

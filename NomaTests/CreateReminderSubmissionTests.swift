@@ -35,7 +35,7 @@ final class CreateReminderSubmissionTests: XCTestCase {
         XCTAssertEqual(result?.remainingText, "")
     }
 
-    func testCreateReminderSubmissionUsesExplicitProjectOverSelectedProject() {
+    func testCreateReminderSubmissionTreatsFormerProjectSyntaxAsPlainText() {
         let work = TaskProject(id: UUID(uuidString: "00000000-0000-0000-0000-000000000063")!, title: "Work")
         let home = TaskProject(id: UUID(uuidString: "00000000-0000-0000-0000-000000000064")!, title: "Home")
         let result = CreateReminderSubmission.submit(
@@ -45,23 +45,9 @@ final class CreateReminderSubmissionTests: XCTestCase {
             selectedProjectID: home.id
         )
 
-        XCTAssertEqual(result?.reminder.text, "Send launch update")
-        XCTAssertEqual(result?.reminder.projectID, work.id)
+        XCTAssertEqual(result?.reminder.text, "Work: Send launch update")
+        XCTAssertNil(result?.reminder.projectID)
         XCTAssertEqual(result?.remainingText, "")
-    }
-
-    func testSubmittedReminderDropsDeletedProjectReference() {
-        let deletedProjectID = UUID(uuidString: "00000000-0000-0000-0000-000000000067")!
-        let selectedProject = TaskProject(id: UUID(uuidString: "00000000-0000-0000-0000-000000000068")!, title: "Inbox")
-
-        XCTAssertEqual(
-            CreateReminderSubmittedProjectResolution.projectID(
-                submittedProjectID: deletedProjectID,
-                currentProjects: [selectedProject],
-                selectedProjectID: selectedProject.id
-            ),
-            selectedProject.id
-        )
     }
 
     @MainActor

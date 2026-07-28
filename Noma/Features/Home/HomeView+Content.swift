@@ -3,40 +3,18 @@ import SwiftUI
 extension HomeView {
     var createButton: some View {
         PrimaryGlassButton(title: "create.button.title", systemImage: "square.and.pencil") {
-            path.append(.create(dayID: dailyTaskGroups.todayID()))
+            path.append(.create)
         }
         .accessibilityIdentifier("home-create-button")
     }
 
     var dailyGroupsList: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if showsEmptyState {
+            if todayReminders.isEmpty {
                 HomeEmptyHint()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if showsTodaySection {
+            } else {
                 todaySection
-            }
-
-            if showsProjectSection {
-                if showsTodaySection {
-                    HomeSectionDivider()
-                }
-
-                CommonProjectsSectionView(
-                    summaries: commonProjectSummaries,
-                    onSelectProject: { path.append(.project($0.project.id)) }
-                )
-            }
-
-            if showsDailyGroupsSection {
-                if showsTodaySection || showsProjectSection {
-                    HomeSectionDivider()
-                }
-
-                DailyGroupsSectionView(
-                    summaries: dailyGroupSummaries,
-                    onSelectGroup: { path.append(.create(dayID: $0.id)) }
-                )
             }
 
             Spacer(minLength: 0)
@@ -46,20 +24,7 @@ extension HomeView {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    var dailyGroupSummaries: [DailyTaskGroupSummary] { dailyTaskGroups.summaries() }
-    var commonProjectSummaries: [CommonProjectSummary] { dailyTaskGroups.commonProjectSummaries() }
-    var showsEmptyState: Bool {
-        HomeContentVisibility.showsEmptyState(
-            showsTodaySection: showsTodaySection,
-            showsProjectSection: showsProjectSection,
-            showsDailyGroupsSection: showsDailyGroupsSection
-        )
-    }
-    var showsTodaySection: Bool { !todayReminders.isEmpty }
-    var showsProjectSection: Bool { !commonProjectSummaries.isEmpty }
-    var showsDailyGroupsSection: Bool { !dailyGroupSummaries.isEmpty }
     var todayID: String { dailyTaskGroups.todayID() }
-    var todayProjects: [TaskProject] { dailyTaskGroups.projects }
     var todayReminders: [CreateReminder] {
         CreateReminderListFilter.visibleReminders(
             dailyTaskGroups.reminders(forDayID: todayID),
@@ -73,7 +38,7 @@ extension HomeView {
 
         return HomeTodaySectionView(
             reminders: todayReminders,
-            projects: todayProjects,
+            projects: [],
             onToggleReminder: { toggleTodayReminder($0, dayID: renderedDayID) },
             onDeleteReminder: { deleteTodayReminder($0, dayID: renderedDayID) }
         )

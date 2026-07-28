@@ -33,6 +33,15 @@ struct CreateReminder: Codable, Equatable, Identifiable {
         case carryForwardCount
     }
 
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(text, forKey: .text)
+        try container.encode(isCompleted, forKey: .isCompleted)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(carryForwardCount, forKey: .carryForwardCount)
+    }
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -45,6 +54,16 @@ struct CreateReminder: Codable, Equatable, Identifiable {
 
     var wasCarriedForward: Bool {
         carryForwardCount > 0
+    }
+
+    func removingProjectAssociation() -> CreateReminder {
+        CreateReminder(
+            id: id,
+            text: text,
+            isCompleted: isCompleted,
+            createdAt: createdAt,
+            carryForwardCount: carryForwardCount
+        )
     }
 
     func togglingCompletion() -> CreateReminder {
@@ -73,7 +92,6 @@ enum CreateReminderCarryForwardTransfer {
     static func carriedReminder(from reminder: CreateReminder) -> CreateReminder {
         CreateReminder(
             text: reminder.text,
-            projectID: reminder.projectID,
             createdAt: reminder.createdAt,
             carryForwardCount: reminder.carryForwardCount + 1
         )
