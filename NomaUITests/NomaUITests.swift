@@ -86,11 +86,12 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Repeat"].waitForExistence(timeout: 3))
         app.buttons["Repeat"].tap()
 
-        let saveButton = app.buttons["recurrence-save-button"]
-        XCTAssertTrue(saveButton.waitForExistence(timeout: 3))
-        saveButton.tap()
+        let dailyButton = app.buttons["recurrence-daily-button"]
+        XCTAssertTrue(dailyButton.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["recurrence-save-button"].exists)
+        dailyButton.tap()
+
         task.press(forDuration: 1)
-        app.buttons["Repeat"].tap()
         let stopButton = app.buttons["recurrence-stop-button"]
         XCTAssertTrue(stopButton.waitForExistence(timeout: 3))
         stopButton.tap()
@@ -98,6 +99,27 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(task.waitForExistence(timeout: 3))
         task.tap()
         XCTAssertTrue(task.waitForNonExistence(timeout: 5))
+    }
+
+    func testRecurringTaskCustomMenuUsesWeekdayTogglesInsteadOfASheet() {
+        let app = launch(.workspace, language: "en")
+        let task = app.staticTexts["UITest Task"]
+        XCTAssertTrue(task.waitForExistence(timeout: 8))
+        task.press(forDuration: 1)
+        app.buttons["Repeat"].tap()
+
+        let customMenu = app.buttons["recurrence-custom-menu"]
+        XCTAssertTrue(customMenu.waitForExistence(timeout: 3))
+        customMenu.tap()
+
+        let monday = app.descendants(matching: .any).matching(identifier: "recurrence-weekday-2").firstMatch
+        let friday = app.descendants(matching: .any).matching(identifier: "recurrence-weekday-6").firstMatch
+        XCTAssertTrue(monday.waitForExistence(timeout: 3))
+        XCTAssertTrue(friday.exists)
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "recurrence-weekday-1").count, 0)
+        XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "recurrence-weekday-7").count, 0)
+        XCTAssertTrue(app.buttons["recurrence-custom-save-button"].exists)
+        XCTAssertFalse(app.buttons["recurrence-save-button"].exists)
     }
 
     func testRecurringTaskMaterializesVisibleTaskOnForegroundLaunch() {

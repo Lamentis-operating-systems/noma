@@ -39,8 +39,8 @@ extension HomeView {
         return HomeTodaySectionView(
             reminders: todayReminders,
             projects: [],
+            dayID: renderedDayID,
             onToggleReminder: { toggleTodayReminder($0, dayID: renderedDayID) },
-            onRepeatReminder: { recurrenceSheetReminder = $0 },
             onDeleteReminder: { deleteTodayReminder($0, dayID: renderedDayID) }
         )
     }

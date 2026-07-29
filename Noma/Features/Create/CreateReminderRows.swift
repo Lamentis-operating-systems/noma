@@ -5,10 +5,12 @@ struct CreateReminderRow: View {
 
     let reminder: CreateReminder
     let project: TaskProject?
-    let onToggle: () -> Void, onEdit: (() -> Void)?, onRepeat: (() -> Void)?, onDelete: () -> Void
+    let dayID: String
+    let onToggle: () -> Void, onEdit: (() -> Void)?, onDelete: () -> Void
 
     @State private var swipeOffset: CGFloat = 0
     @State private var isSwipeActive = false
+    @State private var selectedCustomWeekdays = Set(TaskRecurrenceMenu.customWeekdays)
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -35,11 +37,11 @@ struct CreateReminderRow: View {
                     Label(LocalizedStringKey(CreateReminderContextMenuCopy.editTitleKey), systemImage: "pencil")
                 }
             }
-            if let onRepeat {
-                Button(action: onRepeat) {
-                    Label("recurrence.context-menu", systemImage: "repeat")
-                }
-            }
+            TaskRecurrenceMenu(
+                reminder: reminder,
+                dayID: dayID,
+                selectedCustomWeekdays: $selectedCustomWeekdays
+            )
         } preview: { CreateReminderContextMenuPreview(reminder: reminder) }
         .contentShape(.contextMenuPreview, CreateReminderContextMenuPreviewShape.shape)
     }
@@ -109,9 +111,9 @@ private extension CreateReminderRow {
 struct CreateReminderRows: View {
     let reminders: [CreateReminder]
     let projects: [TaskProject]
+    let dayID: String
     let onToggleReminder: (CreateReminder) -> Void
     var onEditReminder: ((CreateReminder) -> Void)?
-    var onRepeatReminder: ((CreateReminder) -> Void)?
     let onDeleteReminder: (CreateReminder) -> Void
 
     var body: some View {
@@ -120,9 +122,9 @@ struct CreateReminderRows: View {
                 CreateReminderRow(
                     reminder: reminder,
                     project: project(for: reminder),
+                    dayID: dayID,
                     onToggle: { onToggleReminder(reminder) },
                     onEdit: onEditAction(for: reminder),
-                    onRepeat: onRepeatReminder.map { action in { action(reminder) } },
                     onDelete: { onDeleteReminder(reminder) }
                 )
                 .id(CreateReminderAutoScroll.targetID(for: reminder))

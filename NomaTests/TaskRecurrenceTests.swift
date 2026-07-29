@@ -3,6 +3,10 @@ import XCTest
 
 @MainActor
 final class TaskRecurrenceTests: XCTestCase {
+    func testCustomMenuDefaultsToTheMondayThroughFridayWorkweek() {
+        XCTAssertEqual(Set(TaskRecurrenceMenu.customWeekdays), Set(2...6))
+    }
+
     func testValidationRejectsBlankTextEmptyAndInvalidWeekdays() {
         XCTAssertFalse(TaskRecurrence(sourceText: " ", activeWeekdays: [2], startDate: .now).isValid)
         XCTAssertFalse(TaskRecurrence(sourceText: "Read", activeWeekdays: [], startDate: .now).isValid)

@@ -3,8 +3,8 @@ import SwiftUI
 struct HomeTodaySectionView: View {
     let reminders: [CreateReminder]
     let projects: [TaskProject]
+    let dayID: String
     let onToggleReminder: (CreateReminder) -> Void
-    let onRepeatReminder: (CreateReminder) -> Void
     let onDeleteReminder: (CreateReminder) -> Void
 
     var body: some View {
@@ -14,8 +14,8 @@ struct HomeTodaySectionView: View {
             CreateReminderRows(
                 reminders: reminders,
                 projects: projects,
+                dayID: dayID,
                 onToggleReminder: onToggleReminder,
-                onRepeatReminder: onRepeatReminder,
                 onDeleteReminder: onDeleteReminder
             )
         }

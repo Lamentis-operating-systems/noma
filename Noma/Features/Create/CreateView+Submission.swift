@@ -219,10 +219,10 @@ extension CreateView {
                     sectionTitle: CreateReminderListSection.headerTitle(for: currentDayDate),
                     reminderCount: reminders.count,
                     projects: [],
+                    dayID: activeDayID,
                     onToggleReminder: toggleReminder,
                     onEditReminder: beginEditingReminder,
                     onDeleteReminder: deleteReminder,
-                    onRepeatReminder: { recurrenceSheetReminder = $0 },
                     onCarryForwardReminder: { reminder in addCarryForwardReminders([reminder]) },
                     onCompleteCarryForwardReminder: completeCarryForwardReminder
                 )
