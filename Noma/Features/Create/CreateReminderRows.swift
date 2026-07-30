@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CreateReminderRow: View {
     @Environment(\.hapticFeedback) private var hapticFeedback
+    @Environment(DailyTaskGroupStore.self) private var dailyTaskGroups
 
     let reminder: CreateReminder
     let project: TaskProject?
@@ -74,11 +75,21 @@ private extension CreateReminderRow {
     }
 
     private func reminderText(_ color: Color) -> some View {
-        Text(reminder.text)
-            .font(.headline.weight(.regular))
-            .foregroundStyle(color)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(alignment: .firstTextBaseline, spacing: NomaSpacing.sm) {
+            Text(reminder.text)
+                .font(.headline.weight(.regular))
+                .foregroundStyle(color)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if dailyTaskGroups.recurrence(for: reminder.id, onDayID: dayID) != nil {
+                Image(systemName: "repeat")
+                    .font(.caption)
+                    .foregroundStyle(.textSecondary)
+                    .accessibilityLabel(Text("recurrence.indicator"))
+                    .accessibilityIdentifier("recurrence-indicator")
+            }
+        }
     }
 
     private func updateSwipeOffset(with translation: CGSize) {

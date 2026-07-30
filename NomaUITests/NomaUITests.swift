@@ -120,11 +120,17 @@ final class NomaUITests: XCTestCase {
         XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "recurrence-weekday-7").count, 0)
         XCTAssertTrue(app.buttons["recurrence-custom-save-button"].exists)
         XCTAssertFalse(app.buttons["recurrence-save-button"].exists)
+
+        monday.tap()
+        XCTAssertTrue(monday.waitForExistence(timeout: 1))
+        XCTAssertTrue(friday.exists)
+        XCTAssertTrue(app.buttons["recurrence-custom-save-button"].exists)
     }
 
     func testRecurringTaskMaterializesVisibleTaskOnForegroundLaunch() {
         let app = launch(.recurrence, language: "en")
         XCTAssertTrue(app.staticTexts["Generated Repeat"].waitForExistence(timeout: 8))
+        XCTAssertEqual(app.images.matching(identifier: "recurrence-indicator").count, 1)
     }
 
     private enum Scenario: String {

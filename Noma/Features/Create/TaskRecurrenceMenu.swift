@@ -24,8 +24,19 @@ struct TaskRecurrenceMenu: View {
 
                 Menu {
                     ForEach(Self.customWeekdays, id: \.self) { weekday in
-                        Toggle(weekdayName(weekday), isOn: weekdayBinding(weekday))
-                            .accessibilityIdentifier("recurrence-weekday-\(weekday)")
+                        Button {
+                            toggleWeekday(weekday)
+                        } label: {
+                            HStack {
+                                Text(weekdayName(weekday))
+
+                                if selectedCustomWeekdays.contains(weekday) {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        .menuActionDismissBehavior(.disabled)
+                        .accessibilityIdentifier("recurrence-weekday-\(weekday)")
                     }
 
                     Divider()
@@ -62,16 +73,11 @@ struct TaskRecurrenceMenu: View {
         Calendar.current.weekdaySymbols[weekday - 1]
     }
 
-    private func weekdayBinding(_ weekday: Int) -> Binding<Bool> {
-        Binding(
-            get: { selectedCustomWeekdays.contains(weekday) },
-            set: { isSelected in
-                if isSelected {
-                    selectedCustomWeekdays.insert(weekday)
-                } else {
-                    selectedCustomWeekdays.remove(weekday)
-                }
-            }
-        )
+    private func toggleWeekday(_ weekday: Int) {
+        if selectedCustomWeekdays.contains(weekday) {
+            selectedCustomWeekdays.remove(weekday)
+        } else {
+            selectedCustomWeekdays.insert(weekday)
+        }
     }
 }
