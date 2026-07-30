@@ -60,6 +60,7 @@ final class NomaUITests: XCTestCase {
 
         XCTAssertEqual(app.buttons.matching(identifier: "Notifications").count, 0)
         XCTAssertEqual(app.staticTexts.matching(identifier: "Notifications").count, 0)
+        XCTAssertEqual(app.buttons.matching(identifier: "recurrence-manage-button").count, 0)
 
         let deleteAccount = app.buttons["home-delete-account-action"]
         let signOut = app.buttons["home-sign-out-action"]
@@ -80,7 +81,7 @@ final class NomaUITests: XCTestCase {
 
     func testRecurringTaskSetupStopAndTodayInstanceRetention() {
         let app = launch(.workspace, language: "en")
-        let task = app.staticTexts["UITest Task"]
+        let task = app.staticTexts["UITest Task"].firstMatch
         XCTAssertTrue(task.waitForExistence(timeout: 8))
         task.press(forDuration: 1)
         XCTAssertTrue(app.buttons["Repeat"].waitForExistence(timeout: 3))
@@ -131,6 +132,17 @@ final class NomaUITests: XCTestCase {
         let app = launch(.recurrence, language: "en")
         XCTAssertTrue(app.staticTexts["Generated Repeat"].waitForExistence(timeout: 8))
         XCTAssertEqual(app.images.matching(identifier: "recurrence-indicator").count, 1)
+        let recurrencesSectionTitle = app.descendants(matching: .any)
+            .matching(identifier: "home-recurrences-section-title")
+            .firstMatch
+        XCTAssertTrue(recurrencesSectionTitle.waitForExistence(timeout: 3))
+        XCTAssertEqual(recurrencesSectionTitle.label, "Repeating Tasks")
+
+        let recurrenceRow = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier BEGINSWITH 'home-recurrence-'"))
+            .firstMatch
+        XCTAssertTrue(recurrenceRow.exists)
+        XCTAssertEqual(recurrenceRow.label, "Generated Repeat")
     }
 
     private enum Scenario: String {

@@ -242,24 +242,6 @@
         }
       }
     },
-    "create.carry-forward-yesterday.title" : {
-      "comment" : "Action title for adding open tasks from the previous day to the current day.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Von gestern übernehmen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add from yesterday"
-          }
-        }
-      }
-    },
     "create.date-picker.close.accessibility-label" : {
       "comment" : "Accessibility label for closing the create date picker sheet.",
       "localizations" : {
@@ -400,24 +382,6 @@
         }
       }
     },
-    "create.project.close.accessibility-label" : {
-      "comment" : "Accessibility label for closing the project picker sheet.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projekt schließen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close project"
-          }
-        }
-      }
-    },
     "create.project.create-button" : {
       "comment" : "Primary button title in the Add Project sheet.",
       "extractionState" : "manual",
@@ -454,42 +418,6 @@
         }
       }
     },
-    "create.project.empty.subtitle" : {
-      "comment" : "Subtitle in the empty project sheet explaining what projects are.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projekte sind eigene Bereiche, um Arbeit, persönliche Ziele oder alles andere zu planen, das du getrennt halten möchtest."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projects are dedicated spaces for planning work, personal goals, or anything you want to keep separate."
-          }
-        }
-      }
-    },
-    "create.project.empty.title" : {
-      "comment" : "Title in the empty project sheet.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aufgaben mit Projekten organisieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Organize tasks with projects"
-          }
-        }
-      }
-    },
     "create.project.expiration.date-picker" : {
       "comment" : "Date picker label for choosing when a project should expire.",
       "extractionState" : "manual",
@@ -522,24 +450,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Auto-delete"
-          }
-        }
-      }
-    },
-    "create.project.icon-button.accessibility-label" : {
-      "comment" : "Accessibility label for opening the project icon picker.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projektsymbol auswählen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose project icon"
           }
         }
       }
@@ -1371,24 +1281,6 @@
         }
       }
     },
-    "create.suggested-project.title" : {
-      "comment" : "Action title for assigning new tasks to the most frequently used project.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zu %@ hinzufügen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add to %@"
-          }
-        }
-      }
-    },
     "create.tasks.context-menu.edit" : {
       "comment" : "Context menu action title for editing an existing task.",
       "extractionState" : "manual",
@@ -1545,24 +1437,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Filter unsolved tasks"
-          }
-        }
-      }
-    },
-    "create.tray.accessibility-label" : {
-      "comment" : "Accessibility label for opening the project picker sheet from the create view composer.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Projekt öffnen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open project"
           }
         }
       }
@@ -1840,40 +1714,6 @@
         }
       }
     },
-    "project.detail.today.section-header" : {
-      "comment" : "Section header above today's tasks in the project detail view.",
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aufgaben für heute"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tasks for today"
-          }
-        }
-      }
-    },
-    "recurrence.close" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schließen"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
-          }
-        }
-      }
-    },
     "recurrence.context-menu" : {
       "localizations" : {
         "de" : {
@@ -1982,22 +1822,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stop Repeat"
-          }
-        }
-      }
-    },
-    "recurrence.stop.explanation" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die heutige Aufgabe bleibt erhalten. Nur zukünftige Wiederholungen werden beendet."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Today's task stays. Only future repeats stop."
           }
         }
       }

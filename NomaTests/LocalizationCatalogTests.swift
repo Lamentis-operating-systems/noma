@@ -52,6 +52,13 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertNil(strings["settings.notifications.time"])
     }
 
+    func testRecurrenceManagerOnlyLocalizationKeysAreRemoved() throws {
+        let strings = try loadCatalog().strings
+
+        XCTAssertNil(strings["recurrence.close"])
+        XCTAssertNil(strings["recurrence.stop.explanation"])
+    }
+
     private func loadCatalog() throws -> Catalog {
         let repositoryURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

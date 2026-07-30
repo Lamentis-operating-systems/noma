@@ -10,11 +10,21 @@ extension HomeView {
 
     var dailyGroupsList: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if todayReminders.isEmpty {
+            if todayReminders.isEmpty, dailyTaskGroups.recurrences.isEmpty {
                 HomeEmptyHint()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                todaySection
+                if !todayReminders.isEmpty {
+                    todaySection
+                }
+
+                if !dailyTaskGroups.recurrences.isEmpty {
+                    if !todayReminders.isEmpty {
+                        HomeSectionDivider()
+                    }
+
+                    recurrencesSection
+                }
             }
 
             Spacer(minLength: 0)
@@ -43,6 +53,10 @@ extension HomeView {
             onToggleReminder: { toggleTodayReminder($0, dayID: renderedDayID) },
             onDeleteReminder: { deleteTodayReminder($0, dayID: renderedDayID) }
         )
+    }
+
+    var recurrencesSection: some View {
+        HomeRecurrencesSectionView(recurrences: dailyTaskGroups.recurrences)
     }
 
     func toggleTodayReminder(_ reminder: CreateReminder, dayID: String) {
