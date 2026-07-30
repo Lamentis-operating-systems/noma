@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     "%lld." : {
 
     },
@@ -20,6 +17,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign in with Apple"
+          }
+        }
+      }
+    },
+    "auth.delete-account.additional-local-data-cleanup-error" : {
+      "comment" : "Additional error detail shown when account deletion was not completed cleanly and local task data also could not be removed.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zusätzlich konnten die lokalen Aufgaben und Projekte nicht von diesem Gerät entfernt werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In addition, local tasks and projects could not be removed from this device."
           }
         }
       }
@@ -54,23 +68,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete account?"
-          }
-        }
-      }
-    },
-    "auth.delete-account.additional-local-data-cleanup-error" : {
-      "comment" : "Additional error detail shown when account deletion was not completed cleanly and local task data also could not be removed.",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zusätzlich konnten die lokalen Aufgaben und Projekte nicht von diesem Gerät entfernt werden."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In addition, local tasks and projects could not be removed from this device."
           }
         }
       }
@@ -247,6 +244,7 @@
     },
     "create.carry-forward-yesterday.title" : {
       "comment" : "Action title for adding open tasks from the previous day to the current day.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -404,6 +402,7 @@
     },
     "create.project.close.accessibility-label" : {
       "comment" : "Accessibility label for closing the project picker sheet.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -457,6 +456,7 @@
     },
     "create.project.empty.subtitle" : {
       "comment" : "Subtitle in the empty project sheet explaining what projects are.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -474,6 +474,7 @@
     },
     "create.project.empty.title" : {
       "comment" : "Title in the empty project sheet.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -527,6 +528,7 @@
     },
     "create.project.icon-button.accessibility-label" : {
       "comment" : "Accessibility label for opening the project icon picker.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1371,6 +1373,7 @@
     },
     "create.suggested-project.title" : {
       "comment" : "Action title for assigning new tasks to the most frequently used project.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1548,6 +1551,7 @@
     },
     "create.tray.accessibility-label" : {
       "comment" : "Accessibility label for opening the project picker sheet from the create view composer.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1838,6 +1842,7 @@
     },
     "project.detail.today.section-header" : {
       "comment" : "Section header above today's tasks in the project detail view.",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1849,6 +1854,150 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tasks for today"
+          }
+        }
+      }
+    },
+    "recurrence.close" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schließen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "recurrence.context-menu" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederholen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat"
+          }
+        }
+      }
+    },
+    "recurrence.custom" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzerdefiniert"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom"
+          }
+        }
+      }
+    },
+    "recurrence.daily" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Täglich"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily"
+          }
+        }
+      }
+    },
+    "recurrence.indicator" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederkehrende Aufgabe"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeating task"
+          }
+        }
+      }
+    },
+    "recurrence.manage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederholungen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeating Tasks"
+          }
+        }
+      }
+    },
+    "recurrence.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederholung starten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Repeat"
+          }
+        }
+      }
+    },
+    "recurrence.stop" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederholung beenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop Repeat"
+          }
+        }
+      }
+    },
+    "recurrence.stop.explanation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die heutige Aufgabe bleibt erhalten. Nur zukünftige Wiederholungen werden beendet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's task stays. Only future repeats stop."
           }
         }
       }
@@ -2045,60 +2194,6 @@
             "value" : "Create tasks the moment they come up."
           }
         }
-      }
-    },
-    "recurrence.close" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schließen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Close" } }
-      }
-    },
-    "recurrence.context-menu" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Repeat" } }
-      }
-    },
-    "recurrence.custom" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Benutzerdefiniert" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Custom" } }
-      }
-    },
-    "recurrence.daily" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Täglich" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Daily" } }
-      }
-    },
-    "recurrence.indicator" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederkehrende Aufgabe" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Repeating task" } }
-      }
-    },
-    "recurrence.manage" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholungen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Repeating Tasks" } }
-      }
-    },
-    "recurrence.save" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholung starten" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Repeat" } }
-      }
-    },
-    "recurrence.stop" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederholung beenden" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop Repeat" } }
-      }
-    },
-    "recurrence.stop.explanation" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die heutige Aufgabe bleibt erhalten. Nur zukünftige Wiederholungen werden beendet." } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today's task stays. Only future repeats stop." } }
       }
     },
     "signup.workflow.decide" : {

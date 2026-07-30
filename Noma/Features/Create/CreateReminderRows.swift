@@ -75,7 +75,7 @@ private extension CreateReminderRow {
     }
 
     private func reminderText(_ color: Color) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: NomaSpacing.sm) {
+        HStack(alignment: .center, spacing: NomaSpacing.sm) {
             Text(reminder.text)
                 .font(.headline.weight(.regular))
                 .foregroundStyle(color)
@@ -84,8 +84,13 @@ private extension CreateReminderRow {
 
             if dailyTaskGroups.recurrence(for: reminder.id, onDayID: dayID) != nil {
                 Image(systemName: "repeat")
-                    .font(.caption)
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.textSecondary)
+                    .frame(
+                        width: NomaSize.radioCheckboxOuter,
+                        height: NomaSize.radioCheckboxOuter,
+                        alignment: .center
+                    )
                     .accessibilityLabel(Text("recurrence.indicator"))
                     .accessibilityIdentifier("recurrence-indicator")
             }

@@ -30,10 +30,13 @@ struct TaskRecurrenceMenu: View {
                             HStack {
                                 Text(weekdayName(weekday))
 
+                                Spacer(minLength: 0)
+
                                 if selectedCustomWeekdays.contains(weekday) {
                                     Image(systemName: "checkmark")
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .menuActionDismissBehavior(.disabled)
                         .accessibilityIdentifier("recurrence-weekday-\(weekday)")
