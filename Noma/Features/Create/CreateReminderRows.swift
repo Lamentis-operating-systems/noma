@@ -1,5 +1,29 @@
 import SwiftUI
 
+struct CreateReminderRowLayout<Content: View, Accessory: View>: View {
+    private let content: Content
+    private let accessory: Accessory
+
+    init(
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder accessory: () -> Accessory
+    ) {
+        self.content = content()
+        self.accessory = accessory()
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 0) {
+            content
+
+            accessory
+                .padding(.leading, NomaSpacing.md)
+                .padding(.top, CreateReminderMetadataIconLayout.firstLineCenterOffset)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 struct CreateReminderRow: View {
     @Environment(\.hapticFeedback) private var hapticFeedback
 
@@ -13,16 +37,14 @@ struct CreateReminderRow: View {
     @State private var selectedCustomWeekdays = Set(TaskRecurrenceMenu.customWeekdays)
 
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
+        CreateReminderRowLayout {
             ZStack(alignment: .leading) {
                 reminderText(.textPrimary).opacity(remainingSwipeProgress)
                 reminderText(.textSecondary).opacity(swipeProgress)
             }
-
+        } accessory: {
             swipeActionControl
-                .padding(.leading, NomaSpacing.md)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
         .overlay {
             CreateReminderRowGestureOverlay(
@@ -61,7 +83,6 @@ private extension CreateReminderRow {
                 .opacity(remainingSwipeProgress).scaleEffect(remainingSwipeProgress, anchor: .center)
         }
         .frame(width: NomaSize.radioCheckboxOuter, height: NomaSize.radioCheckboxOuter, alignment: .center)
-        .padding(.top, CreateReminderMetadataIconLayout.firstLineCenterOffset)
     }
 
     private var deleteIcon: some View {

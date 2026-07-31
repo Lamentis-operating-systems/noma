@@ -13,31 +13,27 @@ struct HomeRecurrencesSectionView: View {
 
             VStack(alignment: .leading, spacing: CreateReminderRowsLayout.spacingBetweenTasks) {
                 ForEach(recurrences) { recurrence in
-                    Menu {
-                        Button(role: .destructive) {
-                            recurrencePendingStop = recurrence
-                        } label: {
-                            Label("recurrence.stop", systemImage: "repeat")
-                        }
-                        .accessibilityIdentifier("home-recurrence-stop-action-\(recurrence.id)")
+                    Button {
+                        recurrencePendingStop = recurrence
                     } label: {
-                        HStack(alignment: .top, spacing: 0) {
+                        CreateReminderRowLayout {
                             Text(recurrence.sourceText)
                                 .font(.headline.weight(.regular))
                                 .foregroundStyle(.textPrimary)
+                                .multilineTextAlignment(.leading)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, NomaSpacing.md)
-
+                        } accessory: {
                             Image(systemName: "repeat")
-                                .font(.body.weight(.semibold))
+                                .font(.body)
                                 .foregroundStyle(.textSecondary)
                                 .frame(
-                                    width: NomaSize.minimumTouchTarget,
-                                    height: NomaSize.minimumTouchTarget,
+                                    width: NomaSize.radioCheckboxOuter,
+                                    height: NomaSize.radioCheckboxOuter,
                                     alignment: .center
                                 )
                                 .accessibilityHidden(true)
                         }
+                        .frame(minHeight: NomaSize.minimumTouchTarget, alignment: .top)
                         .contentShape(.rect)
                     }
                     .buttonStyle(.plain)

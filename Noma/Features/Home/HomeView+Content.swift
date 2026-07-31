@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension HomeView {
-    var createButton: some View {
+    var createTaskToolbarButton: some View {
         Button {
             path.append(.create)
         } label: {

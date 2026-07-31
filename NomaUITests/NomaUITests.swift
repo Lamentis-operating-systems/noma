@@ -15,7 +15,7 @@ final class NomaUITests: XCTestCase {
         XCTAssertEqual(app.switches.matching(identifier: "signup-consent-toggle").count, 0)
     }
 
-    func testEmptyHomeKeepsCopyAndCircularIconOnlyCaptureAccessible() {
+    func testEmptyHomeKeepsCopyAndBottomToolbarCaptureAccessible() {
         let app = launch(.empty, language: "en")
         let capture = app.buttons["home-create-button"]
 
@@ -26,8 +26,10 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(capture.isEnabled)
         XCTAssertTrue(capture.isHittable)
         XCTAssertEqual(capture.label, "Task")
-        XCTAssertEqual(capture.frame.width, capture.frame.height, accuracy: 1)
         XCTAssertGreaterThanOrEqual(capture.frame.width, 44)
+        XCTAssertEqual(capture.frame.width, capture.frame.height, accuracy: 1)
+        XCTAssertGreaterThan(capture.frame.midX, app.frame.midX)
+        XCTAssertGreaterThan(capture.frame.midY, app.frame.height * 0.75)
         XCTAssertEqual(app.images.matching(identifier: "plus.circle").count, 0)
     }
 
@@ -147,22 +149,19 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(recurrenceRow.exists)
         XCTAssertEqual(recurrenceRow.label, "Generated Repeat")
         XCTAssertGreaterThanOrEqual(recurrenceRow.frame.height, 44)
+        XCTAssertEqual(
+            app.buttons.matching(
+                NSPredicate(format: "identifier BEGINSWITH 'home-recurrence-stop-action-'")
+            ).count,
+            0
+        )
 
         recurrenceRow.tap()
-        let stopAction = app.buttons
-            .matching(NSPredicate(format: "identifier BEGINSWITH 'home-recurrence-stop-action-'"))
-            .firstMatch
-        XCTAssertTrue(stopAction.waitForExistence(timeout: 3))
-        XCTAssertEqual(stopAction.label, "Stop Repeat")
-        stopAction.tap()
-
         XCTAssertTrue(app.staticTexts["Stop repeating this task?"].waitForExistence(timeout: 3))
         app.buttons["home-recurrence-stop-cancel-button"].firstMatch.tap()
         XCTAssertTrue(recurrenceRow.waitForExistence(timeout: 3))
 
         recurrenceRow.tap()
-        XCTAssertTrue(stopAction.waitForExistence(timeout: 3))
-        stopAction.tap()
         XCTAssertTrue(app.staticTexts["Stop repeating this task?"].waitForExistence(timeout: 3))
         app.buttons["home-recurrence-stop-confirm-button"].firstMatch.tap()
 

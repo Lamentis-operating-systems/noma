@@ -54,14 +54,4 @@ final class UICleanupTests: XCTestCase {
         )
     }
 
-    func testHomeCreateButtonOffsetCompensatesForTheBottomSafeArea() {
-        XCTAssertEqual(
-            HomeViewLayout.createButtonVerticalOffset(bottomSafeAreaInset: 34),
-            2
-        )
-        XCTAssertEqual(
-            HomeViewLayout.createButtonVerticalOffset(bottomSafeAreaInset: 0),
-            -32
-        )
-    }
 }

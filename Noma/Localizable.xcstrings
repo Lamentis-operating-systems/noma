@@ -1767,13 +1767,13 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Öffnet Aktionen für die Wiederholung."
+            "value" : "Öffnet die Bestätigung zum Beenden der Wiederholung."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens repeat actions."
+            "value" : "Shows confirmation to stop the repeat."
           }
         }
       }
