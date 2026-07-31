@@ -36,6 +36,7 @@ enum CreateReminderContextMenuCopy {
 enum CreateReminderListLayout {
     static let bottomScrollPadding = NomaSize.scrollDismissSentinel
     static let bottomAnchorID = "create-reminder-list-bottom-anchor"
+    static let carryForwardSectionTopPadding = NomaSpacing.xxl + NomaSpacing.md + NomaSpacing.xl
 }
 
 enum CreateReminderMetadataIconLayout {
@@ -227,17 +228,17 @@ struct CreateReminderList: View {
                 )
 
                 if !carryForwardPreviewReminders.isEmpty {
-                    if !reminders.isEmpty {
-                        Divider()
-                            .padding(.top, NomaSpacing.xxl)
-                            .padding(.bottom, NomaSpacing.xl)
-                    }
-
                     CreateReminderSectionHeader(
                         title: String(localized: String.LocalizationValue(CreateReminderListSection.carryForwardPreviewTitleKey)),
                         systemImage: CreateReminderListSection.carryForwardPreviewSystemImage,
                         color: .textSecondary,
                         bottomPadding: SectionHeaderLayout.bottomPadding - NomaSpacing.md
+                    )
+                    .padding(
+                        .top,
+                        reminders.isEmpty
+                            ? 0
+                            : CreateReminderListLayout.carryForwardSectionTopPadding
                     )
 
                     ForEach(carryForwardPreviewReminders) { reminder in
