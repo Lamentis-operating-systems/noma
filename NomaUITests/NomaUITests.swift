@@ -131,7 +131,7 @@ final class NomaUITests: XCTestCase {
     func testRecurringTaskMaterializesVisibleTaskOnForegroundLaunch() {
         let app = launch(.recurrence, language: "en")
         XCTAssertTrue(app.staticTexts["Generated Repeat"].waitForExistence(timeout: 8))
-        XCTAssertEqual(app.images.matching(identifier: "recurrence-indicator").count, 1)
+        XCTAssertEqual(app.images.matching(identifier: "recurrence-indicator").count, 0)
         let recurrencesSectionTitle = app.descendants(matching: .any)
             .matching(identifier: "home-recurrences-section-title")
             .firstMatch

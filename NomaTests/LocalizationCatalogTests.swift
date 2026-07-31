@@ -52,10 +52,11 @@ final class LocalizationCatalogTests: XCTestCase {
         XCTAssertNil(strings["settings.notifications.time"])
     }
 
-    func testRecurrenceManagerOnlyLocalizationKeysAreRemoved() throws {
+    func testRetiredRecurrenceLocalizationKeysAreRemoved() throws {
         let strings = try loadCatalog().strings
 
         XCTAssertNil(strings["recurrence.close"])
+        XCTAssertNil(strings["recurrence.indicator"])
         XCTAssertNil(strings["recurrence.stop.explanation"])
     }
 
