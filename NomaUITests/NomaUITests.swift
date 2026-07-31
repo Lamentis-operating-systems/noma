@@ -15,7 +15,7 @@ final class NomaUITests: XCTestCase {
         XCTAssertEqual(app.switches.matching(identifier: "signup-consent-toggle").count, 0)
     }
 
-    func testEmptyHomeKeepsCopyAndCaptureWithoutCircularPlusIcon() {
+    func testEmptyHomeKeepsCopyAndCircularIconOnlyCaptureAccessible() {
         let app = launch(.empty, language: "en")
         let capture = app.buttons["home-create-button"]
 
@@ -25,6 +25,9 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(capture.waitForExistence(timeout: 3))
         XCTAssertTrue(capture.isEnabled)
         XCTAssertTrue(capture.isHittable)
+        XCTAssertEqual(capture.label, "Task")
+        XCTAssertEqual(capture.frame.width, capture.frame.height, accuracy: 1)
+        XCTAssertGreaterThanOrEqual(capture.frame.width, 44)
         XCTAssertEqual(app.images.matching(identifier: "plus.circle").count, 0)
     }
 

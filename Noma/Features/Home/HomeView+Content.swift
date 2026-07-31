@@ -2,9 +2,19 @@ import SwiftUI
 
 extension HomeView {
     var createButton: some View {
-        PrimaryGlassButton(title: "create.button.title", systemImage: "square.and.pencil") {
+        Button {
             path.append(.create)
+        } label: {
+            Label("create.button.title", systemImage: "square.and.pencil")
+                .labelStyle(.iconOnly)
+                .font(.system(size: NomaSize.homeCreateButtonIcon, weight: .bold))
+                .foregroundStyle(.primaryBackground)
+                .frame(width: NomaSize.homeCreateButton, height: NomaSize.homeCreateButton)
         }
+        .tint(.primary)
+        .buttonStyle(.glassProminent)
+        .buttonBorderShape(.circle)
+        .accessibilityLabel(Text("create.button.title"))
         .accessibilityIdentifier("home-create-button")
     }
 
