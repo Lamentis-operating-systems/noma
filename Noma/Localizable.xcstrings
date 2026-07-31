@@ -1762,6 +1762,22 @@
         }
       }
     },
+    "recurrence.home.actions.accessibility-hint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffnet Aktionen für die Wiederholung."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens repeat actions."
+          }
+        }
+      }
+    },
     "recurrence.manage" : {
       "localizations" : {
         "de" : {
@@ -1806,6 +1822,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stop Repeat"
+          }
+        }
+      }
+    },
+    "recurrence.stop.confirmation-message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zukünftige Aufgaben werden nicht mehr erstellt. Die heutige Aufgabe bleibt erhalten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Future tasks will no longer be created. Today's task will remain."
+          }
+        }
+      }
+    },
+    "recurrence.stop.confirmation-title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederholung beenden?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop repeating this task?"
           }
         }
       }

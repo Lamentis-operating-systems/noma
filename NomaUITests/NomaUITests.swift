@@ -131,7 +131,7 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(app.buttons["recurrence-custom-save-button"].exists)
     }
 
-    func testRecurringTaskMaterializesVisibleTaskOnForegroundLaunch() {
+    func testRecurringTaskMaterializesAndCanBeStoppedFromHomeWithConfirmation() {
         let app = launch(.recurrence, language: "en")
         XCTAssertTrue(app.staticTexts["Generated Repeat"].waitForExistence(timeout: 8))
         XCTAssertEqual(app.images.matching(identifier: "recurrence-indicator").count, 0)
@@ -141,16 +141,33 @@ final class NomaUITests: XCTestCase {
         XCTAssertTrue(recurrencesSectionTitle.waitForExistence(timeout: 3))
         XCTAssertEqual(recurrencesSectionTitle.label, "Repeating Tasks")
 
-        let recurrenceRow = app.descendants(matching: .any)
+        let recurrenceRow = app.buttons
             .matching(NSPredicate(format: "identifier BEGINSWITH 'home-recurrence-'"))
             .firstMatch
         XCTAssertTrue(recurrenceRow.exists)
         XCTAssertEqual(recurrenceRow.label, "Generated Repeat")
-        XCTAssertEqual(
-            app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'home-recurrence-'"))
-                .count,
-            0
-        )
+        XCTAssertGreaterThanOrEqual(recurrenceRow.frame.height, 44)
+
+        recurrenceRow.tap()
+        let stopAction = app.buttons
+            .matching(NSPredicate(format: "identifier BEGINSWITH 'home-recurrence-stop-action-'"))
+            .firstMatch
+        XCTAssertTrue(stopAction.waitForExistence(timeout: 3))
+        XCTAssertEqual(stopAction.label, "Stop Repeat")
+        stopAction.tap()
+
+        XCTAssertTrue(app.staticTexts["Stop repeating this task?"].waitForExistence(timeout: 3))
+        app.buttons["home-recurrence-stop-cancel-button"].firstMatch.tap()
+        XCTAssertTrue(recurrenceRow.waitForExistence(timeout: 3))
+
+        recurrenceRow.tap()
+        XCTAssertTrue(stopAction.waitForExistence(timeout: 3))
+        stopAction.tap()
+        XCTAssertTrue(app.staticTexts["Stop repeating this task?"].waitForExistence(timeout: 3))
+        app.buttons["home-recurrence-stop-confirm-button"].firstMatch.tap()
+
+        XCTAssertTrue(recurrenceRow.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["Generated Repeat"].exists)
     }
 
     private enum Scenario: String {

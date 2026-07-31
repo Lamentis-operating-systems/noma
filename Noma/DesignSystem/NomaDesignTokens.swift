@@ -20,6 +20,7 @@ enum NomaOffset {
 
 enum NomaSize {
     static let scrollDismissSentinel: NomaMetric.Value = 1
+    static let minimumTouchTarget: NomaMetric.Value = 44
     static let sendButton: NomaMetric.Value = 34
     static let homeCreateButton: NomaMetric.Value = 56
     static let homeCreateButtonIcon: NomaMetric.Value = 24
