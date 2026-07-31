@@ -30,6 +30,11 @@ final class NomaUITests: XCTestCase {
         XCTAssertEqual(capture.frame.width, capture.frame.height, accuracy: 1)
         XCTAssertGreaterThan(capture.frame.midX, app.frame.midX)
         XCTAssertGreaterThan(capture.frame.midY, app.frame.height * 0.75)
+        let rightEdgeDistance = app.frame.maxX - capture.frame.maxX
+        let bottomEdgeDistance = app.frame.maxY - capture.frame.maxY
+        let edgeDistances = "right: \(rightEdgeDistance), bottom: \(bottomEdgeDistance)"
+        XCTAssertEqual(rightEdgeDistance, 32, accuracy: 1, edgeDistances)
+        XCTAssertEqual(bottomEdgeDistance, 32, accuracy: 1, edgeDistances)
         XCTAssertEqual(app.images.matching(identifier: "plus.circle").count, 0)
     }
 

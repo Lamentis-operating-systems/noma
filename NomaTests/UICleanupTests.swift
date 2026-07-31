@@ -54,4 +54,18 @@ final class UICleanupTests: XCTestCase {
         )
     }
 
+    func testHomeCreateButtonPaddingKeepsThePhysicalScreenEdgeDistance() {
+        XCTAssertEqual(
+            HomeViewLayout.createButtonInsetPadding(safeAreaInset: 34),
+            -2
+        )
+        XCTAssertEqual(
+            HomeViewLayout.createButtonInsetPadding(safeAreaInset: 0),
+            32
+        )
+        XCTAssertEqual(
+            HomeViewLayout.createButtonTrailingPadding(safeAreaInset: 0),
+            27
+        )
+    }
 }
