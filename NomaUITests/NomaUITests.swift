@@ -143,6 +143,11 @@ final class NomaUITests: XCTestCase {
             .firstMatch
         XCTAssertTrue(recurrenceRow.exists)
         XCTAssertEqual(recurrenceRow.label, "Generated Repeat")
+        XCTAssertEqual(
+            app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'home-recurrence-'"))
+                .count,
+            0
+        )
     }
 
     private enum Scenario: String {
