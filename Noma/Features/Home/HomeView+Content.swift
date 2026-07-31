@@ -19,11 +19,13 @@ extension HomeView {
                 }
 
                 if !dailyTaskGroups.recurrences.isEmpty {
-                    if !todayReminders.isEmpty {
-                        HomeSectionDivider()
-                    }
-
                     recurrencesSection
+                        .padding(
+                            .top,
+                            todayReminders.isEmpty
+                                ? 0
+                                : NomaSpacing.xxl + NomaSpacing.md + NomaSpacing.xl
+                        )
                 }
             }
 
@@ -87,13 +89,5 @@ extension HomeView {
         Task {
             await dailyTaskNotifications.refreshDailyTaskReminders(for: todayReminders)
         }
-    }
-}
-
-private struct HomeSectionDivider: View {
-    var body: some View {
-        Divider()
-            .padding(.top, NomaSpacing.xxl + NomaSpacing.md)
-            .padding(.bottom, NomaSpacing.xl)
     }
 }
